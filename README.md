@@ -39,3 +39,4 @@ Le frontend est accessible sur [localhost:5173](http://localhost:5173) par défa
 
 - `apps/web` : frontend. Styles communs dans `src/styles`, SCSS Modules à côté des composants.
 - `apps/api` : backend.
+- `apps/api/database` : [schéma et organisation de la base](apps/api/database/README.md).
