@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+.cache/
+.sites-runtime/
+coverage/
+work/
+*.log
+.DS_Store
+package-lock.json
