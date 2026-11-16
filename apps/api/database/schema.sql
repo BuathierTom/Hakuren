@@ -1,5 +1,3 @@
--- Initial schema for an empty database. MySQL 8.0.16+ / MariaDB 10.6+.
--- Select the database before executing this file. No database creation or reset.
 
 CREATE TABLE data_sources (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -8,7 +6,6 @@ CREATE TABLE data_sources (
   url VARCHAR(1024) NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Raw input stays separate from the published catalogue, including ambiguous matches.
 CREATE TABLE source_records (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   source_id INT UNSIGNED NOT NULL,
@@ -90,7 +87,6 @@ CREATE TABLE variant_components (
   CONSTRAINT fk_component_source FOREIGN KEY (source_record_id) REFERENCES source_records(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Stable external identities are independent of the versioned raw records.
 CREATE TABLE variant_external_ids (
   source_id INT UNSIGNED NOT NULL,
   external_key VARCHAR(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
@@ -100,7 +96,6 @@ CREATE TABLE variant_external_ids (
   CONSTRAINT fk_variant_external_variant FOREIGN KEY (variant_id) REFERENCES player_variants(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Matching is reviewed per scope: a correct identity does not validate its learnset.
 CREATE TABLE variant_source_links (
   variant_id INT UNSIGNED NOT NULL,
   source_record_id INT UNSIGNED NOT NULL,
@@ -150,7 +145,6 @@ CREATE TABLE rarities (
   sort_order SMALLINT UNSIGNED NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Positive, verified availability. An absent row means unknown, not forbidden.
 CREATE TABLE variant_rarities (
   variant_id INT UNSIGNED NOT NULL,
   rarity_id INT UNSIGNED NOT NULL,
@@ -193,7 +187,6 @@ CREATE TABLE player_stat_profiles (
   CONSTRAINT fk_stat_source FOREIGN KEY (source_record_id) REFERENCES source_records(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- One catalogue covers ordinary techniques and special powers.
 CREATE TABLE techniques (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   slug VARCHAR(120) CHARACTER SET ascii COLLATE ascii_bin NOT NULL UNIQUE,
@@ -285,7 +278,6 @@ CREATE TABLE learnset_rarities (
   CONSTRAINT fk_learnset_rarity_source FOREIGN KEY (source_record_id) REFERENCES source_records(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Discord snowflakes are strings: they exceed JavaScript's safe integer range.
 CREATE TABLE users (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   discord_id VARCHAR(20) CHARACTER SET ascii COLLATE ascii_bin NOT NULL UNIQUE,
@@ -295,7 +287,6 @@ CREATE TABLE users (
   updated_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Ownership and wishlist are independent flags; tracking is per variant.
 CREATE TABLE user_collection (
   user_id INT UNSIGNED NOT NULL,
   variant_id INT UNSIGNED NOT NULL,
@@ -342,7 +333,6 @@ CREATE TABLE squads (
   CONSTRAINT fk_squad_context FOREIGN KEY (context_id) REFERENCES game_contexts(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Empty slots are absent rows. A draft may be incomplete.
 CREATE TABLE squad_players (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   squad_id INT UNSIGNED NOT NULL,
@@ -358,7 +348,6 @@ CREATE TABLE squad_players (
   CONSTRAINT fk_squad_player_availability FOREIGN KEY (variant_id, rarity_id) REFERENCES variant_rarities(variant_id, rarity_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- The duplicated variant_id enforces that the chosen learnset belongs to the player.
 CREATE TABLE squad_player_techniques (
   squad_player_id INT UNSIGNED NOT NULL,
   variant_id INT UNSIGNED NOT NULL,

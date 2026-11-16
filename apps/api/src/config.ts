@@ -9,7 +9,6 @@ export interface AppConfig {
 }
 
 export function loadEnvironment(): void {
-  // src/config.ts and dist/config.js both sit three levels below the repository root.
   const path = fileURLToPath(new URL('../../../.env', import.meta.url));
   if (existsSync(path)) process.loadEnvFile(path);
 }
@@ -29,5 +28,10 @@ export function getConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       throw new Error('DATABASE_URL doit préciser un serveur et une base MySQL.');
     }
   }
-  return { host: env.HOST || '127.0.0.1', port, databaseUrl, production: env.NODE_ENV === 'production' };
+  return {
+    host: env.HOST || '127.0.0.1',
+    port,
+    databaseUrl,
+    production: env.NODE_ENV === 'production',
+  };
 }

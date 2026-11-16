@@ -1,27 +1,51 @@
 import Fastify from 'fastify';
 import type { Database } from './db/client.js';
+import { registerCatalogueRoutes } from './catalogue/routes.js';
+import type { CatalogueRepository } from './catalogue/repository.js';
 
 export interface AppOptions {
   database?: Database;
+  catalogue?: CatalogueRepository;
   logger?: boolean;
 }
-
-/** Application factory: requests can be tested without opening a network port. */
-export function buildApp({ database, logger = false }: AppOptions = {}) {
+export function buildApp({ database, catalogue, logger = false }: AppOptions = {}) {
   const app = Fastify({
     bodyLimit: 1_048_576,
-    logger: logger ? {
-      redact: ['req.headers.authorization', 'req.headers.cookie'],
-      serializers: {
-        req(request) {
-          return { method: request.method, url: request.url?.split('?')[0], hostname: request.hostname };
-        },
-      },
-    } : false,
+    ajv: { customOptions: { removeAdditional: false } },
+    logger: logger
+      ? {
+          redact: ['req.headers.authorization', 'req.headers.cookie'],
+          serializers: {
+            req(request) {
+              return {
+                method: request.method,
+                url: request.url?.split('?')[0],
+                hostname: request.hostname,
+              };
+            },
+          },
+        }
+      : false,
   });
 
   app.addHook('onSend', async (_request, reply) => {
     reply.header('X-Content-Type-Options', 'nosniff');
+    reply.header('Cache-Control', 'no-store');
+  });
+
+  app.setErrorHandler((error, request, reply) => {
+    const details = typeof error === 'object' && error !== null ? error : null;
+    if (details && 'validation' in details)
+      return reply
+        .code(400)
+        .send({ error: 'INVALID_REQUEST', message: 'Les paramètres de recherche sont invalides.' });
+    const code =
+      details && 'code' in details && typeof details.code === 'string' ? details.code : undefined;
+    request.log.error({ code, requestId: request.id }, 'Catalogue request failed');
+    return reply.code(503).send({
+      error: 'CATALOGUE_UNAVAILABLE',
+      message: 'Le catalogue est momentanément indisponible.',
+    });
   });
 
   app.get('/api/health', async () => ({ status: 'ok', service: 'kizunadex-api' }));
@@ -39,6 +63,9 @@ export function buildApp({ database, logger = false }: AppOptions = {}) {
     }
   });
 
-  app.addHook('onClose', async () => { await database?.close(); });
+  registerCatalogueRoutes(app, catalogue);
+  app.addHook('onClose', async () => {
+    await database?.close();
+  });
   return app;
 }

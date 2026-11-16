@@ -18,10 +18,20 @@ async function main() {
     console.log('Sources et bilans locaux : work/catalogue/ (ignoré par Git).');
     return;
   }
-  if (args.has('--offline') && args.has('--refresh')) throw new Error('--offline et --refresh sont incompatibles.');
-  const resources = await collectSources({ offline: args.has('--offline'), refresh: args.has('--refresh'), log: console.log });
+  if (args.has('--offline') && args.has('--refresh'))
+    throw new Error('--offline et --refresh sont incompatibles.');
+  const resources = await collectSources({
+    offline: args.has('--offline'),
+    refresh: args.has('--refresh'),
+    log: console.log,
+  });
   const plan = prepareCatalogue(resources);
-  const result = { preparedAt: new Date().toISOString(), snapshot: SNAPSHOT, mode: args.has('--dry-run') ? 'dry-run' : 'import', ...plan.summary, warnings: plan.warnings,
+  const result = {
+    preparedAt: new Date().toISOString(),
+    snapshot: SNAPSHOT,
+    mode: args.has('--dry-run') ? 'dry-run' : 'import',
+    ...plan.summary,
+    warnings: plan.warnings,
     sources: [...resources.values()].map(({ body, ...meta }) => meta),
   };
   console.log(JSON.stringify({ ...plan.summary, warnings: plan.warnings }, null, 2));
@@ -30,18 +40,27 @@ async function main() {
     const { databaseUrl } = getConfig();
     if (!databaseUrl) throw new Error('Configurer DATABASE_URL avant l’import.');
     const pool = createPool(databaseUrl);
-    try { await importCatalogue(pool, plan, console.log); }
-    finally { await pool.end(); }
+    try {
+      await importCatalogue(pool, plan, console.log);
+    } finally {
+      await pool.end();
+    }
     console.log('Catalogue importé.');
   }
   await mkdir(CACHE, { recursive: true });
-  await writeFile(resolve(CACHE, args.has('--dry-run') ? 'last-preview.json' : 'last-import.json'), JSON.stringify(result, null, 2) + '\n');
+  await writeFile(
+    resolve(CACHE, args.has('--dry-run') ? 'last-preview.json' : 'last-import.json'),
+    JSON.stringify(result, null, 2) + '\n',
+  );
 }
 
 main().catch((error: unknown) => {
-  // SQL errors may contain private connection details or whole payloads.
   const sql = typeof error === 'object' && error !== null && 'sql' in error;
-  const message = sql ? 'Échec SQL pendant l’import. Vérifier le schéma et la disponibilité de la base ; la commande peut être relancée sans doublon.' : error instanceof Error ? error.message : 'Erreur inconnue.';
+  const message = sql
+    ? 'Échec SQL pendant l’import. Vérifier le schéma et la disponibilité de la base ; la commande peut être relancée sans doublon.'
+    : error instanceof Error
+      ? error.message
+      : 'Erreur inconnue.';
   console.error(message);
   process.exitCode = 1;
 });

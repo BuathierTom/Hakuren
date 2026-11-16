@@ -5,11 +5,13 @@ import { createDatabase } from './db/client.js';
 loadEnvironment();
 const config = getConfig();
 const database = config.databaseUrl ? createDatabase(config.databaseUrl) : undefined;
-const app = buildApp({ database, logger: true });
+const app = buildApp({ database, catalogue: database?.catalogue, logger: true });
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.once(signal, () => {
-    app.close().catch(() => { process.exitCode = 1; });
+    app.close().catch(() => {
+      process.exitCode = 1;
+    });
   });
 }
 

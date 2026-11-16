@@ -1,4 +1,5 @@
 import { createPool as createMysqlPool, type Pool } from 'mysql2/promise';
+import { createCatalogueRepository, type CatalogueRepository } from '../catalogue/repository.js';
 
 export interface Database {
   check(): Promise<void>;
@@ -15,16 +16,22 @@ export function createPool(connectionString: string): Pool {
     waitForConnections: true,
     queueLimit: 20,
     charset: 'utf8mb4',
-    // Repositories finish transactions explicitly. An async reset can race pool.end().
     resetOnRelease: false,
     multipleStatements: false,
   });
 }
 
-export function createDatabase(connectionString: string): Database {
+export function createDatabase(
+  connectionString: string,
+): Database & { catalogue: CatalogueRepository } {
   const pool = createPool(connectionString);
   return {
-    async check() { await pool.execute({ sql: 'SELECT 1', timeout: 5_000 }); },
-    async close() { await pool.end(); },
+    catalogue: createCatalogueRepository(pool),
+    async check() {
+      await pool.execute({ sql: 'SELECT 1', timeout: 5_000 });
+    },
+    async close() {
+      await pool.end();
+    },
   };
 }

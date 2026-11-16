@@ -1,4 +1,3 @@
--- Apply once to a database created with the original step-2 schema.
 ALTER TABLE player_variants
   MODIFY element ENUM('wind', 'forest', 'fire', 'mountain', 'void') NULL,
   MODIFY gender ENUM('male', 'female', 'neutral') NULL;
