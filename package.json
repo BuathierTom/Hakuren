@@ -10,6 +10,7 @@
     "dev": "node scripts/dev.mjs",
     "dev:api": "npm run dev --workspace @kizunadex/api",
     "dev:web": "npm run dev --workspace @kizunadex/web",
+    "import:catalogue": "node --import tsx apps/api/src/catalogue/cli.ts",
     "build": "npm run build --workspaces",
     "typecheck": "npm run typecheck --workspaces",
     "test": "node --import tsx --test apps/api/test/*.test.ts",

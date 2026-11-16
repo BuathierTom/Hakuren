@@ -15,7 +15,8 @@ export function createPool(connectionString: string): Pool {
     waitForConnections: true,
     queueLimit: 20,
     charset: 'utf8mb4',
-    resetOnRelease: true,
+    // Repositories finish transactions explicitly. An async reset can race pool.end().
+    resetOnRelease: false,
     multipleStatements: false,
   });
 }
