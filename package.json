@@ -14,8 +14,7 @@
     "typecheck": "npm run typecheck --workspaces",
     "test": "node --import tsx --test apps/api/test/*.test.ts",
     "check": "npm run typecheck && npm test && npm run build",
-    "start": "npm run start --workspace @kizunadex/api",
-    "db:migrate": "node --import tsx apps/api/src/db/migrate.ts"
+    "start": "npm run start --workspace @kizunadex/api"
   },
   "devDependencies": {
     "@types/node": "^24.10.0",

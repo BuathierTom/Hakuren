@@ -15,7 +15,7 @@ for (const signal of ['SIGINT', 'SIGTERM'] as const) {
 
 try {
   await app.listen({ host: config.host, port: config.port });
-  if (!database) app.log.info('PostgreSQL non configuré. Renseigner DATABASE_URL dans .env.');
+  if (!database) app.log.info('MySQL non configuré. Renseigner DATABASE_URL dans .env.');
 } catch (error) {
   app.log.error(error);
   await app.close();

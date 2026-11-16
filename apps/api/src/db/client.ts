@@ -1,4 +1,4 @@
-import { Pool } from 'pg';
+import { createPool as createMysqlPool, type Pool } from 'mysql2/promise';
 
 export interface Database {
   check(): Promise<void>;
@@ -6,22 +6,24 @@ export interface Database {
 }
 
 export function createPool(connectionString: string): Pool {
-  const pool = new Pool({
-    connectionString,
-    max: 5,
-    connectionTimeoutMillis: 5_000,
-    idleTimeoutMillis: 10_000,
-    statement_timeout: 10_000,
+  return createMysqlPool({
+    uri: connectionString,
+    connectionLimit: 5,
+    maxIdle: 5,
+    idleTimeout: 10_000,
+    connectTimeout: 5_000,
+    waitForConnections: true,
+    queueLimit: 20,
+    charset: 'utf8mb4',
+    resetOnRelease: true,
+    multipleStatements: false,
   });
-  // An idle connection can fail outside a request. Consume the event without logging credentials.
-  pool.on('error', () => console.error('Connexion PostgreSQL inactive interrompue.'));
-  return pool;
 }
 
 export function createDatabase(connectionString: string): Database {
   const pool = createPool(connectionString);
   return {
-    async check() { await pool.query('SELECT 1'); },
+    async check() { await pool.execute({ sql: 'SELECT 1', timeout: 5_000 }); },
     async close() { await pool.end(); },
   };
 }

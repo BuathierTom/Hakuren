@@ -22,8 +22,11 @@ export function getConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const databaseUrl = env.DATABASE_URL?.trim() || undefined;
   if (databaseUrl) {
     const url = new URL(databaseUrl);
-    if (!['postgres:', 'postgresql:'].includes(url.protocol)) {
-      throw new Error('DATABASE_URL doit utiliser le protocole postgresql://.');
+    if (url.protocol !== 'mysql:') {
+      throw new Error('DATABASE_URL doit utiliser le protocole mysql://.');
+    }
+    if (!url.hostname || url.pathname.length < 2 || url.pathname === '/') {
+      throw new Error('DATABASE_URL doit préciser un serveur et une base MySQL.');
     }
   }
   return { host: env.HOST || '127.0.0.1', port, databaseUrl, production: env.NODE_ENV === 'production' };
