@@ -1,0 +1,171 @@
+.header {
+  height: 80px;
+  background: #ffffffec;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.headerInner {
+  max-width: var(--content-max-width);
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 35px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-text);
+  text-decoration: none;
+  min-width: 215px;
+  img {
+    object-fit: contain;
+  }
+  > span {
+    font-size: 23px;
+    font-weight: 800;
+    letter-spacing: -0.055em;
+  }
+  > span > span {
+    color: var(--color-accent);
+  }
+}
+
+.nav {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+  gap: 30px;
+  a {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    position: relative;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-muted);
+    text-decoration: none;
+    padding: 0 8px;
+  }
+  a:hover,
+  a[aria-current='page'] {
+    color: var(--color-accent);
+  }
+  a[aria-current='page']::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    height: 3px;
+    left: 4px;
+    right: 4px;
+    border-radius: 3px 3px 0 0;
+    background: var(--color-accent);
+  }
+}
+
+.gameBadge {
+  min-width: 215px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 7px;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 0.11em;
+  color: #72857a;
+  span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #72a47b;
+    box-shadow: 0 0 0 4px #72a47b0c;
+  }
+}
+
+@media (max-width: 1200px) {
+  .gameBadge,
+  .brand {
+    min-width: auto;
+  }
+}
+
+@media (max-width: 900px) {
+  .headerInner {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+@media (max-width: 680px) {
+  .header {
+    height: 72px;
+  }
+
+  .headerInner {
+    gap: 18px;
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .brand {
+    gap: 5px;
+    > span {
+      font-size: 20px;
+    }
+    img {
+      width: 35px;
+      height: 35px;
+    }
+  }
+
+  .nav {
+    gap: 9px;
+    margin-left: auto;
+    a {
+      gap: 5px;
+      padding: 0 4px;
+      font-size: 11px;
+      svg {
+        width: 15px;
+        height: 15px;
+      }
+    }
+  }
+
+  .gameBadge {
+    display: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .headerInner {
+    padding-left: 12px;
+    padding-right: 12px;
+    gap: 8px;
+  }
+
+  .brand {
+    gap: 4px;
+    > span {
+      font-size: 18px;
+    }
+    img {
+      width: 32px;
+      height: 32px;
+    }
+  }
+
+  .nav {
+    gap: 5px;
+    a {
+      font-size: 10px;
+      svg {
+        display: none;
+      }
+    }
+  }
+}

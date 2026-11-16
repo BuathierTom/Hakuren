@@ -7,3 +7,29 @@
 body {
   margin: 0;
 }
+
+button,
+input,
+select {
+  font: inherit;
+}
+button,
+select {
+  cursor: pointer;
+}
+button:disabled,
+select:disabled {
+  cursor: default;
+}
+button {
+  color: inherit;
+}
+img {
+  display: block;
+}
+button,
+a,
+input,
+select {
+  -webkit-tap-highlight-color: transparent;
+}

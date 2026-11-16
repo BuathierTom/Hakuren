@@ -1,0 +1,81 @@
+.element {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 600;
+
+  &[data-element='wind'] {
+    color: var(--color-wind);
+  }
+  &[data-element='forest'] {
+    color: var(--color-forest);
+  }
+  &[data-element='fire'] {
+    color: var(--color-fire);
+  }
+  &[data-element='mountain'] {
+    color: var(--color-mountain);
+  }
+  &[data-element='void'] {
+    color: var(--color-void);
+  }
+}
+.compact {
+  display: grid;
+  place-items: center;
+  width: 29px;
+  height: 29px;
+  border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, currentColor 8%, white);
+}
+.position {
+  display: inline-grid;
+  place-items: center;
+  min-width: 30px;
+  height: 23px;
+  padding: 0 6px;
+  border-radius: 5px;
+  background: #e7eceb;
+  color: var(--color-text);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+
+  &[data-position='GK'] {
+    color: #8d6611;
+    background: #fff0bd;
+  }
+  &[data-position='DF'] {
+    color: #446b9c;
+    background: #e5eefb;
+  }
+  &[data-position='MF'] {
+    color: #347353;
+    background: #ddf2e6;
+  }
+  &[data-position='FW'] {
+    color: #b2543e;
+    background: #ffe9df;
+  }
+}
+.rarity {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  background: #fff5d0;
+  color: #8a6411;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+
+  &[data-rarity='basara'] {
+    background: #e6e8fc;
+    color: #626098;
+  }
+}

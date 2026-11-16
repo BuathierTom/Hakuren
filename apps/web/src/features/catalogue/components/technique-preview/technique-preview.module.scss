@@ -1,0 +1,25 @@
+@use '@/styles/patterns/details';
+.section {
+  @include details.section;
+  h3 {
+    font-size: 15px;
+    margin: 0 0 17px;
+  }
+}
+.video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 9px;
+  background: #172b24;
+}
+.unavailable {
+  @include details.unknown;
+  button {
+    padding: 8px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    color: var(--color-accent);
+    background: white;
+  }
+}

@@ -1,0 +1,243 @@
+@use '@/styles/patterns/cards';
+
+.player {
+  @include cards.surface;
+}
+
+.visual {
+  position: relative;
+  height: 174px;
+  overflow: hidden;
+  background: #f0f5f3;
+
+  &[data-element='fire'] {
+    background: #fcf2eb;
+  }
+  &[data-element='wind'] {
+    background: #eef4f7;
+  }
+  &[data-element='mountain'] {
+    background: #f3f0f6;
+  }
+}
+
+.player {
+  display: flex;
+  flex-direction: column;
+}
+
+.cardTop {
+  position: absolute;
+  z-index: 2;
+  inset: 13px 13px auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  > :last-child {
+    margin-left: auto;
+  }
+}
+
+.number {
+  color: var(--color-muted);
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.pitchCircle {
+  position: absolute;
+  left: 50%;
+  bottom: -63px;
+  width: 205px;
+  height: 160px;
+  transform: translateX(-50%);
+  border: 1px solid #164b3320;
+  border-radius: 50%;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: -50px;
+    height: 160px;
+    border-left: 1px solid #164b3310;
+  }
+}
+
+.portraitWrap {
+  padding: 31px 12px 0;
+}
+
+.playerContent {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 15px 16px 13px;
+}
+
+.playerName {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  min-height: 24px;
+  h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.4;
+    letter-spacing: -0.02em;
+    overflow-wrap: anywhere;
+  }
+}
+
+.rarities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 100%;
+}
+
+.playerContent p {
+  margin: 4px 0 12px;
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.cardBottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-border-soft);
+}
+
+.work {
+  font-size: 11px;
+  font-weight: 650;
+  color: #63736b;
+}
+
+.cardArrow {
+  display: flex;
+  color: #91a59b;
+}
+
+.player:hover .cardArrow {
+  color: var(--color-accent);
+}
+
+.listPlayer {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  .visual {
+    width: 105px;
+    height: 98px;
+    flex-shrink: 0;
+  }
+  .portraitWrap {
+    padding: 8px 8px 0;
+  }
+
+  .cardTop {
+    inset: 5px 5px auto;
+  }
+  .cardTop > :first-child {
+    display: none;
+  }
+  .cardTop > :last-child {
+    display: none;
+  }
+  .number {
+    font-size: 8px;
+  }
+  .playerContent {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 4px 16px;
+    padding: 15px 20px;
+  }
+  .playerName {
+    grid-column: 1;
+  }
+  .playerContent p {
+    grid-column: 1;
+    margin: 0;
+  }
+  .cardBottom {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    border: 0;
+    margin-top: 0;
+    padding: 0;
+    gap: 20px;
+  }
+  .pitchCircle {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .visual {
+    height: 153px;
+  }
+
+  .cardTop {
+    inset: 9px 8px auto;
+    gap: 4px;
+  }
+
+  .number {
+    font-size: 9px;
+  }
+
+  .playerContent {
+    padding: 12px;
+  }
+
+  .playerName h3 {
+    font-size: 14px;
+  }
+
+  .listPlayer .playerContent {
+    padding: 12px;
+    gap: 4px 8px;
+  }
+
+  .listPlayer .cardBottom {
+    gap: 7px;
+  }
+
+  .listPlayer .cardArrow {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player {
+    transition: none;
+    &:hover {
+      transform: none;
+    }
+  }
+}
+
+@media (max-width: 380px) {
+  .cardTop > :last-child {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+.portraitWrap {
+  position: relative;
+  height: 100%;
+}

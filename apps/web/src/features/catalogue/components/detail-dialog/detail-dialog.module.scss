@@ -1,0 +1,118 @@
+.dialog {
+  position: fixed;
+  inset: 0 0 0 auto;
+  width: min(680px, 100%);
+  height: 100dvh;
+  max-height: 100dvh;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-left: 1px solid #d2ded2;
+  background: var(--color-surface);
+  color: var(--color-text);
+  overflow-y: auto;
+  &::backdrop {
+    background: #152d2590;
+    backdrop-filter: blur(3px);
+  }
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 17px 28px;
+  background: #ffffffed;
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--color-border);
+  > span {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #71877a;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  button {
+    display: grid;
+    place-items: center;
+    width: 33px;
+    height: 33px;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    background: #fff;
+    color: #71877a;
+    &:hover {
+      background: #edf4eb;
+    }
+  }
+}
+
+.body {
+  padding: 30px;
+}
+
+.state {
+  min-height: 350px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 18px;
+  color: #879b78;
+  h2 {
+    font-size: 20px;
+    margin: 0;
+    font-weight: 650;
+  }
+  p {
+    font-size: 12px;
+    line-height: 1.7;
+    margin: 0;
+  }
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 2px solid #dfe8d8;
+  border-top-color: #6d9b51;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.primaryButton {
+  padding: 11px 19px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--color-accent);
+  color: white;
+  font-size: 11px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 560px) {
+  .topbar {
+    padding: 13px 20px;
+  }
+
+  .body {
+    padding: 24px 19px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}

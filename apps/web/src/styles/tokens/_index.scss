@@ -1,9 +1,21 @@
 :root {
-  --color-text: #19273d;
-  --color-background: #f7f8fb;
-  --color-link: #2058d7;
+  --color-text: #203b35;
+  --color-background: #f5f7f5;
+  --color-surface: #fff;
+  --color-muted: #66766b;
+  --color-link: #237a5b;
+  --color-accent: #287b59;
+  --color-accent-soft: #edf5ee;
+  --color-border: #e0e7e1;
+  --color-border-soft: #edf1ed;
+  --color-focus: #408d6b;
+  --color-wind: #38758c;
+  --color-forest: #3d7850;
+  --color-fire: #a65f36;
+  --color-mountain: #7b6192;
+  --color-void: #657181;
 
-  --font-family-base: system-ui, sans-serif;
+  --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-size-title: 2rem;
   --line-height-body: 1.6;
 
@@ -11,5 +23,5 @@
   --space-6: 1.5rem;
   --space-20: 5rem;
 
-  --content-max-width: 46rem;
+  --content-max-width: 1400px;
 }
