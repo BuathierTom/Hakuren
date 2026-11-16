@@ -7,10 +7,20 @@ const tasks = [
 ];
 let stopping = false;
 const children = tasks.map(([name, args]) => {
-  const child = spawn(npm, args, { stdio: 'inherit', env: process.env, detached: process.platform !== 'win32' });
-  child.on('error', (error) => { console.error(`[${name}] ${error.message}`); stop(1); });
+  const child = spawn(npm, args, {
+    stdio: 'inherit',
+    env: process.env,
+    detached: process.platform !== 'win32',
+  });
+  child.on('error', (error) => {
+    console.error(`[${name}] ${error.message}`);
+    stop(1);
+  });
   child.on('exit', (code, signal) => {
-    if (!stopping) { console.error(`[${name}] arrêté (${signal ?? code})`); stop(code ?? 1); }
+    if (!stopping) {
+      console.error(`[${name}] arrêté (${signal ?? code})`);
+      stop(code ?? 1);
+    }
   });
   return child;
 });

@@ -3,8 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "workspaces": ["apps/api", "apps/web"],
-  "engines": { "node": ">=24.0.0" },
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "packageManager": "npm@11.21.2",
   "scripts": {
     "dev": "node scripts/dev.mjs",
@@ -15,10 +20,13 @@
     "typecheck": "npm run typecheck --workspaces",
     "test": "node --import tsx --test apps/api/test/*.test.ts",
     "check": "npm run typecheck && npm test && npm run build",
-    "start": "npm run start --workspace @kizunadex/api"
+    "start": "npm run start --workspace @kizunadex/api",
+    "format": "prettier --write \"apps/**/*.{ts,tsx,scss,html,json}\" \"shared/**/*.ts\" \"scripts/**/*.mjs\" \"*.json\"",
+    "format:check": "prettier --check \"apps/**/*.{ts,tsx,scss,html,json}\" \"shared/**/*.ts\" \"scripts/**/*.mjs\" \"*.json\""
   },
   "devDependencies": {
     "@types/node": "^24.10.0",
+    "prettier": "^3.10.1",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   }

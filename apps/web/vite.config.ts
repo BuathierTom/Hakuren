@@ -15,7 +15,6 @@ function readPort(value: string, name: string): number {
 }
 
 export default defineConfig(() => {
-  // Read server ports without changing Vite's NODE_ENV or exposing backend variables to the client.
   const env = existsSync(envPath) ? parseEnv(readFileSync(envPath, 'utf8')) : {};
   const port = readPort(process.env.FRONT_PORT ?? env.FRONT_PORT ?? '5173', 'FRONT_PORT');
   const apiPort = readPort(process.env.API_PORT ?? env.API_PORT ?? '3001', 'API_PORT');
@@ -23,6 +22,12 @@ export default defineConfig(() => {
 
   return {
     plugins: [react()],
+    resolve: {
+      alias: {
+        '@': fileURLToPath(new URL('./src', import.meta.url)),
+        '@shared': fileURLToPath(new URL('../../shared', import.meta.url)),
+      },
+    },
     server: {
       port,
       strictPort: true,

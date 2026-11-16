@@ -29,17 +29,19 @@ Le frontend est accessible sur [localhost:5173](http://localhost:5173) par défa
 
 ## Commandes
 
-| Commande | Action |
-| --- | --- |
-| `npm run dev` | Lancer le frontend et l'API |
-| `npm run check` | Vérifier les types, les tests et la compilation |
-| `npm run build` | Compiler le projet |
-| `npm run import:catalogue` | Importer le catalogue dans la base configurée |
+| Commande                   | Action                                          |
+| -------------------------- | ----------------------------------------------- |
+| `npm run dev`              | Lancer le frontend et l'API                     |
+| `npm run check`            | Vérifier les types, les tests et la compilation |
+| `npm run build`            | Compiler le projet                              |
+| `npm run format`           | Formater le code et les styles                  |
+| `npm run import:catalogue` | Importer le catalogue dans la base configurée   |
 
 Import : `--dry-run` pour prévisualiser, `--offline` pour utiliser le cache local, `--help` pour l’aide. Les options se passent après `--`.
 
 ## Organisation
 
-- `apps/web` : frontend. Styles communs dans `src/styles`, SCSS Modules à côté des composants.
+- `apps/web/src` : `app` pour le démarrage, `pages` pour les pages, `components` pour l’interface commune et `features` pour les fonctionnalités.
+- Styles globaux et motifs partagés dans `styles`, modules SCSS à côté des composants.
 - `apps/api` : backend.
 - `apps/api/database` : [schéma SQL](apps/api/database/schema.sql).
