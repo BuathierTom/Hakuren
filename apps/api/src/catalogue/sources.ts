@@ -6,6 +6,7 @@ import { lastPage, parseOfficial } from './official.js';
 import { NON_TEAMS, playerModuleId, TEAM_PAGES, wikiQuery } from './team-sources.js';
 
 export const SNAPSHOT = '6c2d57bb55747d2506e9dbe3aa9df152bb75cdc9';
+export const GAME_SNAPSHOT = '05c979efe9ef4565468d725db67c0913394f63dd';
 const RAW = `https://raw.githubusercontent.com/Zpidero/InazumaEleven_API/${SNAPSHOT}/data`;
 export const CACHE = fileURLToPath(new URL('../../../../work/catalogue/', import.meta.url));
 export interface Resource {
@@ -76,6 +77,17 @@ export async function collectSources(
     return resource;
   }
   const fixed: [string, string][] = [
+    ...['fr', 'en', 'ja'].map(
+      (locale) =>
+        [
+          `game-${locale}`,
+          `https://raw.githubusercontent.com/salty-max/kizuna/${GAME_SNAPSHOT}/data/raw/dataminer/ievr.${locale}.json`,
+        ] as [string, string],
+    ),
+    [
+      'game-equipment-images',
+      `https://raw.githubusercontent.com/salty-max/kizuna/${GAME_SNAPSHOT}/data/raw/equipment-images.json`,
+    ],
     ...['players', 'techniques', 'keshins', 'mixmax', 'totems'].map(
       (name) => [name, `${RAW}/${name}.json`] as [string, string],
     ),

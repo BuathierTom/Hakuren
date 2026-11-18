@@ -122,3 +122,27 @@ test('an unconfigured catalogue stays unavailable while health and unknown route
     await app.close();
   }
 });
+
+test('equipment and tactic routes validate categories and pagination independently', async () => {
+  const app = buildApp({
+    catalogue: repository({
+      async items(section, query) {
+        return { items: [], total: 0, pages: 0, page: query.page ?? 1, limit: query.limit ?? 24 };
+      },
+      async item() {
+        return null;
+      },
+    }),
+  });
+  try {
+    assert.equal((await app.inject('/api/equipment?slot=boots&page=2')).statusCode, 200);
+    assert.equal((await app.inject('/api/equipment?slot=invalid')).statusCode, 400);
+    assert.equal((await app.inject('/api/tactics?slot=boots')).statusCode, 400);
+    assert.equal((await app.inject('/api/tactics?limit=49')).statusCode, 400);
+    assert.equal((await app.inject('/api/equipment/0')).statusCode, 400);
+    assert.equal((await app.inject('/api/equipment/99')).statusCode, 404);
+    assert.equal((await app.inject('/api/tactics/99')).statusCode, 404);
+  } finally {
+    await app.close();
+  }
+});

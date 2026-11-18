@@ -6,7 +6,7 @@ import type { Pool, RowDataPacket } from 'mysql2/promise';
 import { loadEnvironment, getConfig } from '../src/config.js';
 import { createPool } from '../src/db/client.js';
 import { importCatalogue } from '../src/catalogue/import.js';
-import { fixturePlan } from './helpers/catalogue.js';
+import { fixturePlan, fixtureGamePlan } from './helpers/catalogue.js';
 import { createCatalogueRepository } from '../src/catalogue/repository.js';
 
 test(
@@ -279,6 +279,65 @@ test(
               ?.teams,
             [],
           );
+        },
+      );
+
+      await t.test(
+        'the French game catalogue preserves saved references and supplies flat stats, auras, equipment and tactics',
+        async () => {
+          const enriched = await fixtureGamePlan();
+          await db.execute(
+            `UPDATE techniques SET preview_url='https://example.test/demo.mp4',preview_mime_type='video/mp4' WHERE name='Test Shot'`,
+          );
+          enriched.techniques.find((row) => row.gameId === '221679467')!.preview =
+            'https://example.test/demo.mp4';
+          await db.execute(
+            `INSERT INTO techniques (slug,name,category) VALUES ('obsolete-passive','Obsolete passive','passive')`,
+          );
+          await importCatalogue(db, enriched);
+          const read = createCatalogueRepository(db);
+          const result = await read.techniques({ q: '221679467' });
+          assert.equal(result.items[0]?.name, 'Tir français');
+          assert.equal(result.items[0]?.power, 85);
+          assert.equal(result.items[0]?.tension, 80);
+          assert.equal(
+            (await read.techniques({ q: 'Test Shot' })).items[0]?.id,
+            result.items[0]?.id,
+          );
+          const detail = await read.technique(result.items[0]!.id);
+          assert.equal(detail?.preview?.url, 'https://example.test/demo.mp4');
+          assert.deepEqual(detail?.notes, ['CD 60']);
+          assert.equal(detail?.userCount, 1);
+          assert.equal(detail?.users[0]?.number, '900003');
+          assert.equal(detail?.grantedBy?.[0]?.gameId, '-72');
+          assert.equal((await read.techniques({ category: 'passive' })).total, 0);
+          assert.equal(
+            (await rows("SELECT COUNT(*) AS count FROM techniques WHERE category='passive'"))[0]
+              ?.count,
+            0,
+          );
+          assert.equal(
+            (await rows('SELECT learnset_id FROM squad_player_techniques'))[0]?.learnset_id,
+            learnset,
+          );
+          const equipment = await read.items!('equipment', { slot: 'boots' });
+          assert.equal(equipment.total, 1);
+          assert.equal(equipment.items[0]?.stats.power, 5);
+          const tactic = await read.items!('tactics', {});
+          assert.equal(tactic.total, 1);
+          assert.equal(tactic.items[0]?.tension, 2.5);
+          assert.equal(await read.item!('equipment', tactic.items[0]!.id), null);
+          assert.equal((await read.filters()).counts.equipment, 1);
+          assert.equal((await read.items!('equipment', { q: '%' })).total, 0);
+          await importCatalogue(db, enriched);
+          assert.equal(
+            (await read.techniques({ q: '221679467' })).items[0]?.id,
+            result.items[0]?.id,
+          );
+          assert.equal((await read.items!('tactics', {})).total, 1);
+          assert.equal((await read.techniques({ q: 'Tir français', category: 'shoot' })).total, 1);
+          assert.equal((await read.items!('tactics', { q: 'Défense' })).total, 1);
+          assert.equal((await read.items!('equipment', { q: 'Équipement absent' })).total, 0);
         },
       );
 

@@ -15,10 +15,15 @@ import type {
   PlayerLearnset,
   TechniqueProfile,
   Element,
+  CatalogueItem,
+  ItemQuery,
+  ItemSection,
 } from '../../../../shared/catalogue.js';
 
 export interface CatalogueRepository {
   filters(): Promise<CatalogueFilters>;
+  items?(section: ItemSection, query: ItemQuery): Promise<Page<CatalogueItem>>;
+  item?(section: ItemSection, id: number): Promise<CatalogueItem | null>;
   players(query: PlayerQuery): Promise<Page<PlayerSummary>>;
   player(id: number): Promise<PlayerDetail | null>;
   techniques(query: TechniqueQuery): Promise<Page<TechniqueSummary>>;
@@ -35,6 +40,8 @@ const PLAYER_FIELDS = `v.id, v.character_id, v.name, v.variant_label, v.portrait
   v.role, v.age_group, v.gender, v.school_year, ext.external_key AS number,
   ow.id AS origin_id, ow.code AS origin_code, ow.name AS origin_name, ow.kind AS origin_kind`;
 const TECH_FROM = 'FROM techniques t LEFT JOIN source_records ts ON ts.id=t.source_record_id';
+const publishedTechnique = `t.is_published=1 AND t.category IS NOT NULL AND t.category NOT IN ('passive','other','tactic')`;
+const TECH_FIELDS = 't.id,t.name,t.category,t.element,t.game_id,t.kind,t.power,t.tension,t.notes';
 const pattern = (q: string) => `%${q.replace(/[!%_]/g, '!$&')}%`;
 const work = (row: RowDataPacket, prefix = ''): Work => ({
   id: row[`${prefix}id`],
@@ -48,6 +55,11 @@ const technique = (row: RowDataPacket): TechniqueSummary => ({
   name: row.name,
   category: row.category,
   element: row.element,
+  gameId: row.game_id ?? null,
+  kind: row.kind ?? null,
+  power: row.power ?? null,
+  tension: row.tension ?? null,
+  notes: Array.isArray(json(row.notes)) ? (json(row.notes) as string[]) : [],
 });
 function json(value: unknown): unknown {
   if (typeof value === 'string') {
@@ -175,13 +187,15 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
     return { sql: `WHERE ${conditions.join(' AND ')}`, values };
   }
   function techniqueWhere(query: TechniqueQuery) {
-    const conditions = [approved('t', 'ts')];
+    const conditions = [approved('t', 'ts'), publishedTechnique];
     const values: Values = [];
     const q = query.q?.trim();
     if (q) {
+      const byGameId = /^-?\d{1,10}$/.test(q);
       conditions.push(`(t.name LIKE ? ESCAPE '!' OR EXISTS (SELECT 1 FROM technique_names n
-        LEFT JOIN source_records ns ON ns.id=n.source_record_id WHERE n.technique_id=t.id AND n.name LIKE ? ESCAPE '!' AND ${approved('n', 'ns')}))`);
+        LEFT JOIN source_records ns ON ns.id=n.source_record_id WHERE n.technique_id=t.id AND n.name LIKE ? ESCAPE '!' AND ${approved('n', 'ns')})${byGameId ? ' OR t.game_id=?' : ''})`);
       values.push(pattern(q), pattern(q));
+      if (byGameId) values.push(q);
     }
     if (query.element) {
       if (query.work) {
@@ -212,7 +226,59 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
     return { sql: `WHERE ${conditions.join(' AND ')}`, values };
   }
 
+  function itemSummary(row: RowDataPacket): CatalogueItem {
+    return {
+      id: row.id,
+      section: row.section,
+      gameId: row.game_id,
+      stringId: row.string_id,
+      name: row.name,
+      description: row.description,
+      slot: row.slot,
+      imageUrl: url(row.image_url),
+      tension: row.tension == null ? null : Number(row.tension),
+      stats: (json(row.stats) ?? {}) as CatalogueItem['stats'],
+      sourceUrl: url(row.source_url),
+    };
+  }
   return {
+    async items(section, query) {
+      const values: Values = [section];
+      const conditions = ['i.section=?', 'i.is_published=1', approved('i', 's')];
+      if (query.q?.trim()) {
+        const q = query.q.trim();
+        const byIdentifier = /^[a-z0-9_-]+$/i.test(q);
+        conditions.push(
+          `(i.name LIKE ? ESCAPE '!'${byIdentifier ? ' OR i.game_id=? OR i.string_id=?' : ''})`,
+        );
+        values.push(pattern(q));
+        if (byIdentifier) values.push(q, q);
+      }
+      if (query.slot) {
+        conditions.push('i.slot=?');
+        values.push(query.slot);
+      }
+      const from = `FROM catalogue_items i LEFT JOIN source_records s ON s.id=i.source_record_id WHERE ${conditions.join(' AND ')}`;
+      const page = query.page ?? 1;
+      const limit = query.limit ?? 24;
+      const [items, count] = await Promise.all([
+        rows(`SELECT i.*,s.source_url ${from} ORDER BY i.name,i.id LIMIT ? OFFSET ?`, [
+          ...values,
+          limit,
+          (page - 1) * limit,
+        ]),
+        rows(`SELECT COUNT(*) AS total ${from}`, values),
+      ]);
+      const total = Number(count[0]?.total ?? 0);
+      return { items: items.map(itemSummary), total, page, limit, pages: Math.ceil(total / limit) };
+    },
+    async item(section, id) {
+      const found = await rows(
+        `SELECT i.*,s.source_url FROM catalogue_items i LEFT JOIN source_records s ON s.id=i.source_record_id WHERE i.section=? AND i.id=? AND i.is_published=1 AND ${approved('i', 's')}`,
+        [section, id],
+      );
+      return found[0] ? itemSummary(found[0]) : null;
+    },
     async filters() {
       const [works, rarities, counts] = await Promise.all([
         rows(`SELECT w.id, w.code, w.name, w.kind, COUNT(DISTINCT CASE WHEN ${approved('a', 'aps')} AND ${approved('v', 'vs')} THEN v.id END) AS player_count FROM works w
@@ -222,7 +288,7 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
           GROUP BY w.id,w.code,w.name,w.kind,w.sort_order ORDER BY w.sort_order,w.id`),
         rows('SELECT code,name FROM rarities ORDER BY sort_order,id'),
         rows(`SELECT (SELECT COUNT(*) FROM player_variants v LEFT JOIN source_records vs ON vs.id=v.source_record_id WHERE ${approved('v', 'vs')}) AS players,
-          (SELECT COUNT(*) FROM techniques t LEFT JOIN source_records ts ON ts.id=t.source_record_id WHERE ${approved('t', 'ts')}) AS techniques,
+          (SELECT COUNT(*) FROM techniques t LEFT JOIN source_records ts ON ts.id=t.source_record_id WHERE ${approved('t', 'ts')} AND ${publishedTechnique}) AS techniques,
           (SELECT COUNT(*) FROM variant_appearances a JOIN player_variants v ON v.id=a.variant_id
             LEFT JOIN source_records s ON s.id=a.source_record_id LEFT JOIN source_records vs ON vs.id=v.source_record_id
             WHERE ${approved('a', 's')} AND ${approved('v', 'vs')}) AS appearances`),
@@ -233,6 +299,22 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
         counts: {
           players: Number(counts[0]?.players ?? 0),
           techniques: Number(counts[0]?.techniques ?? 0),
+          equipment: Number(
+            (
+              await rows(
+                "SELECT COUNT(*) AS total FROM catalogue_items i LEFT JOIN source_records s ON s.id=i.source_record_id WHERE i.section='equipment' AND i.is_published=1 AND " +
+                  approved('i', 's'),
+              )
+            )[0]?.total ?? 0,
+          ),
+          tactics: Number(
+            (
+              await rows(
+                "SELECT COUNT(*) AS total FROM catalogue_items i LEFT JOIN source_records s ON s.id=i.source_record_id WHERE i.section='tactics' AND i.is_published=1 AND " +
+                  approved('i', 's'),
+              )
+            )[0]?.total ?? 0,
+          ),
           appearances: Number(counts[0]?.appearances ?? 0),
         },
       };
@@ -294,7 +376,7 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
           FROM variant_learnsets l JOIN techniques t ON t.id=l.technique_id JOIN game_contexts c ON c.id=l.context_id JOIN works w ON w.id=c.work_id
           LEFT JOIN source_records ls ON ls.id=l.source_record_id LEFT JOIN source_records ts ON ts.id=t.source_record_id
           LEFT JOIN data_sources lds ON lds.id=ls.source_id
-          WHERE l.variant_id=? AND l.is_current=1 AND ${approved('l', 'ls')} AND ${approved('t', 'ts')}
+          WHERE l.variant_id=? AND l.is_current=1 AND ${approved('l', 'ls')} AND ${approved('t', 'ts')} AND ${publishedTechnique}
           ORDER BY w.sort_order,c.mode_code,l.unlock_level,l.id`,
           [id],
         ),
@@ -404,7 +486,7 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
       const limit = query.limit ?? 24;
       const [items, count] = await Promise.all([
         rows(
-          `SELECT t.id,t.name,t.category,t.element,ts.payload AS element_payload ${TECH_FROM} ${sql} ORDER BY t.name,t.id LIMIT ? OFFSET ?`,
+          `SELECT ${TECH_FIELDS},ts.payload AS element_payload ${TECH_FROM} ${sql} ORDER BY t.name,t.id LIMIT ? OFFSET ?`,
           [...values, limit, (page - 1) * limit],
         ),
         rows(`SELECT COUNT(*) AS total ${TECH_FROM} ${sql}`, values),
@@ -423,7 +505,7 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
     },
     async technique(id) {
       const found = await rows(
-        `SELECT t.*,ts.source_url,ts.payload AS element_payload ${TECH_FROM} WHERE t.id=? AND ${approved('t', 'ts')}`,
+        `SELECT t.*,ts.source_url,ts.payload AS element_payload ${TECH_FROM} WHERE t.id=? AND ${approved('t', 'ts')} AND ${publishedTechnique}`,
         [id],
       );
       const row = found[0];
@@ -458,12 +540,27 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
               : null,
         };
       });
+      const granted = row.granted_game_id
+        ? await rows(
+            `SELECT ${TECH_FIELDS} ${TECH_FROM} WHERE t.game_id=? AND ${publishedTechnique} AND ${approved('t', 'ts')}`,
+            [row.granted_game_id],
+          )
+        : [];
+      const grantedBy = row.game_id
+        ? await rows(
+            `SELECT ${TECH_FIELDS} ${TECH_FROM} WHERE t.granted_game_id=? AND ${publishedTechnique} AND ${approved('t', 'ts')} ORDER BY t.name`,
+            [row.game_id],
+          )
+        : [];
       const preview = url(row.preview_url);
       return {
         ...technique(row),
         aliases: [...new Set(aliases.map((n) => n.name as string))].filter(
           (name) => name !== row.name,
         ),
+        description: row.description ?? null,
+        grantedTechnique: granted[0] ? technique(granted[0]) : null,
+        grantedBy: grantedBy.map(technique),
         profiles: numbers,
         users: users.items,
         userCount: users.total,

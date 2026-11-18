@@ -5,6 +5,7 @@ import { element, type CataloguePlan, type RecordSpec } from './prepare.js';
 import { digest } from './sources.js';
 
 const SOURCES = [
+  ['kizuna-game-data', 'Kizuna · données du jeu localisées', 'https://github.com/salty-max/kizuna'],
   ['level5-codex', 'LEVEL-5 Character Database', 'https://zukan.inazuma.jp/en/'],
   [
     'vr-community',
@@ -296,26 +297,59 @@ export async function importCatalogue(
         row.technique_id as number,
       ]),
     );
+    const [existingMediaRows] = await db.query<RowDataPacket[]>(
+      'SELECT id, preview_url, preview_mime_type FROM techniques WHERE preview_url IS NOT NULL',
+    );
+    const existingMedia = new Map(existingMediaRows.map((row) => [row.id as number, row]));
     const techniques = new Map<string, number>();
     for (const technique of plan.techniques) {
       const sourceId = sources.get(technique.record.source)!;
       const external = `${technique.record.kind}/${technique.record.key}`;
       if (external.length > 191) throw new Error('Identifiant de technique trop long.');
+      const previousId =
+        existingTechniques.get(key(sourceId, external)) ??
+        (technique.legacyKey
+          ? existingTechniques.get(
+              key(sources.get(technique.legacyKey.source)!, technique.legacyKey.external),
+            )
+          : undefined);
+      const media = previousId == null ? undefined : existingMedia.get(previousId);
+      const preview = technique.preview ?? (media?.preview_url as string | undefined) ?? null;
       const values = {
-        id: existingTechniques.get(key(sourceId, external)) ?? null,
+        id: previousId ?? null,
         slug: slug('technique', JSON.stringify([technique.record.source, external])),
         name: technique.name,
+        game_id: technique.gameId ?? null,
+        string_id: technique.stringId ?? null,
+        kind: technique.kind ?? null,
+        description: technique.description ?? null,
+        power: technique.power ?? null,
+        tension: technique.tension ?? null,
+        cooldown: technique.cooldown ?? null,
+        notes: JSON.stringify(technique.notes ?? []),
+        granted_game_id: technique.grantedGameId ?? null,
+        is_published: Number(technique.published !== false),
         category: technique.category,
         element: technique.element,
-        preview_url: technique.preview,
-        preview_mime_type: technique.preview?.toLowerCase().endsWith('.mp4')
+        preview_url: preview,
+        preview_mime_type: preview?.toLowerCase().endsWith('.mp4')
           ? 'video/mp4'
-          : technique.preview?.toLowerCase().endsWith('.webm')
+          : preview?.toLowerCase().endsWith('.webm')
             ? 'video/webm'
-            : null,
+            : (media?.preview_mime_type ?? null),
         source_record_id: verified(technique.record),
       };
       const id = await put(db, 'techniques', values, [
+        'game_id',
+        'string_id',
+        'kind',
+        'description',
+        'power',
+        'tension',
+        'cooldown',
+        'notes',
+        'granted_game_id',
+        'is_published',
         'name',
         'category',
         'element',
@@ -329,6 +363,11 @@ export async function importCatalogue(
         ON DUPLICATE KEY UPDATE external_key=VALUES(external_key)`,
         [sourceId, external, id],
       );
+      for (const alias of technique.names ?? [])
+        await db.execute(
+          `INSERT INTO technique_names (technique_id, locale, name, is_preferred, source_record_id) VALUES (?, ?, ?, 1, ?) ON DUPLICATE KEY UPDATE source_record_id=VALUES(source_record_id), is_preferred=1`,
+          [id, alias.locale, alias.name, verified(technique.record)],
+        );
       for (const name of new Set(
         [technique.name, technique.wikiName].filter((name): name is string => !!name),
       )) {
@@ -382,7 +421,7 @@ export async function importCatalogue(
     );
     for (const record of plan.records.filter(
       (record) =>
-        record.source === 'inazuma-wiki' &&
+        ['inazuma-wiki', 'kizuna-game-data'].includes(record.source) &&
         record.kind === 'learnset' &&
         record.status === 'verified',
     )) {
@@ -393,6 +432,12 @@ export async function importCatalogue(
         [sources.get(record.source)!, record.kind, record.key],
       );
     }
+    if (plan.gameData)
+      await db.execute(
+        `UPDATE variant_learnsets l JOIN game_contexts c ON c.id=l.context_id JOIN works w ON w.id=c.work_id JOIN source_records r ON r.id=l.source_record_id SET l.is_current=0 WHERE w.code='VR' AND r.source_id IN (?,?)`,
+        [sources.get('inazuma-wiki')!, sources.get('kizuna-game-data')!],
+      );
+    const linkedSources = new Set<string>();
     for (const learnset of plan.learnsets) {
       const variant = variants.get(learnset.externalId);
       if (!variant) throw new Error('Variante de moveset absente du catalogue.');
@@ -427,11 +472,14 @@ export async function importCatalogue(
         Object.keys(values).filter((column) => column !== 'id'),
       );
       if (previousId) await db.execute('DELETE FROM learnset_rarities WHERE learnset_id=?', [id]);
-      await db.execute(
-        `INSERT INTO variant_source_links (variant_id, source_record_id, scope, match_status) VALUES (?, ?, 'techniques', 'verified')
-        ON DUPLICATE KEY UPDATE source_record_id=VALUES(source_record_id)`,
-        [variant, verified(learnset.record)],
-      );
+      const link = `${variant}/${verified(learnset.record)}`;
+      if (!linkedSources.has(link)) {
+        linkedSources.add(link);
+        await db.execute(
+          `INSERT INTO variant_source_links (variant_id, source_record_id, scope, match_status) VALUES (?, ?, 'techniques', 'verified') ON DUPLICATE KEY UPDATE source_record_id=VALUES(source_record_id)`,
+          [variant, verified(learnset.record)],
+        );
+      }
       for (const rarity of learnset.rarities) {
         const rarityId = rarities.get(rarity);
         if (!rarityId) throw new Error('Rareté de moveset non reconnue.');
@@ -490,6 +538,44 @@ export async function importCatalogue(
         ON DUPLICATE KEY UPDATE source_record_id=VALUES(source_record_id)`,
           [variant, records.get(record)!, record.status === 'quarantined' ? 'rejected' : 'pending'],
         );
+    }
+    if (plan.gameData) {
+      await db.execute('UPDATE catalogue_items SET is_published=0');
+      for (const item of plan.items ?? []) {
+        const values = {
+          section: item.section,
+          game_id: item.gameId,
+          string_id: item.stringId,
+          name: item.name,
+          description: item.description,
+          slot: item.slot,
+          image_url: item.image,
+          tension: item.tension,
+          stats: JSON.stringify(item.stats),
+          is_published: 1,
+          source_record_id: verified(item.record),
+        };
+        await put(
+          db,
+          'catalogue_items',
+          values,
+          Object.keys(values).filter((column) => !['section', 'string_id'].includes(column)),
+        );
+      }
+      await db.execute(
+        `DELETE st FROM squad_player_techniques st JOIN variant_learnsets l ON l.id=st.learnset_id JOIN techniques t ON t.id=l.technique_id WHERE t.category='passive'`,
+      );
+      await db.execute(
+        `DELETE r FROM learnset_rarities r JOIN variant_learnsets l ON l.id=r.learnset_id JOIN techniques t ON t.id=l.technique_id WHERE t.category='passive'`,
+      );
+      await db.execute(
+        `DELETE l FROM variant_learnsets l JOIN techniques t ON t.id=l.technique_id WHERE t.category='passive'`,
+      );
+      for (const table of ['technique_stat_profiles', 'technique_names', 'technique_external_ids'])
+        await db.execute(
+          `DELETE d FROM ${table} d JOIN techniques t ON t.id=d.technique_id WHERE t.category='passive'`,
+        );
+      await db.execute(`DELETE FROM techniques WHERE category='passive'`);
     }
     await db.commit();
   } catch (error) {

@@ -1,5 +1,10 @@
 import type { FastifyInstance } from 'fastify';
-import type { PlayerQuery, TechniqueQuery } from '../../../../shared/catalogue.js';
+import type {
+  PlayerQuery,
+  TechniqueQuery,
+  ItemQuery,
+  ItemSection,
+} from '../../../../shared/catalogue.js';
 import type { CatalogueRepository } from './repository.js';
 
 const elements = ['wind', 'forest', 'fire', 'mountain', 'void'];
@@ -14,13 +19,65 @@ const id = { type: 'integer', minimum: 1, maximum: 4_294_967_295 };
 
 export function registerCatalogueRoutes(app: FastifyInstance, catalogue?: CatalogueRepository) {
   app.addHook('onRequest', async (request, reply) => {
-    if (/^\/api\/(?:catalogue|players|techniques)(?:\/|\?|$)/.test(request.url) && !catalogue) {
+    if (
+      /^\/api\/(?:catalogue|players|techniques|equipment|tactics)(?:\/|\?|$)/.test(request.url) &&
+      !catalogue
+    ) {
       return reply.code(503).send({
         error: 'CATALOGUE_UNAVAILABLE',
         message: 'Le catalogue est momentanément indisponible.',
       });
     }
   });
+  for (const section of ['equipment', 'tactics'] as ItemSection[]) {
+    app.get<{ Querystring: ItemQuery }>(
+      `/api/${section}`,
+      {
+        schema: {
+          querystring: {
+            type: 'object',
+            additionalProperties: false,
+            properties: {
+              q: common.q,
+              page: common.page,
+              limit: common.limit,
+              ...(section === 'equipment'
+                ? { slot: { type: 'string', enum: ['boots', 'bracelet', 'pendant', 'accessory'] } }
+                : {}),
+            },
+          },
+        },
+      },
+      async (request, reply) => {
+        if (!catalogue?.items)
+          return reply.code(503).send({
+            error: 'CATALOGUE_UNAVAILABLE',
+            message: 'Le catalogue est momentanément indisponible.',
+          });
+        return catalogue.items(section, request.query);
+      },
+    );
+    app.get<{ Params: { id: number } }>(
+      `/api/${section}/:id`,
+      {
+        schema: {
+          params: {
+            type: 'object',
+            required: ['id'],
+            additionalProperties: false,
+            properties: { id },
+          },
+        },
+      },
+      async (request, reply) => {
+        const item = await catalogue?.item?.(section, request.params.id);
+        return (
+          item ??
+          reply.code(404).send({ error: 'ITEM_NOT_FOUND', message: 'Cette fiche est introuvable.' })
+        );
+      },
+    );
+  }
   app.get(
     '/api/catalogue',
     { schema: { querystring: { type: 'object', additionalProperties: false, properties: {} } } },
@@ -89,6 +146,10 @@ export function registerCatalogueRoutes(app: FastifyInstance, catalogue?: Catalo
                 'keshin_armed',
                 'miximax',
                 'totem',
+                'bond_transform',
+                'awakening_power',
+                'mode_change',
+                'awakening_change',
                 'tactic',
                 'passive',
                 'other',

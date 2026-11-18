@@ -22,6 +22,7 @@ const ICONS: Record<string, string> = {
 };
 
 export interface OfficialPlayer {
+  gameCharacterId?: string | null;
   id: number;
   name: string;
   nickname: string;
@@ -101,6 +102,7 @@ export function parseOfficial(html: string): OfficialPlayer[] {
         .map(plain)
         .filter(Boolean),
       portraitUrl: portrait(cells[2]!),
+      gameCharacterId: gameCharacterId(cells[2]!),
       appearances: icons.filter((icon, index): icon is string => !!icon && flags[index] === '○'),
     });
   }
@@ -126,4 +128,22 @@ export function lastPage(html: string): number {
   );
   if (page > 100) throw new Error('Pagination du codex inattendue.');
   return page;
+}
+
+export function gameCharacterId(cell: string): string | null {
+  const encoded = cell.match(/chara_model_view\/\?q=([^"&]+)/)?.[1];
+  if (!encoded) return null;
+  try {
+    const bytes = Buffer.from(decodeURIComponent(encoded), 'base64url');
+    const data = JSON.parse(Buffer.from(bytes.map((value) => value ^ 255)).toString('utf8'));
+    const id = data?.character_id;
+    return Array.isArray(id) &&
+      id.length === 1 &&
+      typeof id[0] === 'string' &&
+      /^c\d{8}$/.test(id[0])
+      ? id[0]
+      : null;
+  } catch {
+    return null;
+  }
 }

@@ -120,3 +120,86 @@ export function fixturePlan() {
   });
   return plan;
 }
+
+export async function fixtureGamePlan(unknownLegacy = false) {
+  const { enrichGameData } = await import('../../src/catalogue/game-data.js');
+  const plan = fixturePlan();
+  if (unknownLegacy) {
+    const shot = plan.techniques.find((row) => row.key === 'Test Shot')!;
+    shot.category = null;
+    shot.preview = 'https://example.test/shot.mp4';
+  }
+  plan.variants[2]!.official = { ...plan.variants[2]!.official, gameCharacterId: 'c01000010' };
+  const resources = new Map<string, Resource>();
+  for (const locale of ['fr', 'en', 'ja']) {
+    const bundle = {
+      lang: locale,
+      game_version: 'fixture',
+      hissatsu: [
+        {
+          id: 221679467,
+          name: locale === 'fr' ? 'Tir français' : 'Test Shot',
+          description: 'Une frappe\\npuissante.',
+          category: 1,
+          element: 3,
+          power: 85,
+          tp_consumption: 80,
+          cooldown: 60,
+        },
+      ],
+      aura_hissatsu: [],
+      auras: [
+        {
+          id: -72,
+          string_id: 'wk_test',
+          name: locale === 'fr' ? 'Esprit français' : 'Test Spirit',
+          type: 'keshin',
+          element: 1,
+          skill_id: 221679467,
+        },
+      ],
+      equipment: [
+        {
+          id: 88,
+          string_id: 'eq_test',
+          name: locale === 'fr' ? 'Chaussures test' : 'Test Boots',
+          slot: 'boots',
+          stats: { kick: 5, physical: 3 },
+        },
+      ],
+      tactics: [
+        { id: 99, string_id: 'wht_test', name: 'Défense totale', tp_cost: 2.5 },
+        { id: 100, string_id: 'wht_test_st01', name: 'Défense totale', tp_cost: 2.5 },
+        { id: 101, string_id: 'test_cut', name: '必殺タクティクス名1', tp_cost: 99999 },
+      ],
+      characters: [
+        {
+          id: 42,
+          character_id: 'c01000010',
+          name: 'Player 2',
+          main_position: 3,
+          element: 1,
+          skills: [
+            [1, 221679467],
+            [13, -72],
+          ],
+          skills_alt: [],
+        },
+      ],
+      heroes: [],
+      basaras: [],
+      passives: [{ id: 444, name: 'Ne pas importer' }],
+    };
+    const body = '\uFEFF' + JSON.stringify(bundle);
+    const id = `game-${locale}`;
+    resources.set(id, {
+      id,
+      body,
+      sha256: digest(body),
+      url: `https://example.test/${id}`,
+      retrievedAt: '2026-01-01T00:00:00.000Z',
+    });
+  }
+  enrichGameData(plan, resources);
+  return plan;
+}

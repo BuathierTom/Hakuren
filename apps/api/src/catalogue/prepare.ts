@@ -4,6 +4,7 @@ import { digest, SNAPSHOT, type Resource } from './sources.js';
 import { literalTable, pageName, parseMoves, wikiContent } from './wiki.js';
 import { playerModuleId } from './team-sources.js';
 import { prepareMemberships } from './memberships.js';
+import { enrichGameData, type ItemSpec } from './game-data.js';
 
 type Raw = Record<string, unknown>;
 export type Review = 'pending' | 'verified' | 'quarantined';
@@ -35,6 +36,18 @@ export interface TechniqueSpec {
   element: string | null;
   preview: string | null;
   record: RecordSpec;
+  gameId?: string;
+  stringId?: string | null;
+  kind?: 'hissatsu' | 'aura_hissatsu' | 'aura';
+  description?: string | null;
+  power?: number | null;
+  tension?: number | null;
+  cooldown?: number | null;
+  notes?: string[];
+  grantedGameId?: string | null;
+  legacyKey?: { source: string; external: string };
+  names?: { locale: string; name: string }[];
+  published?: boolean;
 }
 export interface ProfileSpec {
   technique: string;
@@ -63,6 +76,8 @@ export interface LearnsetSpec {
   record: RecordSpec;
 }
 export interface CataloguePlan {
+  items?: ItemSpec[];
+  gameData?: boolean;
   records: RecordSpec[];
   variants: VariantSpec[];
   techniques: TechniqueSpec[];
@@ -598,9 +613,12 @@ export function prepareCatalogue(
   const historical = prepareMemberships(resources, plan.variants);
   plan.memberships.push(...historical.memberships);
   plan.records.push(...historical.records);
+  enrichGameData(plan, resources);
   plan.summary = {
     variants: plan.variants.length,
     techniques: plan.techniques.length,
+    publishedTechniques: plan.techniques.filter((technique) => technique.published !== false)
+      .length,
     appearances: plan.variants.reduce(
       (total, variant) => total + variant.official.appearances.length,
       0,
@@ -609,14 +627,22 @@ export function prepareCatalogue(
     techniqueProfiles: plan.profiles.length,
     learnsets: plan.learnsets.length,
     historicalMemberships: plan.memberships.length,
-    heroVariants: plan.rarities.filter((entry) => entry.rarity === 'hero').length,
-    basaraVariants: plan.rarities.filter((entry) => entry.rarity === 'basara').length,
+    heroVariants: new Set(
+      plan.rarities.filter((entry) => entry.rarity === 'hero').map((entry) => entry.externalId),
+    ).size,
+    basaraVariants: new Set(
+      plan.rarities.filter((entry) => entry.rarity === 'basara').map((entry) => entry.externalId),
+    ).size,
+    equipment: plan.items?.filter((item) => item.section === 'equipment').length ?? 0,
+    tactics: plan.items?.filter((item) => item.section === 'tactics').length ?? 0,
     pendingRecords: plan.records.filter((record) => record.status === 'pending').length,
     quarantinedRecords: plan.records.filter((record) => record.status === 'quarantined').length,
   };
   plan.warnings = [
     'Les équipes sont rattachées aux générations documentées dans les effectifs ; les liens sans identité, équipe ou apparition concordante restent absents.',
-    'Les movesets communautaires non vérifiés restent en attente ; les liens publiés proviennent des correspondances wiki explicites.',
+    plan.gameData
+      ? 'Les techniques Victory Road sont liées par identifiant de personnage ; le wiki complète les épisodes historiques.'
+      : 'Les movesets communautaires non vérifiés restent en attente ; les liens publiés proviennent des correspondances wiki explicites.',
     'Les alias français et les disponibilités de rareté non établies ne sont pas inventés.',
   ];
   return plan;
