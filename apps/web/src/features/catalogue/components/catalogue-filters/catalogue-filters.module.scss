@@ -1,239 +1,107 @@
-@use '@/styles/patterns/controls';
-
 .filters {
-  border: 1px solid var(--color-border);
-  border-radius: 13px;
-  background: var(--color-surface);
-  padding: 20px 18px;
+  padding: 20px 0;
+  margin-bottom: 22px;
+  border-bottom: 1px solid var(--color-border);
 }
-
-.filterHeading {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 19px;
-  border-bottom: 1px solid var(--color-border-soft);
-  h2 {
-    font-size: 13px;
-    margin: 0;
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    font-weight: 700;
-  }
-  button {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    background: none;
-    border: 0;
-    padding: 3px 0;
-    color: var(--color-muted);
-    font-size: 9px;
-    &:disabled {
-      opacity: 0.35;
-    }
-    &:not(:disabled):hover {
-      color: var(--color-accent);
-    }
-  }
+.groups {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px 28px;
 }
-
-.filterSection {
-  display: block;
+.group {
   min-width: 0;
+  padding: 0;
   margin: 0;
-  padding: 21px 0 0;
   border: 0;
-  > label,
-  > legend {
-    display: block;
-    float: left;
-    width: 100%;
-    margin-bottom: 11px;
-    font-size: 12px;
-    font-weight: 650;
-  }
-  > legend {
+  legend {
     padding: 0;
-  }
-  > div {
-    clear: both;
-  }
-}
-
-.select {
-  @include controls.select;
-}
-
-.positionOptions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 7px;
-  button {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 9px 6px;
-    border: 1px solid var(--color-border);
-    border-radius: 6px;
-    background: #fff;
+    margin-bottom: 9px;
     color: var(--color-muted);
-    font-size: 10px;
-    > span {
-      font-size: 9px;
-      font-weight: 750;
-      color: #4b6556;
-    }
-    &[aria-pressed='true'] {
-      color: var(--color-accent);
-      border-color: #9cbda4;
-      background: #f0f7ef;
-      > span {
-        color: var(--color-accent);
-      }
-    }
-  }
-}
-
-.elementOptions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 7px;
-  button {
-    display: flex;
-    align-items: center;
-    padding: 8px 7px;
-    background: white;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    > span {
-      font-size: 11px;
-    }
-    &:hover {
-      background: #f8faf7;
-    }
-    &[aria-pressed='true'] {
-      background: #eff6ef;
-      border-color: #9cbda4;
-    }
-  }
-}
-
-.filterNote {
-  display: flex;
-  align-items: flex-start;
-  gap: 7px;
-  padding-top: 17px;
-  margin-top: 23px;
-  border-top: 1px solid var(--color-border-soft);
-  color: var(--color-muted);
-  svg {
-    flex-shrink: 0;
-    margin-top: 1px;
-  }
-  p {
-    margin: 0;
-    font-size: 10px;
-    line-height: 1.7;
-  }
-}
-
-@media (max-width: 900px) {
-  .filters {
-    padding: 17px 14px;
-  }
-}
-
-@media (max-width: 680px) {
-  .filters {
-    display: none;
-  }
-
-  .filtersOpen {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0 18px;
-  }
-
-  .filtersOpen > fieldset {
-    grid-column: 1 / -1;
-  }
-
-  .filterHeading,
-  .filterNote {
-    grid-column: 1 / -1;
-  }
-
-  .filterSection {
-    padding-top: 17px;
-  }
-}
-
-@media (max-width: 380px) {
-  .filtersOpen {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-.sections {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 14px 0 0;
-  a {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 8px;
     font-size: 12px;
-    border-radius: 5px;
-    text-decoration: none;
-    color: var(--color-muted);
-    &[aria-current='page'] {
-      background: var(--color-accent-soft);
-      color: var(--color-accent);
-      font-weight: 650;
-    }
+    font-weight: 600;
   }
 }
-.categoryOptions {
+.wide {
+  grid-column: span 2;
+}
+.options {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 6px;
   button {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 9px;
-    min-height: 38px;
-    text-align: left;
-    padding: 6px 8px;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    background: transparent;
-    color: var(--color-muted);
-    font-size: 11px;
-    &[aria-pressed='true'] {
-      border-color: #9cbda4;
-      background: var(--color-accent-soft);
-      color: var(--color-accent);
-    }
+    justify-content: center;
+    gap: 6px;
+    min-height: 34px;
+    min-width: 34px;
+    padding: 6px 9px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: 12px;
+    line-height: 1.4;
     &:hover {
-      background: var(--color-background);
+      border-color: var(--color-accent);
+    }
+    &[aria-pressed='true'] {
+      color: var(--color-accent);
+      background: var(--color-accent-soft);
+      border-color: var(--color-accent);
+    }
+    img {
+      width: 20px;
+      height: 20px;
     }
   }
 }
-@media (max-width: 680px) {
-  .sections {
+.reset {
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  background: transparent;
+  color: var(--color-muted);
+  padding: 0 0 2px;
+  margin-top: 16px;
+  font-size: 11px;
+  &:hover {
+    color: var(--color-accent);
+  }
+}
+.filters[data-view='techniques'] .groups {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  .wide {
+    grid-column: auto;
+  }
+}
+@media (max-width: 1050px) {
+  .filters[data-view='players'] .groups {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .filters[data-view='players'] .group:nth-child(3) {
     grid-column: 1 / -1;
   }
-  .categoryOptions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+  .filters[data-view='players'] .wide {
+    grid-column: auto;
   }
 }
-@media (max-width: 380px) {
-  .categoryOptions {
+@media (max-width: 620px) {
+  .groups,
+  .filters[data-view='players'] .groups {
     grid-template-columns: minmax(0, 1fr);
+    gap: 15px;
+  }
+  .wide {
+    grid-column: auto;
+  }
+  .options {
+    gap: 5px;
+    button {
+      padding: 6px 8px;
+      font-size: 11px;
+    }
+  }
+  .filters {
+    padding: 17px 0;
   }
 }

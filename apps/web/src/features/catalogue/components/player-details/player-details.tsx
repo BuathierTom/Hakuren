@@ -4,7 +4,7 @@ import { Icon } from '@/components/ui/icon/icon';
 import { ElementBadge, PositionBadge, RarityBadge } from '../catalogue-badges/catalogue-badges';
 import { Portrait } from '../player-portrait/player-portrait';
 import { href, intercept } from '@/app/navigation';
-import { age, role, workLabel } from '../../lib/labels';
+import { age, role, workLabel, GENDERS, PLAY_STYLES } from '../../lib/labels';
 import { PlayerTechniques } from '../player-techniques/player-techniques';
 import styles from './player-details.module.scss';
 
@@ -60,6 +60,16 @@ export function PlayerPanel({
             <span>·</span>
             {role(player.role)}
           </p>
+          {(player.gender || player.playStyle) && (
+            <p>
+              {[
+                player.gender ? GENDERS[player.gender] : null,
+                player.playStyle ? PLAY_STYLES[player.playStyle] : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </p>
+          )}
           {player.aliases.length > 0 && (
             <p className={styles.aliases}>Aussi connu sous : {player.aliases.join(', ')}</p>
           )}
@@ -164,7 +174,6 @@ export function PlayerPanel({
                       {variant.number ?? '—'}
                     </small>
                   </span>
-                  <Icon name="right" size={17} />
                 </a>
               );
             })}

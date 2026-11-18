@@ -1,11 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type {
-  CatalogueFilters as CatalogueMetadata,
-  Page,
-  PlayerSummary,
-  TechniqueSummary,
-  CatalogueItem,
-} from '@shared/catalogue';
+import type { Page, PlayerSummary, TechniqueSummary, CatalogueItem } from '@shared/catalogue';
 import { useRequest } from './use-catalogue-request';
 import { href, navigate, useLocation } from '@/app/navigation';
 import {
@@ -16,11 +10,15 @@ import {
   workLabel,
   VIEWS,
   EQUIPMENT_SLOTS,
+  GENDERS,
+  PLAY_STYLES,
 } from '../lib/labels';
 const FILTER_KEYS = [
   'q',
   'work',
   'position',
+  'gender',
+  'style',
   'element',
   'rarity',
   'role',
@@ -33,15 +31,24 @@ export function useCatalogue() {
   const location = useLocation();
   const { view, params, detail } = location;
   const isPlayers = view === 'players';
-  const list = !isPlayers || params.get('layout') === 'list';
   const q = params.get('q') ?? '';
   const [search, setSearch] = useState(q);
-  const [filtersOpen, setFiltersOpen] = useState(false);
   const resultsRef = useRef<HTMLElement>(null);
-  const metadata = useRequest<CatalogueMetadata>('/api/catalogue');
   const query = new URLSearchParams();
   const allowed = isPlayers
-    ? ['q', 'work', 'position', 'element', 'rarity', 'role', 'sort', 'page', 'technique']
+    ? [
+        'q',
+        'work',
+        'position',
+        'gender',
+        'style',
+        'element',
+        'rarity',
+        'role',
+        'sort',
+        'page',
+        'technique',
+      ]
     : view === 'techniques'
       ? ['q', 'element', 'category', 'page']
       : ['q', 'slot', 'page'];
@@ -77,7 +84,7 @@ export function useCatalogue() {
     return () => window.clearTimeout(timeout);
   }, [search, q, view]);
   useEffect(() => {
-    if (!detail) document.title = `${VIEWS[view]} · KizunaDex`;
+    if (!detail) document.title = `${VIEWS[view]} · Hakuren`;
   }, [view, detail]);
   useEffect(() => {
     const focusSearch = (event: KeyboardEvent) => {
@@ -116,29 +123,23 @@ export function useCatalogue() {
     if (key === 'work') return workLabel(value);
     if (key === 'element') return label(ELEMENTS, value);
     if (key === 'position') return label(POSITIONS, value);
-    if (key === 'rarity')
-      return metadata.data?.rarities.find((r) => r.code === value)?.name ?? value;
+    if (key === 'gender') return label(GENDERS, value);
+    if (key === 'style') return label(PLAY_STYLES, value);
+    if (key === 'rarity') return ['hero', 'basara'].includes(value) ? value.toUpperCase() : value;
     if (key === 'role') return value === 'player' ? 'Joueurs' : 'Encadrement';
     if (key === 'slot') return label(EQUIPMENT_SLOTS, value);
     if (key === 'category') return label(CATEGORIES, value);
     return 'Technique sélectionnée';
   }
 
-  function setLayout(list: boolean) {
-    navigate(href(view, { layout: list ? 'list' : null }));
-  }
   return {
     view,
     params,
     detail,
     isPlayers,
-    list,
     search,
     setSearch,
-    filtersOpen,
-    setFiltersOpen,
     resultsRef,
-    metadata,
     players,
     techniques,
     items,
@@ -150,6 +151,5 @@ export function useCatalogue() {
     reset,
     changePage,
     chipLabel,
-    setLayout,
   };
 }

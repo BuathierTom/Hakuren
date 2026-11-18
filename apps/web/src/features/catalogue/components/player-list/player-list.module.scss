@@ -1,0 +1,116 @@
+@use '@/styles/patterns/lists';
+.table {
+  @include lists.frame;
+}
+.heading,
+.row {
+  display: grid;
+  grid-template-columns: 64px minmax(180px, 1fr) 90px 70px 70px 115px 115px;
+  gap: 16px;
+}
+.heading {
+  @include lists.heading;
+}
+.playerHeading {
+  grid-column: span 2;
+}
+.row {
+  @include lists.row;
+  min-height: 84px;
+}
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  li + li {
+    border-top: 1px solid var(--color-border-soft);
+  }
+}
+.identity {
+  min-width: 0;
+  small {
+    display: block;
+    margin-top: 5px;
+    color: var(--color-muted);
+    font-size: 11px;
+    line-height: 1.5;
+  }
+  .mobileMeta {
+    display: none;
+  }
+}
+.name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  strong {
+    font-size: 14px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+}
+.gender,
+.origin,
+.style {
+  font-size: 12px;
+  color: var(--color-muted);
+}
+.element,
+.position {
+  display: flex;
+  justify-content: center;
+}
+@media (max-width: 1050px) {
+  .heading,
+  .row {
+    grid-template-columns: 54px minmax(150px, 1fr) 64px 56px 56px 90px;
+    gap: 12px;
+  }
+  .origin {
+    display: none;
+  }
+}
+@media (max-width: 800px) {
+  .heading,
+  .row {
+    grid-template-columns: 50px minmax(120px, 1fr) 50px 42px 86px;
+    gap: 10px;
+  }
+  .gender {
+    display: none;
+  }
+  .identity .mobileMeta {
+    display: block;
+  }
+}
+@media (max-width: 520px) {
+  .heading,
+  .row {
+    grid-template-columns: 40px minmax(0, 1fr) 30px 24px;
+    gap: 9px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .heading {
+    display: none;
+  }
+  .style {
+    display: none;
+  }
+  .row {
+    min-height: 88px;
+  }
+  .row > span:first-child {
+    width: 40px;
+    height: 48px;
+  }
+  .identity {
+    .name strong {
+      font-size: 13px;
+    }
+    small {
+      font-size: 10px;
+    }
+  }
+}

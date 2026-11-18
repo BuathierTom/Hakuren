@@ -2,24 +2,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 15px;
-  padding: 28px 0;
-  margin-top: 38px;
+  gap: 16px;
+  padding: 24px 0;
+  margin-top: 34px;
   border-top: 1px solid var(--color-border);
-  color: #99a59a;
-  font-size: 9px;
+  color: var(--color-muted);
+  font-size: 11px;
   > span:first-child {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-weight: 650;
+    font-weight: 600;
   }
 }
-
-@media (max-width: 680px) {
+@media (max-width: 480px) {
   .footer {
-    margin-top: 28px;
-    padding: 22px 0;
-    font-size: 8px;
+    font-size: 10px;
+    flex-wrap: wrap;
   }
 }

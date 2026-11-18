@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import type { PlayerDetail } from '@shared/catalogue';
-import { Icon } from '@/components/ui/icon/icon';
 import { ElementBadge, RarityBadge } from '../catalogue-badges/catalogue-badges';
 import { TechniqueTypeIcon } from '../game-icon/game-icon';
 import { href, intercept } from '@/app/navigation';
@@ -131,7 +130,6 @@ export function PlayerTechniques({ player, episode }: { player: PlayerDetail; ep
                   )}
                 </span>
                 <ElementBadge element={move.technique.element} compact />
-                <Icon name="right" size={15} />
               </a>
             );
           })}

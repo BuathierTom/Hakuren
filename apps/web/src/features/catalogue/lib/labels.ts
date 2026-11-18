@@ -1,4 +1,4 @@
-import type { Category, Element, Position } from '@shared/catalogue';
+import type { Category, Element, Position, Gender, PlayStyle } from '@shared/catalogue';
 
 export const ELEMENTS: Record<Element, string> = {
   wind: 'Vent',
@@ -93,3 +93,17 @@ export const STAT_NAMES = {
 };
 
 export const tensionLabel = (value: number) => `${value === 99999 ? '∞' : count(value)} TP`;
+
+export const GENDERS: Record<Gender, string> = {
+  male: 'Masculin',
+  female: 'Féminin',
+  neutral: 'Neutre',
+};
+export const PLAY_STYLES: Record<PlayStyle, string> = {
+  breach: 'Brèche',
+  tension: 'Tension',
+  counter: 'Contre',
+  bond: 'Lien',
+  rough_play: 'Violent',
+  justice: 'Justice',
+};

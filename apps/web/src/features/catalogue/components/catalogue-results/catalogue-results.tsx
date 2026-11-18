@@ -1,20 +1,25 @@
 import type { useCatalogue } from '../../hooks/use-catalogue';
 import { Icon } from '@/components/ui/icon/icon';
-import { count } from '../../lib/labels';
-import { PlayerCard } from '../player-card/player-card';
+import { count, VIEWS } from '../../lib/labels';
+import { PlayerList } from '../player-list/player-list';
 import { TechniqueList } from '../technique-list/technique-list';
 import { ItemList } from '../item-list/item-list';
-import { VIEWS } from '../../lib/labels';
 import styles from './catalogue-results.module.scss';
+const singular = {
+  players: 'joueur',
+  techniques: 'technique',
+  equipment: 'équipement',
+  tactics: 'tactique',
+  catalogue: 'entrée',
+};
 export function CatalogueResults({ catalogue }: { catalogue: ReturnType<typeof useCatalogue> }) {
   const {
     isPlayers,
     view,
     params,
-    items,
-    list,
     players,
     techniques,
+    items,
     request,
     data,
     page,
@@ -23,110 +28,64 @@ export function CatalogueResults({ catalogue }: { catalogue: ReturnType<typeof u
     reset,
     changePage,
     chipLabel,
-    setLayout,
   } = catalogue;
   return (
     <>
-      {' '}
       <div className={styles.resultsHeading}>
         <p aria-live="polite">
           {request.loading ? (
-            <span>Recherche en cours…</span>
+            'Recherche en cours…'
           ) : data ? (
             <>
               <strong>{count(data.total)}</strong>{' '}
-              {isPlayers ? (data.total > 1 ? 'joueurs' : 'joueur') : VIEWS[view].toLowerCase()}
+              {data.total === 1 ? singular[view] : VIEWS[view].toLowerCase()}
             </>
           ) : (
             'Résultats'
           )}
         </p>
-        {isPlayers && (
-          <div className={styles.layoutToggle} aria-label="Disposition des résultats">
-            <button
-              aria-label="Afficher en grille"
-              aria-pressed={!list}
-              onClick={() => setLayout(false)}
-            >
-              <Icon name="grid" size={15} />
-            </button>
-            <button
-              aria-label="Afficher en liste"
-              aria-pressed={list}
-              onClick={() => setLayout(true)}
-            >
-              <Icon name="list" size={16} />
-            </button>
-          </div>
-        )}
       </div>
       {active.length > 0 && (
         <div className={styles.chips}>
           {active.map((key) => (
             <button
               key={key}
+              type="button"
               onClick={() => update({ [key]: null })}
               aria-label={`Retirer le filtre ${chipLabel(key)}`}
             >
               {chipLabel(key)}
-              <Icon name="close" size={12} />
+              <Icon name="close" size={13} />
             </button>
           ))}
         </div>
       )}
       {request.error ? (
         <div className={styles.empty} role="alert">
-          <span className={styles.emptyIcon}>
-            <Icon name="info" size={30} />
-          </span>
-          <h2>Petit contretemps.</h2>
+          <h2>Chargement impossible</h2>
           <p>{request.error.message}</p>
           <button className={styles.primaryButton} onClick={request.retry}>
-            <Icon name="reset" size={16} />
             Réessayer
-          </button>
-          <button className={styles.textButton} onClick={reset}>
-            Réinitialiser les filtres
           </button>
         </div>
       ) : request.loading ? (
-        <div
-          className={`${styles.grid} ${list ? styles.list : ''}`}
-          aria-label="Chargement des résultats"
-        >
-          {Array.from({ length: 12 }, (_, index) => (
-            <div key={index} className={styles.skeleton}>
-              <div />
-              <span />
-              <span />
-            </div>
+        <div className={styles.loading} aria-label="Chargement des résultats">
+          {Array.from({ length: 8 }, (_, index) => (
+            <div key={index} className={styles.skeleton} />
           ))}
         </div>
       ) : !data?.items.length ? (
         <div className={styles.empty}>
-          <span className={styles.emptyIcon}>
-            <Icon name="search" size={30} />
-          </span>
-          <h2>Aucun résultat sur le terrain.</h2>
-          <p>Essaie un autre nom ou élargis tes filtres.</p>
+          <h2>Aucun résultat</h2>
+          <p>Modifie ta recherche ou retire un filtre.</p>
           <button className={styles.primaryButton} onClick={reset}>
-            <Icon name="reset" size={16} />
-            Repartir de zéro
+            Effacer les filtres
           </button>
         </div>
       ) : (
         <>
           {isPlayers ? (
-            <div className={`${styles.grid} ${list ? styles.list : ''}`}>
-              {players.data?.items.map((player) => (
-                <PlayerCard
-                  key={player.id}
-                  player={player}
-                  list={list}
-                  rarity={params.get('rarity')}
-                />
-              ))}
-            </div>
+            <PlayerList players={players.data?.items ?? []} rarity={params.get('rarity')} />
           ) : view === 'techniques' ? (
             <TechniqueList techniques={techniques.data?.items ?? []} />
           ) : (
@@ -146,17 +105,17 @@ export function CatalogueResults({ catalogue }: { catalogue: ReturnType<typeof u
                 disabled={page <= 1}
                 aria-label="Page précédente"
               >
-                <Icon name="left" size={16} />
+                Précédent
               </button>
               <span>
-                Page <strong>{data.page}</strong> / {data.pages}
+                {data.page} / {data.pages}
               </span>
               <button
                 onClick={() => changePage(page + 1)}
                 disabled={page >= data.pages}
                 aria-label="Page suivante"
               >
-                <Icon name="right" size={16} />
+                Suivant
               </button>
             </div>
           </nav>

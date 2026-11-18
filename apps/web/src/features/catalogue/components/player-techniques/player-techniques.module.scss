@@ -22,7 +22,7 @@
     gap: 6px;
     flex: 1;
     font-size: 9px;
-    color: #839280;
+    color: var(--color-muted);
   }
   select {
     min-width: 0;
@@ -30,16 +30,14 @@
     height: 34px;
     padding: 0 9px;
     border: 1px solid var(--color-border);
-    border-radius: 5px;
     background: white;
-    color: #536f55;
+    color: var(--color-muted);
     font-size: 11px;
   }
 }
 
 .moves {
   border: 1px solid var(--color-border);
-  border-radius: 9px;
   overflow: hidden;
 }
 
@@ -55,10 +53,10 @@
     border: 0;
   }
   &:hover {
-    background: #f7faf4;
+    background: var(--color-background);
   }
   > svg {
-    color: #a1afa1;
+    color: var(--color-muted);
     flex-shrink: 0;
   }
 }
@@ -68,9 +66,8 @@
   place-items: center;
   width: 34px;
   height: 37px;
-  border-radius: 7px;
-  background: #eff4ea;
-  color: #819775;
+
+  color: var(--color-muted);
   flex-shrink: 0;
 }
 
@@ -103,11 +100,11 @@
 }
 
 .moveLevel {
-  color: #91a08a;
+  color: var(--color-muted);
   font-size: 9px;
   white-space: nowrap;
   strong {
-    color: #6d8561;
+    color: var(--color-muted);
     font-size: 11px;
   }
 }

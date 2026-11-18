@@ -1,4 +1,6 @@
 export type Element = 'wind' | 'forest' | 'fire' | 'mountain' | 'void';
+export type Gender = 'male' | 'female' | 'neutral';
+export type PlayStyle = 'breach' | 'tension' | 'counter' | 'bond' | 'rough_play' | 'justice';
 export type Position = 'GK' | 'DF' | 'MF' | 'FW';
 export type Category =
   | 'shoot'
@@ -45,6 +47,8 @@ export interface Page<T> {
   pages: number;
 }
 export interface PlayerQuery {
+  gender?: Gender;
+  style?: PlayStyle;
   q?: string;
   work?: string;
   position?: Position;
@@ -65,6 +69,8 @@ export interface TechniqueQuery {
   limit?: number;
 }
 export interface PlayerSummary {
+  gender: Gender | null;
+  playStyle: PlayStyle | null;
   id: number;
   number: string | null;
   name: string;
@@ -100,7 +106,6 @@ export interface PlayerLearnset {
   rarities: Rarity[];
 }
 export interface PlayerDetail extends PlayerSummary {
-  gender: string | null;
   schoolYear: string | null;
   aliases: string[];
   recordedTeams: string[];

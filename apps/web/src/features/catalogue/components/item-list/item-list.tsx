@@ -1,7 +1,6 @@
 import type { CatalogueItem } from '@shared/catalogue';
 import { href, intercept } from '@/app/navigation';
 import { TacticIcon } from '../game-icon/game-icon';
-import { Icon } from '@/components/ui/icon/icon';
 import { EQUIPMENT_SLOTS, STAT_NAMES, tensionLabel } from '../../lib/labels';
 import styles from './item-list.module.scss';
 export function ItemList({ items }: { items: CatalogueItem[] }) {
@@ -25,7 +24,7 @@ export function ItemList({ items }: { items: CatalogueItem[] }) {
                     decoding="async"
                   />
                 ) : (
-                  <Icon name="book" size={24} />
+                  <span aria-hidden="true">—</span>
                 )}
               </span>
               <span className={styles.name}>
@@ -42,7 +41,6 @@ export function ItemList({ items }: { items: CatalogueItem[] }) {
               {item.tension != null && (
                 <span className={styles.tension}>{tensionLabel(item.tension)}</span>
               )}
-              <Icon name="right" size={16} />
             </a>
           </li>
         );

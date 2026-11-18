@@ -1,5 +1,4 @@
 import type { TechniqueDetail, TechniqueSummary } from '@shared/catalogue';
-import { Icon } from '@/components/ui/icon/icon';
 import { ElementBadge, PositionBadge } from '../catalogue-badges/catalogue-badges';
 import { Portrait } from '../player-portrait/player-portrait';
 import { TechniqueTypeIcon } from '../game-icon/game-icon';
@@ -19,7 +18,6 @@ function TechniqueLink({ technique }: { technique: TechniqueSummary }) {
     >
       <TechniqueTypeIcon category={technique.category} />
       <strong>{technique.name}</strong>
-      <Icon name="right" size={16} />
     </a>
   );
 }
@@ -104,7 +102,6 @@ export function TechniquePanel({
                       </small>
                     </span>
                     <PositionBadge position={player.position} />
-                    <Icon name="right" size={16} />
                   </a>
                 );
               })}
@@ -115,7 +112,6 @@ export function TechniquePanel({
               onClick={(event) => intercept(event, userTarget)}
             >
               Voir les joueurs dans le catalogue
-              <Icon name="arrow" size={16} />
             </a>
           </>
         ) : (

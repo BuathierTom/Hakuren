@@ -1,56 +1,34 @@
 .portrait {
-  position: relative;
   display: grid;
   place-items: center;
   width: 100%;
   height: 100%;
-
   img {
     max-width: 100%;
     width: 170px;
     height: 160px;
-    align-self: end;
     object-fit: contain;
-    object-position: center bottom;
-    filter: drop-shadow(0 5px 5px #20372f12);
+    object-position: center;
   }
 }
-
-.placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  color: #a3b1a9;
-
-  span {
-    font-size: 10px;
-    letter-spacing: 0.02em;
-  }
-}
-
 .smallPortrait {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   flex-shrink: 0;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #eef3f0;
   img {
-    width: 48px;
-    height: 48px;
+    max-width: 100%;
+    width: 56px;
+    height: 56px;
   }
 }
-
+.placeholder {
+  color: var(--color-muted);
+  font-size: 11px;
+  text-align: center;
+}
 @media (max-width: 560px) {
-  .portrait:not(.smallPortrait):not(.listPortrait) img {
-    height: 139px;
-    width: 146px;
+  .portrait:not(.smallPortrait) img {
+    width: 130px;
+    height: 140px;
   }
-}
-
-.listPortrait img {
-  width: 85px;
-  height: 90px;
 }

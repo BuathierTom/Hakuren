@@ -39,7 +39,7 @@ export function DetailDialog({
     };
   }, []);
   useEffect(() => {
-    if (request.data) document.title = `${request.data.name} · KizunaDex`;
+    if (request.data) document.title = `${request.data.name} · Hakuren`;
   }, [request.data]);
   return (
     <dialog
@@ -63,10 +63,7 @@ export function DetailDialog({
       }}
     >
       <div className={styles.topbar}>
-        <span>
-          <Icon name={view === 'players' ? 'shirt' : 'bolt'} size={16} />
-          {view === 'players' ? 'Fiche joueur' : VIEWS[view]}
-        </span>
+        <span>{view === 'players' ? 'Fiche joueur' : VIEWS[view]}</span>
         <button
           type="button"
           onClick={() => closeDetail(view)}
@@ -79,12 +76,10 @@ export function DetailDialog({
       <div className={styles.body} aria-busy={request.loading}>
         {request.loading ? (
           <div className={styles.state}>
-            <span className={styles.spinner} />
             <h2 id={title}>Chargement de la fiche…</h2>
           </div>
         ) : request.error ? (
           <div className={styles.state} role="alert">
-            <Icon name="info" size={32} />
             <h2 id={title}>Fiche indisponible</h2>
             <p>{request.error.message}</p>
             <button className={styles.primaryButton} onClick={request.retry}>

@@ -1,16 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Icon } from '@/components/ui/icon/icon';
 import styles from './player-portrait.module.scss';
 
-export function Portrait({
-  src,
-  small = false,
-  list = false,
-}: {
-  src: string | null;
-  small?: boolean;
-  list?: boolean;
-}) {
+export function Portrait({ src, small = false }: { src: string | null; small?: boolean }) {
   const [attempt, setAttempt] = useState(0);
   useEffect(() => setAttempt(0), [src]);
   const candidates = src ? [src] : [];
@@ -23,10 +14,7 @@ export function Portrait({
   }
   const source = candidates[attempt];
   return (
-    <span
-      className={`${styles.portrait} ${small ? styles.smallPortrait : ''} ${list ? styles.listPortrait : ''}`}
-      aria-hidden="true"
-    >
+    <span className={`${styles.portrait} ${small ? styles.smallPortrait : ''}`} aria-hidden="true">
       {source ? (
         <img
           src={source}
@@ -40,8 +28,7 @@ export function Portrait({
         />
       ) : (
         <span className={styles.placeholder}>
-          <Icon name="shirt" size={small ? 25 : 50} />
-          {!small && <span>Portrait à venir</span>}
+          <span>{small ? '—' : 'Portrait indisponible'}</span>
         </span>
       )}
     </span>
