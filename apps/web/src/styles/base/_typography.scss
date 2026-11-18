@@ -12,8 +12,8 @@ a {
 }
 
 ::selection {
-  background: #d4e7d7;
-  color: #193b2c;
+  background: var(--color-accent-soft);
+  color: var(--color-text);
 }
 :focus-visible {
   outline: 2px solid var(--color-focus);
