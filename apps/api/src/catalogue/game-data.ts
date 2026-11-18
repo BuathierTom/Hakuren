@@ -27,7 +27,7 @@ const elements: Record<string, string | null> = {
   '2': 'forest',
   '3': 'fire',
   '4': 'mountain',
-  '5': null,
+  '5': 'void',
 };
 const auras: Record<string, string> = {
   keshin: 'keshin',

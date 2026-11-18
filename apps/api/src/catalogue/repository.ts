@@ -37,11 +37,14 @@ const PLAYER_FROM = `FROM player_variants v
   LEFT JOIN works ow ON ow.id=v.origin_work_id
   LEFT JOIN variant_external_ids ext ON ext.variant_id=v.id AND ext.source_id=(SELECT id FROM data_sources WHERE code='level5-codex')`;
 const PLAYER_FIELDS = `v.id, v.character_id, v.name, v.variant_label, v.portrait_url, v.element, v.position,
-  v.role, v.age_group, v.gender, v.school_year, CASE WHEN v.style_source_record_id IS NULL OR EXISTS (SELECT 1 FROM source_records st WHERE st.id=v.style_source_record_id AND st.review_status='verified') THEN v.play_style ELSE NULL END AS play_style, ext.external_key AS number,
+  v.role, v.age_group, v.gender, v.school_year, vs.payload AS identity_payload, CASE WHEN v.style_source_record_id IS NULL OR EXISTS (SELECT 1 FROM source_records st WHERE st.id=v.style_source_record_id AND st.review_status='verified') THEN v.play_style ELSE NULL END AS play_style, ext.external_key AS number,
   ow.id AS origin_id, ow.code AS origin_code, ow.name AS origin_name, ow.kind AS origin_kind`;
 const TECH_FROM = 'FROM techniques t LEFT JOIN source_records ts ON ts.id=t.source_record_id';
 const publishedTechnique = `t.is_published=1 AND t.category IS NOT NULL AND t.category NOT IN ('passive','other','tactic')`;
-const TECH_FIELDS = 't.id,t.name,t.category,t.element,t.game_id,t.kind,t.power,t.tension,t.notes';
+const TECH_ELEMENT = `COALESCE(t.element,CASE WHEN ts.entity_kind='ability'
+  AND ts.source_id=(SELECT id FROM data_sources WHERE code='kizuna-game-data')
+  AND JSON_EXTRACT(ts.payload,'$.element')=5 THEN 'void' ELSE NULL END)`;
+const TECH_FIELDS = `t.id,t.name,t.category,${TECH_ELEMENT} AS element,t.game_id,t.kind,t.power,t.tension,t.notes`;
 const pattern = (q: string) => `%${q.replace(/[!%_]/g, '!$&')}%`;
 const work = (row: RowDataPacket, prefix = ''): Work => ({
   id: row[`${prefix}id`],
@@ -108,7 +111,7 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
     if (!input.length) return [];
     const ids = input.map((row) => row.id as number);
     const placeholders = ids.map(() => '?').join(',');
-    const [appearances, rarities] = await Promise.all([
+    const [appearances, rarities, memberships] = await Promise.all([
       rows(
         `SELECT a.variant_id, w.id, w.code, w.name, w.kind FROM variant_appearances a
         JOIN works w ON w.id=a.work_id LEFT JOIN source_records s ON s.id=a.source_record_id
@@ -121,29 +124,55 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
         WHERE a.variant_id IN (${placeholders}) AND ${approved('a', 's')} ORDER BY r.sort_order, r.id`,
         ids,
       ),
+      rows(
+        `SELECT a.variant_id,a.work_id,ht.name FROM appearance_teams m JOIN variant_appearances a ON a.id=m.appearance_id
+        JOIN historical_teams ht ON ht.id=m.historical_team_id
+        LEFT JOIN source_records ms ON ms.id=m.source_record_id LEFT JOIN source_records aps ON aps.id=a.source_record_id
+        LEFT JOIN source_records hs ON hs.id=ht.source_record_id
+        WHERE a.variant_id IN (${placeholders}) AND ${approved('m', 'ms')} AND ${approved('a', 'aps')} AND ${approved('ht', 'hs')}
+        ORDER BY ht.name`,
+        ids,
+      ),
     ]);
-    return input.map((row) => ({
-      id: row.id,
-      number: row.number ?? null,
-      name: row.name,
-      variantLabel: row.variant_label,
-      formLabel:
-        WIKI_MAPPINGS.find(
-          (mapping) =>
-            mapping.id === Number(row.number) &&
-            !('historicalOnly' in mapping && mapping.historicalOnly),
-        )?.label ?? null,
-      portraitUrl: url(row.portrait_url),
-      element: row.element,
-      position: row.position,
-      gender: row.gender,
-      playStyle: row.play_style,
-      role: row.role,
-      ageGroup: row.age_group,
-      origin: row.origin_id ? work(row, 'origin_') : null,
-      appearances: appearances.filter((a) => a.variant_id === row.id).map((row) => work(row)),
-      rarities: rarities.filter((r) => r.variant_id === row.id).map(rarity),
-    }));
+    return input.map((row) => {
+      const payload = json(row.identity_payload);
+      const recorded =
+        payload && typeof payload === 'object' && 'teams' in payload && Array.isArray(payload.teams)
+          ? payload.teams
+          : [];
+      const originTeams = memberships
+        .filter((entry) => entry.variant_id === row.id && entry.work_id === row.origin_id)
+        .map((entry) => entry.name as string);
+      const teams = originTeams.length
+        ? originTeams
+        : recorded.filter(
+            (team): team is string =>
+              typeof team === 'string' && !!team.trim() && !NON_TEAMS.has(team),
+          );
+      return {
+        id: row.id,
+        number: row.number ?? null,
+        name: row.name,
+        variantLabel: row.variant_label,
+        formLabel:
+          WIKI_MAPPINGS.find(
+            (mapping) =>
+              mapping.id === Number(row.number) &&
+              !('historicalOnly' in mapping && mapping.historicalOnly),
+          )?.label ?? null,
+        portraitUrl: url(row.portrait_url),
+        element: row.element,
+        position: row.position,
+        gender: row.gender,
+        playStyle: row.play_style,
+        role: row.role,
+        ageGroup: row.age_group,
+        teams: [...new Set(teams)],
+        origin: row.origin_id ? work(row, 'origin_') : null,
+        appearances: appearances.filter((a) => a.variant_id === row.id).map((row) => work(row)),
+        rarities: rarities.filter((r) => r.variant_id === row.id).map(rarity),
+      };
+    });
   }
   function playerWhere(query: PlayerQuery) {
     const conditions = [approved('v', 'vs')];
@@ -151,8 +180,14 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
     const q = query.q?.trim();
     if (q) {
       conditions.push(`(v.name LIKE ? ESCAPE '!' OR EXISTS (SELECT 1 FROM character_names n
-        LEFT JOIN source_records ns ON ns.id=n.source_record_id WHERE n.character_id=v.character_id AND n.name LIKE ? ESCAPE '!' AND ${approved('n', 'ns')}) OR ext.external_key=?)`);
-      values.push(pattern(q), pattern(q), q);
+        LEFT JOIN source_records ns ON ns.id=n.source_record_id WHERE n.character_id=v.character_id AND n.name LIKE ? ESCAPE '!' AND ${approved('n', 'ns')}) OR ext.external_key=?
+        OR EXISTS (SELECT 1 FROM historical_teams ht LEFT JOIN source_records hs ON hs.id=ht.source_record_id
+          WHERE ht.name LIKE ? ESCAPE '!' AND ${approved('ht', 'hs')}
+          AND (JSON_CONTAINS(JSON_EXTRACT(vs.payload,'$.teams'),JSON_QUOTE(ht.name))=1
+            OR EXISTS (SELECT 1 FROM appearance_teams tm JOIN variant_appearances ta ON ta.id=tm.appearance_id
+              LEFT JOIN source_records tms ON tms.id=tm.source_record_id LEFT JOIN source_records tas ON tas.id=ta.source_record_id
+              WHERE tm.historical_team_id=ht.id AND ta.variant_id=v.id AND ${approved('tm', 'tms')} AND ${approved('ta', 'tas')}))))`);
+      values.push(pattern(q), pattern(q), q, pattern(q));
     }
     if (query.work) {
       conditions.push(`EXISTS (SELECT 1 FROM variant_appearances a JOIN works w ON w.id=a.work_id
@@ -183,6 +218,9 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
       conditions.push(
         `v.role IN ('Manager','Coach','Coordinator','Player Manager','Player Coordinator')`,
       );
+    if (query.role === 'manager') conditions.push("v.role IN ('Manager','Player Manager')");
+    if (query.role === 'coordinator')
+      conditions.push("v.role IN ('Coordinator','Player Coordinator')");
     if (query.rarity) {
       conditions.push(`EXISTS (SELECT 1 FROM variant_rarities a JOIN rarities r ON r.id=a.rarity_id
         LEFT JOIN source_records s ON s.id=a.source_record_id WHERE a.variant_id=v.id AND r.code=? AND ${approved('a', 's')})`);
@@ -215,10 +253,10 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
           THEN LOWER(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(ts.payload,?)),'null'))
           WHEN JSON_TYPE(JSON_EXTRACT(ts.payload,'$.Element'))='STRING' THEN LOWER(JSON_UNQUOTE(JSON_EXTRACT(ts.payload,'$.Element')))
           WHEN JSON_TYPE(JSON_EXTRACT(ts.payload,'$.Element')) IS NOT NULL THEN NULL
-          WHEN ?='VR' THEN t.element ELSE NULL END)=?`);
+          WHEN ?='VR' THEN ${TECH_ELEMENT} ELSE NULL END)=?`);
         values.push(`$.Element.${JSON.stringify(query.work)}`, query.work, query.element);
       } else {
-        conditions.push('t.element=?');
+        conditions.push(`${TECH_ELEMENT}=?`);
         values.push(query.element);
       }
     }
@@ -336,9 +374,9 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
       const page = query.page ?? 1;
       const limit = query.limit ?? 24;
       const sort =
-        query.sort === 'name'
-          ? 'v.name,v.id'
-          : 'COALESCE(CAST(ext.external_key AS UNSIGNED),v.id),v.id';
+        query.sort === 'number'
+          ? 'COALESCE(CAST(ext.external_key AS UNSIGNED),v.id),v.id'
+          : 'v.name,v.id';
       const [items, count] = await Promise.all([
         rows(`SELECT ${PLAYER_FIELDS} ${PLAYER_FROM} ${sql} ORDER BY ${sort} LIMIT ? OFFSET ?`, [
           ...values,
@@ -383,7 +421,7 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
         rows(
           `SELECT l.id, l.unlock_level, l.source_flags, l.alternate_path, l.basara_only, l.rarity_scope, c.mode_code,c.game_version,
           ls.external_key AS learnset_source_key,ls.payload AS learnset_source_payload,lds.code AS learnset_source,
-          t.id AS technique_id,t.name AS technique_name,t.category,t.element,ts.payload AS technique_element_payload,
+          t.id AS technique_id,t.name AS technique_name,t.category,${TECH_ELEMENT} AS element,ts.payload AS technique_element_payload,
           w.id AS work_id,w.code AS work_code,w.name AS work_name,w.kind AS work_kind
           FROM variant_learnsets l JOIN techniques t ON t.id=l.technique_id JOIN game_contexts c ON c.id=l.context_id JOIN works w ON w.id=c.work_id
           LEFT JOIN source_records ls ON ls.id=l.source_record_id LEFT JOIN source_records ts ON ts.id=t.source_record_id
@@ -517,7 +555,7 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
     },
     async technique(id) {
       const found = await rows(
-        `SELECT t.*,ts.source_url,ts.payload AS element_payload ${TECH_FROM} WHERE t.id=? AND ${approved('t', 'ts')} AND ${publishedTechnique}`,
+        `SELECT ${TECH_FIELDS},t.description,t.granted_game_id,t.preview_url,t.preview_mime_type,ts.source_url,ts.payload AS element_payload ${TECH_FROM} WHERE t.id=? AND ${approved('t', 'ts')} AND ${publishedTechnique}`,
         [id],
       );
       const row = found[0];

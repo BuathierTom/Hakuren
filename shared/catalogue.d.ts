@@ -54,7 +54,7 @@ export interface PlayerQuery {
   position?: Position;
   element?: Element;
   rarity?: string;
-  role?: 'player' | 'staff';
+  role?: 'player' | 'staff' | 'manager' | 'coordinator';
   technique?: number;
   sort?: 'number' | 'name';
   page?: number;
@@ -81,6 +81,7 @@ export interface PlayerSummary {
   position: Position | null;
   role: string | null;
   ageGroup: string | null;
+  teams: string[];
   origin: Work | null;
   appearances: Work[];
   rarities: Rarity[];

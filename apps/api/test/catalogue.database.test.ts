@@ -95,6 +95,9 @@ test(
           );
           assert.equal((await read.players({ q: 'Same name' })).total, 2);
           assert.equal((await read.players({ q: '%' })).total, 0);
+          assert.equal((await read.players({ q: 'Test Team' })).total, 9);
+          const alphabetic = await read.players({ limit: 9 });
+          assert.equal(alphabetic.items[0]?.name, 'Player 2');
           assert.equal((await read.players({ q: "' OR 1=1 --" })).total, 0);
           assert.equal((await read.players({ rarity: 'hero' })).total, 1);
           assert.equal((await read.players({ position: 'GK' })).total, 0);
@@ -102,6 +105,7 @@ test(
           assert(detail);
           assert.equal(detail.statistics?.values.power, 10);
           assert.deepEqual(detail.recordedTeams, ['Test Team']);
+          assert.deepEqual(detail.teams, ['Test Team']);
           assert(
             detail.history.every((appearance) => appearance.teams.length === 0),
             'Aggregate teams must not be assigned to an episode.',
@@ -343,6 +347,79 @@ test(
           assert.equal((await read.techniques({ q: 'Tir français', category: 'shoot' })).total, 1);
           assert.equal((await read.items!('tactics', { q: 'Défense' })).total, 1);
           assert.equal((await read.items!('equipment', { q: 'Équipement absent' })).total, 0);
+          await importCatalogue(db, await fixtureGamePlan(false, 5));
+          const neutral = await read.techniques({ element: 'void' });
+          assert.equal(neutral.total, 1);
+          assert.equal(neutral.items[0]?.id, result.items[0]?.id);
+          assert.equal(
+            (await read.technique(neutral.items[0]!.id))?.preview?.url,
+            'https://example.test/demo.mp4',
+          );
+          assert.equal(
+            (await rows('SELECT learnset_id FROM squad_player_techniques'))[0]?.learnset_id,
+            learnset,
+          );
+        },
+      );
+
+      await t.test(
+        'player type filters include hybrid roles and summaries prefer approved teams from the origin work',
+        async () => {
+          const read = createCatalogueRepository(db);
+          const selected = (await read.players({ limit: 4 })).items;
+          const roles = ['Manager', 'Player Manager', 'Coordinator', 'Player Coordinator'];
+          for (const [index, entry] of selected.entries())
+            await db.execute('UPDATE player_variants SET role=? WHERE id=?', [
+              roles[index],
+              entry.id,
+            ]);
+          assert.equal((await read.players({ role: 'manager' })).total, 2);
+          assert.equal((await read.players({ role: 'coordinator' })).total, 2);
+          for (const entry of selected)
+            await db.execute("UPDATE player_variants SET role='Player' WHERE id=?", [entry.id]);
+          await db.execute(
+            "INSERT INTO source_records (source_id,entity_kind,external_key,source_version,retrieved_at,payload,review_status) SELECT source_id,'roster_membership','fixture-origin-team','fixture',NOW(3),'{}','verified' FROM source_records LIMIT 1",
+          );
+          const source = (
+            await rows("SELECT id FROM source_records WHERE external_key='fixture-origin-team'")
+          )[0]!.id;
+          await db.execute(
+            "INSERT INTO historical_teams (slug,name) VALUES ('fixture-origin','Origin team'),('fixture-other-work','Other work team')",
+          );
+          const originTeam = (
+            await rows("SELECT id FROM historical_teams WHERE slug='fixture-origin'")
+          )[0]!.id;
+          const otherTeam = (
+            await rows("SELECT id FROM historical_teams WHERE slug='fixture-other-work'")
+          )[0]!.id;
+          await db.execute(
+            "INSERT INTO appearance_teams (appearance_id,historical_team_id,source_record_id) SELECT a.id,?,? FROM variant_appearances a JOIN works w ON w.id=a.work_id WHERE a.variant_id=? AND w.code='IE'",
+            [originTeam, source, player],
+          );
+          await db.execute(
+            "INSERT INTO appearance_teams (appearance_id,historical_team_id) SELECT a.id,? FROM variant_appearances a JOIN works w ON w.id=a.work_id WHERE a.variant_id=? AND w.code='VR'",
+            [otherTeam, player],
+          );
+          assert.deepEqual((await read.player(player))?.teams, ['Origin team']);
+          assert.equal((await read.players({ q: 'Origin team' })).total, 1);
+          assert.equal((await read.players({ q: 'Other work team' })).total, 1);
+          assert.deepEqual((await read.players({ q: 'Player 2' })).items[0]?.teams, [
+            'Origin team',
+          ]);
+          await db.execute("UPDATE source_records SET review_status='quarantined' WHERE id=?", [
+            source,
+          ]);
+          assert.deepEqual((await read.player(player))?.teams, ['Test Team']);
+          assert.equal((await read.players({ q: 'Origin team' })).total, 0);
+          await db.execute('DELETE FROM appearance_teams WHERE historical_team_id IN (?,?)', [
+            originTeam,
+            otherTeam,
+          ]);
+          await db.execute('DELETE FROM historical_teams WHERE id IN (?,?)', [
+            originTeam,
+            otherTeam,
+          ]);
+          await db.execute('DELETE FROM source_records WHERE id=?', [source]);
         },
       );
 

@@ -303,6 +303,27 @@ export async function importCatalogue(
       'SELECT id, preview_url, preview_mime_type FROM techniques WHERE preview_url IS NOT NULL',
     );
     const existingMedia = new Map(existingMediaRows.map((row) => [row.id as number, row]));
+    const primaryTechniqueIds = new Set(
+      plan.techniques
+        .filter((technique) => technique.published !== false)
+        .map((technique) => {
+          const direct = existingTechniques.get(
+            key(
+              sources.get(technique.record.source)!,
+              `${technique.record.kind}/${technique.record.key}`,
+            ),
+          );
+          return (
+            direct ??
+            (technique.legacyKey
+              ? existingTechniques.get(
+                  key(sources.get(technique.legacyKey.source)!, technique.legacyKey.external),
+                )
+              : undefined)
+          );
+        })
+        .filter((id): id is number => id !== undefined),
+    );
     const techniques = new Map<string, number>();
     for (const technique of plan.techniques) {
       const sourceId = sources.get(technique.record.source)!;
@@ -315,6 +336,14 @@ export async function importCatalogue(
               key(sources.get(technique.legacyKey.source)!, technique.legacyKey.external),
             )
           : undefined);
+      if (
+        technique.published === false &&
+        previousId !== undefined &&
+        primaryTechniqueIds.has(previousId)
+      ) {
+        techniques.set(technique.key, previousId);
+        continue;
+      }
       const media = previousId == null ? undefined : existingMedia.get(previousId);
       const preview = technique.preview ?? (media?.preview_url as string | undefined) ?? null;
       const values = {

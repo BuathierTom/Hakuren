@@ -37,7 +37,7 @@ test('catalogue routes validate filters, coerce pagination and supply bounded de
   });
   try {
     const response = await app.inject(
-      '/api/players?q=Byron&work=IE3&position=MF&element=forest&gender=male&style=justice&page=2',
+      '/api/players?q=Byron&work=IE3&position=MF&element=forest&gender=male&style=justice&role=manager&page=2',
     );
     assert.equal(response.statusCode, 200);
     assert.equal(response.headers['cache-control'], 'no-store');
@@ -50,9 +50,10 @@ test('catalogue routes validate filters, coerce pagination and supply bounded de
         element: 'forest',
         gender: 'male',
         style: 'justice',
+        role: 'manager',
         page: 2,
         limit: 24,
-        sort: 'number',
+        sort: 'name',
       },
     );
     for (const query of [
@@ -63,6 +64,7 @@ test('catalogue routes validate filters, coerce pagination and supply bounded de
       'element=ice',
       'gender=unknown',
       'style=invalid',
+      'role=invalid',
       'unexpected=true',
       'q=a&q=b',
       `q=${'x'.repeat(101)}`,
@@ -72,6 +74,7 @@ test('catalogue routes validate filters, coerce pagination and supply bounded de
       assert.equal(invalid.statusCode, 400, query);
       assert.equal(invalid.json().error, 'INVALID_REQUEST');
     }
+    assert.equal((await app.inject('/api/players?role=coordinator')).statusCode, 200);
     assert.equal((await app.inject('/api/techniques?category=fake')).statusCode, 400);
     assert.equal(
       (await app.inject('/api/techniques?category=unknown&element=void')).statusCode,

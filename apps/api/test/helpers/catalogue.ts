@@ -121,7 +121,7 @@ export function fixturePlan() {
   return plan;
 }
 
-export async function fixtureGamePlan(unknownLegacy = false) {
+export async function fixtureGamePlan(unknownLegacy = false, moveElement = 3) {
   const { enrichGameData } = await import('../../src/catalogue/game-data.js');
   const plan = fixturePlan();
   if (unknownLegacy) {
@@ -141,7 +141,7 @@ export async function fixtureGamePlan(unknownLegacy = false) {
           name: locale === 'fr' ? 'Tir français' : 'Test Shot',
           description: 'Une frappe\\npuissante.',
           category: 1,
-          element: 3,
+          element: moveElement,
           power: 85,
           tp_consumption: 80,
           cooldown: 60,

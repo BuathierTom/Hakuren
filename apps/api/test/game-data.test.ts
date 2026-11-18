@@ -51,3 +51,8 @@ test('a known game category restores an unambiguous legacy video', async () => {
   assert.equal(shot?.key, 'Test Shot');
   assert.equal(shot?.preview, 'https://example.test/shot.mp4');
 });
+
+test('game element five is exposed as Void for techniques', async () => {
+  const plan = await fixtureGamePlan(false, 5);
+  assert.equal(plan.techniques.find((row) => row.gameId === '221679467')?.element, 'void');
+});
