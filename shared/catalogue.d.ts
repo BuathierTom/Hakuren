@@ -9,6 +9,10 @@ export type Category =
   | 'keshin_armed'
   | 'miximax'
   | 'totem'
+  | 'bond_transform'
+  | 'awakening_power'
+  | 'mode_change'
+  | 'awakening_change'
   | 'tactic'
   | 'passive'
   | 'other';
@@ -25,7 +29,13 @@ export interface Rarity {
 export interface CatalogueFilters {
   works: (Work & { playerCount: number })[];
   rarities: Rarity[];
-  counts: { players: number; techniques: number; appearances: number };
+  counts: {
+    players: number;
+    techniques: number;
+    appearances: number;
+    equipment?: number;
+    tactics?: number;
+  };
 }
 export interface Page<T> {
   items: T[];
@@ -105,6 +115,11 @@ export interface TechniqueSummary {
   name: string;
   category: Category | null;
   element: Element | null;
+  gameId?: string | null;
+  kind?: 'hissatsu' | 'aura_hissatsu' | 'aura' | null;
+  power?: number | null;
+  tension?: number | null;
+  notes?: string[];
 }
 export interface TechniqueProfile {
   id: number;
@@ -117,10 +132,35 @@ export interface TechniqueProfile {
   parameters: Record<string, unknown> | null;
 }
 export interface TechniqueDetail extends TechniqueSummary {
+  description?: string | null;
+  grantedTechnique?: TechniqueSummary | null;
+  grantedBy?: TechniqueSummary[];
   aliases: string[];
   profiles: TechniqueProfile[];
   users: PlayerSummary[];
   userCount: number;
   preview: { url: string; mimeType: string | null } | null;
+  sourceUrl: string | null;
+}
+
+export type ItemSection = 'equipment' | 'tactics';
+export type EquipmentSlot = 'boots' | 'bracelet' | 'pendant' | 'accessory';
+export interface ItemQuery {
+  q?: string;
+  slot?: EquipmentSlot;
+  page?: number;
+  limit?: number;
+}
+export interface CatalogueItem {
+  id: number;
+  section: ItemSection;
+  gameId: string;
+  stringId: string;
+  name: string;
+  description: string | null;
+  slot: EquipmentSlot | null;
+  imageUrl: string | null;
+  tension: number | null;
+  stats: Partial<Record<StatKey, number>>;
   sourceUrl: string | null;
 }

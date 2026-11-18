@@ -1,0 +1,116 @@
+.table {
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--color-surface);
+}
+.heading,
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 50px 76px 76px 105px;
+  gap: 12px;
+  align-items: center;
+  padding: 16px 18px;
+}
+.heading {
+  font-size: 10px;
+  color: var(--color-muted);
+  background: var(--color-background);
+  border-bottom: 1px solid var(--color-border);
+  > span:not(:first-child) {
+    text-align: center;
+  }
+}
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  li + li {
+    border-top: 1px solid var(--color-border-soft);
+  }
+}
+.row {
+  text-decoration: none;
+  color: inherit;
+  min-height: 72px;
+  &:hover {
+    background: var(--color-accent-soft);
+  }
+}
+.identity {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 14px;
+  > span {
+    min-width: 0;
+  }
+  strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+  }
+  small {
+    display: block;
+    margin-top: 5px;
+    color: var(--color-muted);
+    font-size: 10px;
+  }
+}
+.element {
+  display: flex;
+  justify-content: center;
+}
+.power {
+  font-size: 15px;
+  font-weight: 650;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.tension {
+  font-size: 11px;
+  text-align: center;
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+.notes {
+  font-size: 10px;
+  color: var(--color-muted);
+  text-align: center;
+  line-height: 1.5;
+}
+@media (max-width: 1000px) {
+  .heading,
+  .row {
+    grid-template-columns: minmax(0, 1fr) 32px 62px 62px;
+    gap: 8px;
+  }
+  .heading > :last-child,
+  .notes {
+    display: none;
+  }
+}
+@media (max-width: 680px) {
+  .heading {
+    display: none;
+  }
+  .row {
+    padding: 14px 12px;
+    grid-template-columns: minmax(0, 1fr) 26px 36px 47px;
+    gap: 7px;
+  }
+  .identity {
+    gap: 9px;
+    strong {
+      font-size: 12px;
+    }
+  }
+  .power {
+    font-size: 13px;
+  }
+  .tension {
+    font-size: 10px;
+  }
+}

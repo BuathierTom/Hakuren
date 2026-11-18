@@ -1,6 +1,13 @@
 import { useSyncExternalStore } from 'react';
 
-export type View = 'players' | 'techniques';
+export type View = 'players' | 'techniques' | 'equipment' | 'tactics' | 'catalogue';
+export const VIEW_PATHS: Record<View, string> = {
+  players: '/joueurs',
+  techniques: '/techniques',
+  equipment: '/equipements',
+  tactics: '/tactiques',
+  catalogue: '/catalogue',
+};
 const subscribe = (callback: () => void) => {
   window.addEventListener('popstate', callback);
   return () => window.removeEventListener('popstate', callback);
@@ -9,7 +16,9 @@ const snapshot = () => window.location.pathname + window.location.search;
 export function useLocation() {
   const location = useSyncExternalStore(subscribe, snapshot);
   const url = new URL(location, window.location.origin);
-  const view: View = url.pathname === '/techniques' ? 'techniques' : 'players';
+  const view: View =
+    (Object.entries(VIEW_PATHS).find(([, path]) => path === url.pathname)?.[0] as
+      View | undefined) ?? 'players';
   const params = url.searchParams;
   const rawDetail = params.get('detail') ?? '';
   return {
@@ -28,7 +37,7 @@ export function href(
     if (value === null || value === '' || (key === 'page' && value === 1)) params.delete(key);
     else params.set(key, String(value));
   }
-  return `/${view === 'players' ? 'joueurs' : 'techniques'}${params.size ? `?${params}` : ''}`;
+  return `${VIEW_PATHS[view]}${params.size ? `?${params}` : ''}`;
 }
 export function navigate(target: string, options: { replace?: boolean; overlay?: boolean } = {}) {
   const state = {

@@ -4,10 +4,19 @@ import type {
   Page,
   PlayerSummary,
   TechniqueSummary,
+  CatalogueItem,
 } from '@shared/catalogue';
 import { useRequest } from './use-catalogue-request';
 import { href, navigate, useLocation } from '@/app/navigation';
-import { CATEGORIES, ELEMENTS, label, POSITIONS, workLabel } from '../lib/labels';
+import {
+  CATEGORIES,
+  ELEMENTS,
+  label,
+  POSITIONS,
+  workLabel,
+  VIEWS,
+  EQUIPMENT_SLOTS,
+} from '../lib/labels';
 const FILTER_KEYS = [
   'q',
   'work',
@@ -17,13 +26,14 @@ const FILTER_KEYS = [
   'role',
   'category',
   'technique',
+  'slot',
 ] as const;
 
 export function useCatalogue() {
   const location = useLocation();
   const { view, params, detail } = location;
   const isPlayers = view === 'players';
-  const list = params.get('layout') === 'list';
+  const list = !isPlayers || params.get('layout') === 'list';
   const q = params.get('q') ?? '';
   const [search, setSearch] = useState(q);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -32,16 +42,21 @@ export function useCatalogue() {
   const query = new URLSearchParams();
   const allowed = isPlayers
     ? ['q', 'work', 'position', 'element', 'rarity', 'role', 'sort', 'page', 'technique']
-    : ['q', 'work', 'element', 'category', 'page'];
+    : view === 'techniques'
+      ? ['q', 'element', 'category', 'page']
+      : ['q', 'slot', 'page'];
   for (const key of allowed) {
     const value = params.get(key);
     if (value) query.set(key, value);
   }
   const players = useRequest<Page<PlayerSummary>>(isPlayers ? `/api/players?${query}` : null);
   const techniques = useRequest<Page<TechniqueSummary>>(
-    !isPlayers ? `/api/techniques?${query}` : null,
+    view === 'techniques' ? `/api/techniques?${query}` : null,
   );
-  const request = isPlayers ? players : techniques;
+  const items = useRequest<Page<CatalogueItem>>(
+    view === 'equipment' || view === 'tactics' ? `/api/${view}?${query}` : null,
+  );
+  const request = isPlayers ? players : view === 'techniques' ? techniques : items;
   const data = request.data;
   const page = Number(params.get('page')) || 1;
   const active = FILTER_KEYS.filter((key) => params.get(key) && allowed.includes(key));
@@ -62,8 +77,8 @@ export function useCatalogue() {
     return () => window.clearTimeout(timeout);
   }, [search, q, view]);
   useEffect(() => {
-    if (!detail) document.title = `${isPlayers ? 'Joueurs' : 'Techniques'} · KizunaDex`;
-  }, [isPlayers, detail]);
+    if (!detail) document.title = `${VIEWS[view]} · KizunaDex`;
+  }, [view, detail]);
   useEffect(() => {
     const focusSearch = (event: KeyboardEvent) => {
       const target = event.target;
@@ -104,8 +119,8 @@ export function useCatalogue() {
     if (key === 'rarity')
       return metadata.data?.rarities.find((r) => r.code === value)?.name ?? value;
     if (key === 'role') return value === 'player' ? 'Joueurs' : 'Encadrement';
-    if (key === 'category')
-      return value === 'unknown' ? 'Type à confirmer' : label(CATEGORIES, value);
+    if (key === 'slot') return label(EQUIPMENT_SLOTS, value);
+    if (key === 'category') return label(CATEGORIES, value);
     return 'Technique sélectionnée';
   }
 
@@ -126,6 +141,7 @@ export function useCatalogue() {
     metadata,
     players,
     techniques,
+    items,
     request,
     data,
     page,

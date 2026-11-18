@@ -11,6 +11,7 @@ export function ElementBadge({
   element: Element | null;
   compact?: boolean;
 }) {
+  if (!element) return null;
   return (
     <span
       className={`${styles.element} ${compact ? styles.compact : ''}`}

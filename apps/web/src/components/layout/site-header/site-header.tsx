@@ -28,12 +28,12 @@ export function SiteHeader({ view }: { view: View }) {
             Joueurs
           </a>
           <a
-            href="/techniques"
+            href="/catalogue"
             aria-current={!isPlayers ? 'page' : undefined}
-            onClick={(event) => intercept(event, '/techniques')}
+            onClick={(event) => intercept(event, '/catalogue')}
           >
             <Icon name="bolt" size={18} />
-            Techniques
+            Catalogue
           </a>
         </nav>
         <span className={styles.gameBadge}>

@@ -1,14 +1,22 @@
-import type { CatalogueFilters, Element } from '@shared/catalogue';
+import type { CatalogueFilters as Metadata, Element } from '@shared/catalogue';
 import { Icon } from '@/components/ui/icon/icon';
-import { ElementBadge } from '@/features/catalogue/components/catalogue-badges/catalogue-badges';
-import { CATEGORIES, count, ELEMENTS, POSITIONS, workLabel } from '@/features/catalogue/lib/labels';
-import type { View } from '@/app/navigation';
+import { ElementBadge } from '../catalogue-badges/catalogue-badges';
+import { TechniqueTypeIcon } from '../game-icon/game-icon';
+import {
+  count,
+  ELEMENTS,
+  POSITIONS,
+  workLabel,
+  TECHNIQUE_CATEGORIES,
+  EQUIPMENT_SLOTS,
+  VIEWS,
+} from '../../lib/labels';
+import { href, intercept, type View } from '@/app/navigation';
 import styles from './catalogue-filters.module.scss';
-
 interface CatalogueFiltersProps {
   view: View;
   params: URLSearchParams;
-  metadata: CatalogueFilters | null;
+  metadata: Metadata | null;
   loading: boolean;
   open: boolean;
   activeCount: number;
@@ -42,28 +50,42 @@ export function CatalogueFilters({
           <span>Effacer</span>
         </button>
       </div>
-      <div className={styles.filterSection}>
-        <label htmlFor="work-filter">Génération</label>
-        <div className={styles.select}>
-          <select
-            id="work-filter"
-            value={params.get('work') ?? ''}
-            disabled={loading}
-            onChange={(event) => update({ work: event.target.value })}
-          >
-            <option value="">Toutes les générations</option>
-            {metadata?.works.map((work) => (
-              <option key={work.code} value={work.code}>
-                {workLabel(work.code)}
-                {isPlayers ? ` (${count(work.playerCount)})` : ''}
-              </option>
-            ))}
-          </select>
-          <Icon name="down" size={14} />
-        </div>
-      </div>
-      {isPlayers ? (
+      {!isPlayers && (
+        <nav className={styles.sections} aria-label="Rubriques du catalogue">
+          {(['techniques', 'equipment', 'tactics'] as const).map((section) => (
+            <a
+              key={section}
+              href={href(section, {}, false)}
+              aria-current={view === section ? 'page' : undefined}
+              onClick={(event) => intercept(event, href(section, {}, false))}
+            >
+              {VIEWS[section]}
+              <Icon name="right" size={14} />
+            </a>
+          ))}
+        </nav>
+      )}
+      {isPlayers && (
         <>
+          <div className={styles.filterSection}>
+            <label htmlFor="work-filter">Génération</label>
+            <div className={styles.select}>
+              <select
+                id="work-filter"
+                value={params.get('work') ?? ''}
+                disabled={loading}
+                onChange={(event) => update({ work: event.target.value })}
+              >
+                <option value="">Toutes les générations</option>
+                {metadata?.works.map((work) => (
+                  <option key={work.code} value={work.code}>
+                    {workLabel(work.code)} ({count(work.playerCount)})
+                  </option>
+                ))}
+              </select>
+              <Icon name="down" size={14} />
+            </div>
+          </div>
           <fieldset className={styles.filterSection}>
             <legend>Poste</legend>
             <div className={styles.positionOptions}>
@@ -82,45 +104,64 @@ export function CatalogueFilters({
             </div>
           </fieldset>
         </>
-      ) : (
-        <div className={styles.filterSection}>
-          <label htmlFor="category-filter">Type de technique</label>
-          <div className={styles.select}>
-            <select
-              id="category-filter"
-              value={params.get('category') ?? ''}
-              onChange={(event) => update({ category: event.target.value })}
-            >
-              <option value="">Tous les types</option>
-              {Object.entries(CATEGORIES).map(([code, label]) => (
-                <option key={code} value={code}>
-                  {label}
-                </option>
-              ))}
-              <option value="unknown">Type à confirmer</option>
-            </select>
-            <Icon name="down" size={14} />
-          </div>
-        </div>
       )}
-      <fieldset className={styles.filterSection}>
-        <legend>Affinité</legend>
-        <div className={styles.elementOptions}>
-          {Object.keys(ELEMENTS).map((code) => (
-            <button
-              key={code}
-              aria-pressed={params.get('element') === code}
-              onClick={() => update({ element: params.get('element') === code ? null : code })}
-            >
-              <ElementBadge element={code as Element} />
-            </button>
-          ))}
-        </div>
-      </fieldset>
+      {view === 'techniques' && (
+        <fieldset className={styles.filterSection}>
+          <legend>Type de technique</legend>
+          <div className={styles.categoryOptions}>
+            {TECHNIQUE_CATEGORIES.map(([code, label]) => (
+              <button
+                key={code}
+                aria-pressed={params.get('category') === code}
+                onClick={() => update({ category: params.get('category') === code ? null : code })}
+              >
+                <TechniqueTypeIcon
+                  category={code as Parameters<typeof TechniqueTypeIcon>[0]['category']}
+                />
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      )}
+      {(isPlayers || view === 'techniques') && (
+        <fieldset className={styles.filterSection}>
+          <legend>Elements</legend>
+          <div className={styles.elementOptions}>
+            {Object.keys(ELEMENTS)
+              .filter((code) => isPlayers || code !== 'void')
+              .map((code) => (
+                <button
+                  key={code}
+                  aria-pressed={params.get('element') === code}
+                  onClick={() => update({ element: params.get('element') === code ? null : code })}
+                >
+                  <ElementBadge element={code as Element} />
+                </button>
+              ))}
+          </div>
+        </fieldset>
+      )}
+      {view === 'equipment' && (
+        <fieldset className={styles.filterSection}>
+          <legend>Catégorie</legend>
+          <div className={styles.categoryOptions}>
+            {Object.entries(EQUIPMENT_SLOTS).map(([code, label]) => (
+              <button
+                key={code}
+                aria-pressed={params.get('slot') === code}
+                onClick={() => update({ slot: params.get('slot') === code ? null : code })}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      )}
       {isPlayers && (
         <>
           <div className={styles.filterSection}>
-            <label htmlFor="rarity-filter">Rareté renseignée</label>
+            <label htmlFor="rarity-filter">Rareté</label>
             <div className={styles.select}>
               <select
                 id="rarity-filter"
@@ -154,14 +195,6 @@ export function CatalogueFilters({
           </div>
         </>
       )}
-      <div className={styles.filterNote}>
-        <Icon name="info" size={17} />
-        <p>
-          {isPlayers
-            ? 'Un personnage peut avoir plusieurs fiches selon sa version.'
-            : 'Les valeurs et les utilisateurs peuvent varier selon le jeu.'}
-        </p>
-      </div>
     </aside>
   );
 }

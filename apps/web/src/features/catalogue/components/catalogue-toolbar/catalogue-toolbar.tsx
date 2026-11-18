@@ -1,6 +1,9 @@
+import type { View } from '@/app/navigation';
+import { VIEWS } from '../../lib/labels';
 import { Icon } from '@/components/ui/icon/icon';
 import styles from './catalogue-toolbar.module.scss';
 interface CatalogueToolbarProps {
+  view: View;
   isPlayers: boolean;
   search: string;
   sort: string;
@@ -10,6 +13,7 @@ interface CatalogueToolbarProps {
   onSortChange: (value: string) => void;
 }
 export function CatalogueToolbar({
+  view,
   isPlayers,
   search,
   sort,
@@ -29,7 +33,7 @@ export function CatalogueToolbar({
         }}
       >
         <label htmlFor="catalogue-search" className="sr-only">
-          {isPlayers ? 'Rechercher un joueur' : 'Rechercher une technique'}
+          {isPlayers ? 'Rechercher un joueur' : `Rechercher dans les ${VIEWS[view].toLowerCase()}`}
         </label>
         <Icon name="search" size={19} />
         <input
@@ -38,7 +42,9 @@ export function CatalogueToolbar({
           autoComplete="off"
           maxLength={100}
           placeholder={
-            isPlayers ? 'Un nom, un alias, un numéro…' : 'Une technique, un esprit guerrier…'
+            isPlayers
+              ? 'Un nom, un alias, un numéro…'
+              : `Rechercher dans les ${VIEWS[view].toLowerCase()}…`
           }
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}

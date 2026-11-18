@@ -1,0 +1,65 @@
+@use '@/styles/patterns/details';
+.hero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  > img {
+    object-fit: contain;
+    flex-shrink: 0;
+    max-width: 80px;
+  }
+  h2 {
+    margin: 8px 0 0;
+    font-size: 27px;
+    letter-spacing: -0.04em;
+    overflow-wrap: anywhere;
+  }
+  span {
+    font-size: 11px;
+    color: var(--color-muted);
+  }
+}
+.description {
+  margin-top: 25px;
+  font-size: 12px;
+  line-height: 1.8;
+  white-space: pre-line;
+  color: var(--color-muted);
+}
+.section {
+  @include details.section;
+  h3 {
+    font-size: 15px;
+    margin: 0 0 15px;
+  }
+}
+.stats {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: var(--color-background);
+    padding: 14px;
+    border-radius: 6px;
+  }
+  dt {
+    font-size: 11px;
+    color: var(--color-muted);
+  }
+  dd {
+    font-size: 15px;
+    font-weight: 650;
+    color: var(--color-accent);
+    margin: 0;
+  }
+}
+@media (max-width: 560px) {
+  .hero h2 {
+    font-size: 23px;
+  }
+}

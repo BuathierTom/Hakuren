@@ -6,7 +6,15 @@ import { Icon } from '@/components/ui/icon/icon';
 import { Portrait } from '../player-portrait/player-portrait';
 import styles from './player-card.module.scss';
 
-export function PlayerCard({ player, list = false }: { player: PlayerSummary; list?: boolean }) {
+export function PlayerCard({
+  player,
+  list = false,
+  rarity,
+}: {
+  player: PlayerSummary;
+  list?: boolean;
+  rarity?: string | null;
+}) {
   const target = href('players', { detail: player.id });
   return (
     <a
@@ -29,11 +37,13 @@ export function PlayerCard({ player, list = false }: { player: PlayerSummary; li
       <div className={styles.playerContent}>
         <div className={styles.playerName}>
           <h3>{player.name}</h3>
-          {player.rarities.length > 0 && (
+          {rarity && player.rarities.some((entry) => entry.code === rarity) && (
             <span className={styles.rarities}>
-              {player.rarities.map((rarity) => (
-                <RarityBadge key={rarity.code} name={rarity.name} />
-              ))}
+              {player.rarities
+                .filter((entry) => entry.code === rarity)
+                .map((rarity) => (
+                  <RarityBadge key={rarity.code} name={rarity.name} />
+                ))}
             </span>
           )}
         </div>

@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import type { TechniqueDetail } from '@shared/catalogue';
+import type { TechniqueDetail, TechniqueSummary } from '@shared/catalogue';
 import { Icon } from '@/components/ui/icon/icon';
 import { ElementBadge, PositionBadge } from '../catalogue-badges/catalogue-badges';
 import { Portrait } from '../player-portrait/player-portrait';
@@ -7,143 +6,87 @@ import { TechniqueTypeIcon } from '../game-icon/game-icon';
 import { href, intercept } from '@/app/navigation';
 import { age, CATEGORIES, count, workLabel } from '../../lib/labels';
 import { TechniquePreview } from '../technique-preview/technique-preview';
+import { EntryStatistics } from '../entry-statistics/entry-statistics';
 import styles from './technique-details.module.scss';
 
+function TechniqueLink({ technique }: { technique: TechniqueSummary }) {
+  const target = href('techniques', { detail: technique.id }, false);
+  return (
+    <a
+      className={styles.techniqueLink}
+      href={target}
+      onClick={(event) => intercept(event, target, { overlay: true })}
+    >
+      <TechniqueTypeIcon category={technique.category} />
+      <strong>{technique.name}</strong>
+      <Icon name="right" size={16} />
+    </a>
+  );
+}
 export function TechniquePanel({
   technique,
   titleId,
-  selectedWork,
 }: {
   technique: TechniqueDetail;
   titleId: string;
-  selectedWork: string | null;
 }) {
-  const works = [
-    ...new Map(technique.profiles.map((profile) => [profile.work.code, profile.work])).values(),
-  ];
-  const [episode, setEpisode] = useState(
-    works.find((w) => w.code === selectedWork)?.code ??
-      works.find((w) => w.code === 'VR')?.code ??
-      works[0]?.code ??
-      'VR',
-  );
-  const profiles = technique.profiles.filter((profile) => profile.work.code === episode);
-  const [profileId, setProfileId] = useState<number | null>(null);
-  const profile = profiles.find((p) => p.id === profileId) ?? profiles[0];
   const userTarget = href('players', { technique: technique.id }, false);
+  const fields = [
+    { label: 'ID', value: technique.gameId ?? '—' },
+    ...(technique.power != null ? [{ label: 'Puissance', value: String(technique.power) }] : []),
+    ...(technique.tension != null ? [{ label: 'Tension', value: `${technique.tension} TP` }] : []),
+    ...(technique.notes?.length ? [{ label: 'Notes', value: technique.notes.join(' · ') }] : []),
+  ];
   return (
     <>
-      <div className={styles.techniqueHero}>
-        <span className={styles.largeIcon}>
+      <div className={styles.hero}>
+        <span className={styles.icon}>
           <TechniqueTypeIcon category={technique.category} />
         </span>
         <div>
-          <span className={styles.eyebrow}>
-            {technique.category ? CATEGORIES[technique.category] : 'TYPE À CONFIRMER'}
-          </span>
+          {technique.category && (
+            <span className={styles.eyebrow}>{CATEGORIES[technique.category]}</span>
+          )}
           <h2 id={titleId}>{technique.name}</h2>
-          <ElementBadge element={profile ? profile.element : technique.element} />
+          <ElementBadge element={technique.element} />
         </div>
       </div>
-      {technique.aliases.length > 0 && (
-        <p className={styles.aliasLine}>Autres noms : {technique.aliases.join(', ')}</p>
+      {technique.description && <p className={styles.description}>{technique.description}</p>}
+      <EntryStatistics fields={fields} />
+      {technique.preview && (
+        <TechniquePreview
+          key={technique.preview.url}
+          preview={technique.preview}
+          name={technique.name}
+        />
+      )}
+      {technique.grantedTechnique && (
+        <section className={styles.section}>
+          <div className={styles.sectionHeading}>
+            <h3>Technique accordée</h3>
+          </div>
+          <TechniqueLink technique={technique.grantedTechnique} />
+        </section>
+      )}
+      {!!technique.grantedBy?.length && (
+        <section className={styles.section}>
+          <div className={styles.sectionHeading}>
+            <h3>Pouvoirs associés</h3>
+          </div>
+          {technique.grantedBy.map((entry) => (
+            <TechniqueLink key={entry.id} technique={entry} />
+          ))}
+        </section>
       )}
       <section className={styles.section}>
         <div className={styles.sectionHeading}>
-          <h3>Valeurs par épisode</h3>
-        </div>
-        {works.length > 0 && (
-          <div className={styles.episodes}>
-            {works.map((work) => (
-              <button
-                key={work.code}
-                aria-pressed={episode === work.code}
-                onClick={() => {
-                  setEpisode(work.code);
-                  setProfileId(null);
-                }}
-              >
-                {workLabel(work.code)}
-              </button>
-            ))}
-          </div>
-        )}
-        {profiles.length > 1 && (
-          <label className={styles.profileSelect}>
-            Profil
-            <select
-              value={profile?.id ?? ''}
-              onChange={(event) => setProfileId(Number(event.target.value))}
-            >
-              {profiles.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.rarity?.name ?? 'Profil de base'}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-        {profile ? (
-          <>
-            <div className={styles.powerStats}>
-              <div>
-                <span>Puissance</span>
-                <strong>{profile.power ?? '—'}</strong>
-              </div>
-              <div>
-                <span>Coût</span>
-                <strong>{profile.cost ?? '—'}</strong>
-              </div>
-              <div>
-                <span>Épisode</span>
-                <strong className={styles.workValue}>{workLabel(profile.work.code)}</strong>
-              </div>
-            </div>
-            {profile.parameters && (
-              <div className={styles.parameters}>
-                {Object.entries(profile.parameters)
-                  .filter(([key]) => ['KP', 'Attack', 'Damage', 'SP'].includes(key))
-                  .map(([key, value]) => (
-                    <div key={key}>
-                      <span>
-                        {
-                          (
-                            { KP: 'KP', Attack: 'Attaque', Damage: 'Dégâts', SP: 'SP' } as Record<
-                              string,
-                              string
-                            >
-                          )[key]
-                        }
-                      </span>
-                      <strong>
-                        {Array.isArray(value) && value.length
-                          ? `${value[0]} → ${value.at(-1)}`
-                          : typeof value === 'number'
-                            ? value
-                            : '—'}
-                      </strong>
-                    </div>
-                  ))}
-              </div>
-            )}
-            <p className={styles.caption}>
-              Les valeurs affichées concernent uniquement {workLabel(profile.work.code)}
-              {profile.rarity ? `, rareté ${profile.rarity.name}` : ''}.
-            </p>
-          </>
-        ) : (
-          <p className={styles.unknown}>Puissance et coût non renseignés pour cette technique.</p>
-        )}
-      </section>
-      <section className={styles.section}>
-        <div className={styles.sectionHeading}>
-          <h3>Utilisateurs répertoriés</h3>
+          <h3>Joueurs associés</h3>
           <span>{count(technique.userCount)}</span>
         </div>
         {technique.users.length ? (
           <>
             <div className={styles.related}>
-              {technique.users.map((player) => {
+              {technique.users.slice(0, 6).map((player) => {
                 const target = href('players', { detail: player.id }, false);
                 return (
                   <a
@@ -176,18 +119,9 @@ export function TechniquePanel({
             </a>
           </>
         ) : (
-          <p className={styles.unknown}>
-            Les utilisateurs de cette technique ne sont pas encore renseignés.
-          </p>
+          <p className={styles.empty}>Aucun joueur associé répertorié.</p>
         )}
       </section>
-      {technique.preview && <TechniquePreview preview={technique.preview} name={technique.name} />}
-      {technique.sourceUrl && (
-        <a className={styles.source} href={technique.sourceUrl} target="_blank" rel="noreferrer">
-          Source de la fiche
-          <Icon name="external" size={14} />
-        </a>
-      )}
     </>
   );
 }

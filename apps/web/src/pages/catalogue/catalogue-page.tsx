@@ -1,3 +1,5 @@
+import { href, intercept } from '@/app/navigation';
+import { VIEWS } from '@/features/catalogue/lib/labels';
 import { useCatalogue } from '@/features/catalogue/hooks/use-catalogue';
 import { Icon } from '@/components/ui/icon/icon';
 import { SiteHeader } from '@/components/layout/site-header/site-header';
@@ -34,8 +36,20 @@ export function CataloguePage() {
 
       <main className={styles.main}>
         <h1 className="sr-only" id="page-title">
-          {isPlayers ? 'Joueurs' : 'Techniques'}
+          {VIEWS[view]}
         </h1>
+        {!isPlayers && (
+          <nav className={styles.breadcrumb} aria-label="Fil d’Ariane">
+            <a
+              href={href('catalogue', {}, false)}
+              onClick={(event) => intercept(event, href('catalogue', {}, false))}
+            >
+              Catalogue
+            </a>
+            <span>/</span>
+            <span>{VIEWS[view]}</span>
+          </nav>
+        )}
         <div className={styles.workspace}>
           <button
             className={styles.mobileFilters}
@@ -62,10 +76,11 @@ export function CataloguePage() {
             id="results"
             ref={resultsRef}
             className={styles.results}
-            aria-label={isPlayers ? 'Catalogue des joueurs' : 'Catalogue des techniques'}
+            aria-label={`Catalogue des ${VIEWS[view].toLowerCase()}`}
             aria-busy={request.loading}
           >
             <CatalogueToolbar
+              view={view}
               isPlayers={isPlayers}
               search={search}
               sort={params.get('sort') ?? 'number'}

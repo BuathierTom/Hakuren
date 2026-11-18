@@ -103,23 +103,15 @@ export function PlayerTechniques({ player, episode }: { player: PlayerDetail; ep
                 <span className={styles.moveName}>
                   <strong>{move.technique.name}</strong>
                   <span>
-                    {move.technique.category
-                      ? CATEGORIES[move.technique.category]
-                      : 'Type à confirmer'}
+                    {move.technique.category ? CATEGORIES[move.technique.category] : ''}
                     {episode === 'VR' && move.alternatePath ? ' · Chemin alternatif' : ''}
                     {move.evolution ? ` · Évol. ${move.evolution}` : ''}
                   </span>
                   {episode === 'VR' ? (
                     <span className={styles.moveRarities}>
-                      {move.rarities.length ? (
-                        move.rarities.map((r) => <RarityBadge key={r.code} name={r.name} />)
-                      ) : (
-                        <small>
-                          {move.rarityScope === 'unrestricted'
-                            ? 'Toutes raretés'
-                            : 'Rareté à confirmer'}
-                        </small>
-                      )}
+                      {move.rarities.length
+                        ? move.rarities.map((r) => <RarityBadge key={r.code} name={r.name} />)
+                        : null}
                     </span>
                   ) : (
                     move.formLabel && (

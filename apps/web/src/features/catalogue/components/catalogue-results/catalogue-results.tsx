@@ -2,11 +2,16 @@ import type { useCatalogue } from '../../hooks/use-catalogue';
 import { Icon } from '@/components/ui/icon/icon';
 import { count } from '../../lib/labels';
 import { PlayerCard } from '../player-card/player-card';
-import { TechniqueCard } from '../technique-card/technique-card';
+import { TechniqueList } from '../technique-list/technique-list';
+import { ItemList } from '../item-list/item-list';
+import { VIEWS } from '../../lib/labels';
 import styles from './catalogue-results.module.scss';
 export function CatalogueResults({ catalogue }: { catalogue: ReturnType<typeof useCatalogue> }) {
   const {
     isPlayers,
+    view,
+    params,
+    items,
     list,
     players,
     techniques,
@@ -30,35 +35,30 @@ export function CatalogueResults({ catalogue }: { catalogue: ReturnType<typeof u
           ) : data ? (
             <>
               <strong>{count(data.total)}</strong>{' '}
-              {isPlayers
-                ? data.total > 1
-                  ? 'joueurs'
-                  : 'joueur'
-                : data.total > 1
-                  ? 'techniques'
-                  : 'technique'}
-              <span className={styles.resultSuffix}> à découvrir</span>
+              {isPlayers ? (data.total > 1 ? 'joueurs' : 'joueur') : VIEWS[view].toLowerCase()}
             </>
           ) : (
             'Résultats'
           )}
         </p>
-        <div className={styles.layoutToggle} aria-label="Disposition des résultats">
-          <button
-            aria-label="Afficher en grille"
-            aria-pressed={!list}
-            onClick={() => setLayout(false)}
-          >
-            <Icon name="grid" size={15} />
-          </button>
-          <button
-            aria-label="Afficher en liste"
-            aria-pressed={list}
-            onClick={() => setLayout(true)}
-          >
-            <Icon name="list" size={16} />
-          </button>
-        </div>
+        {isPlayers && (
+          <div className={styles.layoutToggle} aria-label="Disposition des résultats">
+            <button
+              aria-label="Afficher en grille"
+              aria-pressed={!list}
+              onClick={() => setLayout(false)}
+            >
+              <Icon name="grid" size={15} />
+            </button>
+            <button
+              aria-label="Afficher en liste"
+              aria-pressed={list}
+              onClick={() => setLayout(true)}
+            >
+              <Icon name="list" size={16} />
+            </button>
+          </div>
+        )}
       </div>
       {active.length > 0 && (
         <div className={styles.chips}>
@@ -116,15 +116,22 @@ export function CatalogueResults({ catalogue }: { catalogue: ReturnType<typeof u
         </div>
       ) : (
         <>
-          <div className={`${styles.grid} ${list ? styles.list : ''}`}>
-            {isPlayers
-              ? players.data?.items.map((player) => (
-                  <PlayerCard key={player.id} player={player} list={list} />
-                ))
-              : techniques.data?.items.map((technique) => (
-                  <TechniqueCard key={technique.id} technique={technique} list={list} />
-                ))}
-          </div>
+          {isPlayers ? (
+            <div className={`${styles.grid} ${list ? styles.list : ''}`}>
+              {players.data?.items.map((player) => (
+                <PlayerCard
+                  key={player.id}
+                  player={player}
+                  list={list}
+                  rarity={params.get('rarity')}
+                />
+              ))}
+            </div>
+          ) : view === 'techniques' ? (
+            <TechniqueList techniques={techniques.data?.items ?? []} />
+          ) : (
+            <ItemList items={items.data?.items ?? []} />
+          )}
           <nav className={styles.pagination} aria-label="Pagination">
             <p>
               <strong>

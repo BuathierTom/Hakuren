@@ -1,9 +1,11 @@
 import { useEffect, useId, useRef } from 'react';
-import type { PlayerDetail, TechniqueDetail } from '@shared/catalogue';
+import type { PlayerDetail, TechniqueDetail, CatalogueItem } from '@shared/catalogue';
 import { useRequest } from '../../hooks/use-catalogue-request';
 import { Icon } from '@/components/ui/icon/icon';
 import { closeDetail, type View } from '@/app/navigation';
 import { PlayerPanel } from '../player-details/player-details';
+import { ItemPanel } from '../item-details/item-details';
+import { VIEWS } from '../../lib/labels';
 import { TechniquePanel } from '../technique-details/technique-details';
 import styles from './detail-dialog.module.scss';
 
@@ -22,7 +24,10 @@ export function DetailDialog({
   const technique = useRequest<TechniqueDetail>(
     view === 'techniques' ? `/api/techniques/${id}` : null,
   );
-  const request = view === 'players' ? player : technique;
+  const item = useRequest<CatalogueItem>(
+    view === 'equipment' || view === 'tactics' ? `/api/${view}/${id}` : null,
+  );
+  const request = view === 'players' ? player : view === 'techniques' ? technique : item;
   useEffect(() => {
     const node = dialog.current!;
     const previous = document.body.style.overflow;
@@ -60,7 +65,7 @@ export function DetailDialog({
       <div className={styles.topbar}>
         <span>
           <Icon name={view === 'players' ? 'shirt' : 'bolt'} size={16} />
-          {view === 'players' ? 'Fiche joueur' : 'Fiche technique'}
+          {view === 'players' ? 'Fiche joueur' : VIEWS[view]}
         </span>
         <button
           type="button"
@@ -91,13 +96,8 @@ export function DetailDialog({
             {player.data && (
               <PlayerPanel player={player.data} titleId={title} selectedWork={selectedWork} />
             )}
-            {technique.data && (
-              <TechniquePanel
-                technique={technique.data}
-                titleId={title}
-                selectedWork={selectedWork}
-              />
-            )}
+            {item.data && <ItemPanel item={item.data} titleId={title} />}
+            {technique.data && <TechniquePanel technique={technique.data} titleId={title} />}
           </>
         )}
       </div>
