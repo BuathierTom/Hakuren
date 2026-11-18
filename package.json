@@ -1,5 +1,5 @@
 {
-  "name": "kizunadex",
+  "name": "hakuren",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -13,14 +13,14 @@
   "packageManager": "npm@11.21.2",
   "scripts": {
     "dev": "node scripts/dev.mjs",
-    "dev:api": "npm run dev --workspace @kizunadex/api",
-    "dev:web": "npm run dev --workspace @kizunadex/web",
+    "dev:api": "npm run dev --workspace @hakuren/api",
+    "dev:web": "npm run dev --workspace @hakuren/web",
     "import:catalogue": "node --import tsx apps/api/src/catalogue/cli.ts",
     "build": "npm run build --workspaces",
     "typecheck": "npm run typecheck --workspaces",
     "test": "node --import tsx --test apps/api/test/*.test.ts",
     "check": "npm run typecheck && npm test && npm run build",
-    "start": "npm run start --workspace @kizunadex/api",
+    "start": "npm run start --workspace @hakuren/api",
     "format": "prettier --write \"apps/**/*.{ts,tsx,scss,html,json}\" \"shared/**/*.ts\" \"scripts/**/*.mjs\" \"*.json\"",
     "format:check": "prettier --check \"apps/**/*.{ts,tsx,scss,html,json}\" \"shared/**/*.ts\" \"scripts/**/*.mjs\" \"*.json\""
   },

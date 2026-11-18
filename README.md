@@ -1,4 +1,4 @@
-# KizunaDex
+# Hakuren
 
 Encyclopédie des personnages, suivi de collection Victory Road et création d'équipes personnalisées.
 
@@ -18,7 +18,7 @@ Configurer `.env` avec les identifiants de ta base MySQL et les ports souhaités
 ```dotenv
 FRONT_PORT=5173
 API_PORT=3001
-DATABASE_URL=mysql://utilisateur:mot_de_passe@127.0.0.1:3306/kizunadex
+DATABASE_URL=mysql://utilisateur:mot_de_passe@127.0.0.1:3306/hakuren
 ```
 
 ```sh

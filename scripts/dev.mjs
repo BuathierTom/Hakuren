@@ -2,8 +2,8 @@ import { spawn } from 'node:child_process';
 
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const tasks = [
-  ['api', ['run', 'dev', '--workspace', '@kizunadex/api']],
-  ['web', ['run', 'dev', '--workspace', '@kizunadex/web']],
+  ['api', ['run', 'dev', '--workspace', '@hakuren/api']],
+  ['web', ['run', 'dev', '--workspace', '@hakuren/web']],
 ];
 let stopping = false;
 const children = tasks.map(([name, args]) => {

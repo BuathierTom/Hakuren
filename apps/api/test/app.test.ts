@@ -8,7 +8,7 @@ test('the API stays alive while MySQL is not configured', async () => {
   try {
     const health = await app.inject({ method: 'GET', url: '/api/health' });
     assert.equal(health.statusCode, 200);
-    assert.deepEqual(health.json(), { status: 'ok', service: 'kizunadex-api' });
+    assert.deepEqual(health.json(), { status: 'ok', service: 'hakuren-api' });
     const ready = await app.inject({ method: 'GET', url: '/api/ready' });
     assert.equal(ready.statusCode, 503);
     assert.equal(ready.json().database, 'not-configured');
@@ -56,13 +56,13 @@ test('configuration requires a MySQL database and valid API port', () => {
   assert.throws(() => getConfig({ API_PORT: '3001.5' }), /API_PORT/);
   assert.throws(() => getConfig({ DATABASE_URL: 'https://example.com' }), /DATABASE_URL/);
   assert.throws(
-    () => getConfig({ DATABASE_URL: 'postgresql://user:password@localhost:5432/kizunadex' }),
+    () => getConfig({ DATABASE_URL: 'postgresql://user:password@localhost:5432/hakuren' }),
     /mysql:\/\//,
   );
   assert.throws(() => getConfig({ DATABASE_URL: 'mysql://localhost' }), /base MySQL/);
   assert.equal(
-    getConfig({ DATABASE_URL: 'mysql://user:password@localhost:3306/kizunadex' }).databaseUrl,
-    'mysql://user:password@localhost:3306/kizunadex',
+    getConfig({ DATABASE_URL: 'mysql://user:password@localhost:3306/hakuren' }).databaseUrl,
+    'mysql://user:password@localhost:3306/hakuren',
   );
   assert.equal(getConfig({}).port, 3001);
   assert.equal(getConfig({ FRONT_PORT: '5174', API_PORT: '3002' }).port, 3002);

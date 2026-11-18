@@ -55,7 +55,7 @@ export async function collectSources(
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
         const response = await fetch(url, {
-          headers: { 'User-Agent': 'KizunaDex-catalogue/0.1' },
+          headers: { 'User-Agent': 'Hakuren-catalogue/0.1' },
           signal: AbortSignal.timeout(30_000),
         });
         if (!response.ok) throw new Error(`HTTP ${response.status} : ${id}`);

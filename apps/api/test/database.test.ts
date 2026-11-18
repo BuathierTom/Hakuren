@@ -17,7 +17,7 @@ test(
     const url = new URL(databaseUrl);
     url.pathname = '/';
     const server = createPool(url.toString());
-    const name = `kizunadex_test_${randomBytes(8).toString('hex')}`;
+    const name = `hakuren_test_${randomBytes(8).toString('hex')}`;
     let created = false;
     let db: Pool | undefined;
     try {

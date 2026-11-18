@@ -48,7 +48,7 @@ export function buildApp({ database, catalogue, logger = false }: AppOptions = {
     });
   });
 
-  app.get('/api/health', async () => ({ status: 'ok', service: 'kizunadex-api' }));
+  app.get('/api/health', async () => ({ status: 'ok', service: 'hakuren-api' }));
 
   app.get('/api/ready', async (_request, reply) => {
     reply.header('Cache-Control', 'no-store');

@@ -17,7 +17,7 @@ const SOURCES = [
     'Inazuma Eleven Wiki (CC-BY-SA)',
     'https://inazuma-eleven.fandom.com/wiki/Module:PlayerData',
   ],
-  ['kizunadex-curation', 'KizunaDex explicit mappings', null],
+  ['hakuren-curation', 'Hakuren explicit mappings', null],
 ] as const;
 const slug = (kind: string, key: string) => `${kind}-${digest(key).slice(0, 24)}`;
 const key = (source: number, external: string) => JSON.stringify([source, external]);
@@ -57,7 +57,7 @@ export async function importCatalogue(
   let reusable = true;
   try {
     const [lock] = await db.execute<RowDataPacket[]>(
-      `SELECT GET_LOCK('kizunadex:catalogue-import', 5) AS acquired`,
+      `SELECT GET_LOCK('hakuren:catalogue-import', 5) AS acquired`,
     );
     if (Number(lock[0]?.acquired) !== 1)
       throw new Error('Un autre import du catalogue est en cours.');
@@ -67,7 +67,7 @@ export async function importCatalogue(
     for (const [code, name, url] of SOURCES)
       sources.set(code, await put(db, 'data_sources', { code, name, url }));
     const curation: RecordSpec = {
-      source: 'kizunadex-curation',
+      source: 'hakuren-curation',
       kind: 'mapping',
       key: 'character-families',
       version: `sha256:${digest(JSON.stringify(FAMILIES))}`,
@@ -197,6 +197,8 @@ export async function importCatalogue(
         position: official.position,
         role: official.role,
         gender: official.gender === 'Unknown' ? null : official.gender.toLowerCase(),
+        play_style: variant.playStyle?.code ?? null,
+        style_source_record_id: variant.playStyle ? verified(variant.playStyle.record) : null,
         age_group: official.ageGroup,
         school_year: official.schoolYear || null,
         portrait_url: variant.portrait,
@@ -587,7 +589,7 @@ export async function importCatalogue(
     throw error;
   } finally {
     try {
-      if (locked) await db.execute(`SELECT RELEASE_LOCK('kizunadex:catalogue-import')`);
+      if (locked) await db.execute(`SELECT RELEASE_LOCK('hakuren:catalogue-import')`);
     } catch {
       reusable = false;
     }
