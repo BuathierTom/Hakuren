@@ -37,7 +37,7 @@ const PLAYER_FROM = `FROM player_variants v
   LEFT JOIN works ow ON ow.id=v.origin_work_id
   LEFT JOIN variant_external_ids ext ON ext.variant_id=v.id AND ext.source_id=(SELECT id FROM data_sources WHERE code='level5-codex')`;
 const PLAYER_FIELDS = `v.id, v.character_id, v.name, v.variant_label, v.portrait_url, v.element, v.position,
-  v.role, v.age_group, v.gender, v.school_year, ext.external_key AS number,
+  v.role, v.age_group, v.gender, v.school_year, CASE WHEN v.style_source_record_id IS NULL OR EXISTS (SELECT 1 FROM source_records st WHERE st.id=v.style_source_record_id AND st.review_status='verified') THEN v.play_style ELSE NULL END AS play_style, ext.external_key AS number,
   ow.id AS origin_id, ow.code AS origin_code, ow.name AS origin_name, ow.kind AS origin_kind`;
 const TECH_FROM = 'FROM techniques t LEFT JOIN source_records ts ON ts.id=t.source_record_id';
 const publishedTechnique = `t.is_published=1 AND t.category IS NOT NULL AND t.category NOT IN ('passive','other','tactic')`;
@@ -136,6 +136,8 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
       portraitUrl: url(row.portrait_url),
       element: row.element,
       position: row.position,
+      gender: row.gender,
+      playStyle: row.play_style,
       role: row.role,
       ageGroup: row.age_group,
       origin: row.origin_id ? work(row, 'origin_') : null,
@@ -164,6 +166,16 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
     if (query.element) {
       conditions.push('v.element=?');
       values.push(query.element);
+    }
+    if (query.gender) {
+      conditions.push('v.gender=?');
+      values.push(query.gender);
+    }
+    if (query.style) {
+      conditions.push(
+        "v.play_style=? AND (v.style_source_record_id IS NULL OR EXISTS (SELECT 1 FROM source_records st WHERE st.id=v.style_source_record_id AND st.review_status='verified'))",
+      );
+      values.push(query.style);
     }
     if (query.role === 'player')
       conditions.push(`v.role IN ('Player','Player Manager','Player Coordinator')`);

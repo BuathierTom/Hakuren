@@ -96,6 +96,11 @@ export function registerCatalogueRoutes(app: FastifyInstance, catalogue?: Catalo
           properties: {
             ...common,
             position: { type: 'string', enum: ['GK', 'DF', 'MF', 'FW'] },
+            gender: { type: 'string', enum: ['male', 'female', 'neutral'] },
+            style: {
+              type: 'string',
+              enum: ['breach', 'tension', 'counter', 'bond', 'rough_play', 'justice'],
+            },
             rarity: { type: 'string', pattern: '^[a-z0-9-]+$', maxLength: 32 },
             role: { type: 'string', enum: ['player', 'staff'] },
             technique: id,

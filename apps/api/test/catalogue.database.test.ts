@@ -21,7 +21,7 @@ test(
     const url = new URL(databaseUrl);
     url.pathname = '/';
     const server = createPool(url.toString());
-    const name = `kizunadex_test_${randomBytes(8).toString('hex')}`;
+    const name = `hakuren_test_${randomBytes(8).toString('hex')}`;
     let created = false;
     let pool: Pool | undefined;
     try {
@@ -308,6 +308,11 @@ test(
           assert.equal(detail?.preview?.url, 'https://example.test/demo.mp4');
           assert.deepEqual(detail?.notes, ['CD 60']);
           assert.equal(detail?.userCount, 1);
+          const justicePlayers = await read.players({ gender: 'male', style: 'justice' });
+          assert.equal(justicePlayers.total, 1);
+          assert.equal(justicePlayers.items[0]?.playStyle, 'justice');
+          assert.equal((await read.players({ gender: 'female', style: 'justice' })).total, 0);
+          assert.equal((await read.players({ style: 'breach' })).total, 0);
           assert.equal(detail?.users[0]?.number, '900003');
           assert.equal(detail?.grantedBy?.[0]?.gameId, '-72');
           assert.equal((await read.techniques({ category: 'passive' })).total, 0);

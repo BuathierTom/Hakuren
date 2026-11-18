@@ -1,3 +1,4 @@
+import type { PlayStyle } from '../../../../shared/catalogue.js';
 import { FAMILIES, HISTORICAL_MEMBERSHIPS, WIKI_MAPPINGS } from './curation.js';
 import { parseOfficial, WORKS, type OfficialPlayer } from './official.js';
 import { digest, SNAPSHOT, type Resource } from './sources.js';
@@ -20,6 +21,7 @@ export interface RecordSpec {
   note: string | null;
 }
 export interface VariantSpec {
+  playStyle?: { code: PlayStyle; record: RecordSpec };
   externalId: string;
   official: OfficialPlayer;
   record: RecordSpec;

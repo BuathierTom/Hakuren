@@ -37,7 +37,7 @@ test('catalogue routes validate filters, coerce pagination and supply bounded de
   });
   try {
     const response = await app.inject(
-      '/api/players?q=Byron&work=IE3&position=MF&element=forest&page=2',
+      '/api/players?q=Byron&work=IE3&position=MF&element=forest&gender=male&style=justice&page=2',
     );
     assert.equal(response.statusCode, 200);
     assert.equal(response.headers['cache-control'], 'no-store');
@@ -48,6 +48,8 @@ test('catalogue routes validate filters, coerce pagination and supply bounded de
         work: 'IE3',
         position: 'MF',
         element: 'forest',
+        gender: 'male',
+        style: 'justice',
         page: 2,
         limit: 24,
         sort: 'number',
@@ -59,6 +61,8 @@ test('catalogue routes validate filters, coerce pagination and supply bounded de
       'page=1.5',
       'position=FAKE',
       'element=ice',
+      'gender=unknown',
+      'style=invalid',
       'unexpected=true',
       'q=a&q=b',
       `q=${'x'.repeat(101)}`,

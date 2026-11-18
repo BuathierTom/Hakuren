@@ -7,6 +7,7 @@ test('game data localizes signed identities, preserves legacy links and includes
   const plan = await fixtureGamePlan();
   const move = plan.techniques.find((row) => row.gameId === '221679467');
   assert.equal(move?.name, 'Tir français');
+  assert.equal(plan.variants[2]?.playStyle?.code, 'justice');
   assert.equal(move?.key, 'Test Shot');
   assert.equal(move?.legacyKey?.external, 'technique/Test Shot');
   assert.equal(move?.power, 85);

@@ -1,7 +1,7 @@
 import type { CataloguePlan, RecordSpec, TechniqueSpec } from './prepare.js';
 import { numberOrNull, object, safeUrl } from './prepare.js';
 import { digest, GAME_SNAPSHOT, type Resource } from './sources.js';
-import type { EquipmentSlot, ItemSection } from '../../../../shared/catalogue.js';
+import type { EquipmentSlot, ItemSection, PlayStyle } from '../../../../shared/catalogue.js';
 
 type Raw = Record<string, unknown>;
 export interface ItemSpec {
@@ -44,6 +44,14 @@ const slots: Record<string, EquipmentSlot> = {
   bracelet: 'bracelet',
   pendant: 'pendant',
   special: 'accessory',
+};
+const playStyles: Record<string, PlayStyle> = {
+  '0': 'breach',
+  '1': 'counter',
+  '2': 'bond',
+  '3': 'tension',
+  '4': 'rough_play',
+  '5': 'justice',
 };
 const positions: Record<string, string> = { '1': 'GK', '2': 'FW', '3': 'MF', '4': 'DF' };
 const fold = (value: string) =>
@@ -275,9 +283,15 @@ export function enrichGameData(plan: CataloguePlan, resources: Map<string, Resou
         id,
         characterId: row.character_id,
         rarity,
+        style: row.style ?? null,
         skills: row.skills,
         alternative: row.skills_alt ?? [],
       });
+      if (table === 'characters' && row.style != null) {
+        if (!Object.hasOwn(playStyles, String(row.style)))
+          throw new Error('Style de jeu non reconnu.');
+        variant.playStyle = { code: playStyles[String(row.style)]!, record };
+      }
       for (const [branch, input] of [
         ['main', row.skills],
         ['alternative', row.skills_alt ?? []],

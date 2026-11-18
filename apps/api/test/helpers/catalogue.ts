@@ -177,6 +177,7 @@ export async function fixtureGamePlan(unknownLegacy = false) {
           id: 42,
           character_id: 'c01000010',
           name: 'Player 2',
+          style: 5,
           main_position: 3,
           element: 1,
           skills: [
