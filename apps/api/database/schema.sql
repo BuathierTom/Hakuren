@@ -189,9 +189,19 @@ CREATE TABLE player_stat_profiles (
 
 CREATE TABLE techniques (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  game_id VARCHAR(24) CHARACTER SET ascii COLLATE ascii_bin NULL UNIQUE,
+  string_id VARCHAR(96) CHARACTER SET ascii COLLATE ascii_bin NULL,
+  kind ENUM('hissatsu', 'aura_hissatsu', 'aura') NULL,
+  description TEXT NULL,
+  power SMALLINT UNSIGNED NULL,
+  tension SMALLINT UNSIGNED NULL,
+  cooldown SMALLINT UNSIGNED NULL,
+  notes JSON NULL,
+  granted_game_id VARCHAR(24) CHARACTER SET ascii COLLATE ascii_bin NULL,
+  is_published BOOLEAN NOT NULL DEFAULT TRUE,
   slug VARCHAR(120) CHARACTER SET ascii COLLATE ascii_bin NOT NULL UNIQUE,
   name VARCHAR(191) NOT NULL,
-  category ENUM('shoot', 'dribble', 'block', 'catch', 'keshin', 'keshin_armed', 'miximax', 'totem', 'tactic', 'passive', 'other') NULL,
+  category ENUM('shoot', 'dribble', 'block', 'catch', 'keshin', 'keshin_armed', 'miximax', 'totem', 'bond_transform', 'awakening_power', 'mode_change', 'awakening_change', 'tactic', 'passive', 'other') NULL,
   element ENUM('wind', 'forest', 'fire', 'mountain', 'void') NULL,
   preview_url VARCHAR(1024) NULL,
   preview_mime_type VARCHAR(96) NULL,
@@ -370,4 +380,22 @@ CREATE TABLE squad_staff (
   CONSTRAINT ck_squad_staff_slot CHECK (slot_number > 0),
   CONSTRAINT fk_squad_staff_squad FOREIGN KEY (squad_id) REFERENCES squads(id) ON DELETE CASCADE,
   CONSTRAINT fk_squad_staff_variant FOREIGN KEY (variant_id) REFERENCES player_variants(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE catalogue_items (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  section ENUM('equipment', 'tactics') NOT NULL,
+  game_id VARCHAR(24) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  string_id VARCHAR(96) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  name VARCHAR(191) NOT NULL,
+  description TEXT NULL,
+  slot ENUM('boots', 'bracelet', 'pendant', 'accessory') NULL,
+  image_url VARCHAR(1024) NULL,
+  tension DECIMAL(10,4) UNSIGNED NULL,
+  stats JSON NULL,
+  is_published BOOLEAN NOT NULL DEFAULT TRUE,
+  source_record_id INT UNSIGNED NULL,
+  UNIQUE KEY uq_catalogue_item (section, string_id),
+  KEY idx_catalogue_item_list (section, is_published, slot, id),
+  CONSTRAINT fk_catalogue_item_source FOREIGN KEY (source_record_id) REFERENCES source_records(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
