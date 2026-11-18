@@ -33,7 +33,7 @@ export function TechniquePanel({
     { label: 'ID', value: technique.gameId ?? '—' },
     ...(technique.power != null ? [{ label: 'Puissance', value: String(technique.power) }] : []),
     ...(technique.tension != null ? [{ label: 'Tension', value: `${technique.tension} TP` }] : []),
-    ...(technique.notes?.length ? [{ label: 'Notes', value: technique.notes.join(' · ') }] : []),
+    ...(technique.notes?.length ? [{ label: 'Notes', value: technique.notes.join(' - ') }] : []),
   ];
   return (
     <>
@@ -96,8 +96,8 @@ export function TechniquePanel({
                     <span>
                       <strong>{player.name}</strong>
                       <small>
-                        {age(player.ageGroup)} ·{' '}
-                        {player.origin ? workLabel(player.origin.code) : ''} · N°{' '}
+                        {age(player.ageGroup)} -{' '}
+                        {player.origin ? workLabel(player.origin.code) : ''} - N°{' '}
                         {player.number ?? '—'}
                       </small>
                     </span>

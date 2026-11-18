@@ -2,7 +2,8 @@ import type { PlayerSummary } from '@shared/catalogue';
 import { href, intercept } from '@/app/navigation';
 import { ElementBadge, PositionBadge, RarityBadge } from '../catalogue-badges/catalogue-badges';
 import { Portrait } from '../player-portrait/player-portrait';
-import { age, GENDERS, PLAY_STYLES, workLabel } from '../../lib/labels';
+import { GenderIcon, PlayStyleIcon } from '../game-icon/game-icon';
+import { ELEMENTS, GENDERS, PLAY_STYLES, POSITIONS, workLabel } from '../../lib/labels';
 import styles from './player-list.module.scss';
 export function PlayerList({
   players,
@@ -19,19 +20,29 @@ export function PlayerList({
         <span className={styles.position}>Poste</span>
         <span className={styles.element}>Élément</span>
         <span className={styles.style}>Style</span>
-        <span className={styles.origin}>Origine</span>
       </div>
       <ul className={styles.list}>
         {players.map((player) => {
           const target = href('players', { detail: player.id });
-          const origin = player.origin ? workLabel(player.origin.code) : '—';
+          const origin = player.origin
+            ? workLabel(player.origin.code).replace(/^IE(\d)$/, 'IE $1')
+            : 'Origine non renseignée';
+          const team = player.teams?.length ? player.teams.join(' / ') : 'Équipe non renseignée';
+          const attributes = [
+            player.gender ? GENDERS[player.gender] : null,
+            player.position ? POSITIONS[player.position] : null,
+            player.element ? ELEMENTS[player.element] : null,
+            player.playStyle ? PLAY_STYLES[player.playStyle] : null,
+          ]
+            .filter(Boolean)
+            .join(', ');
           return (
             <li key={player.id}>
               <a
                 className={styles.row}
                 href={target}
                 onClick={(event) => intercept(event, target, { overlay: true })}
-                aria-label={`${player.name}, n° ${player.number ?? '—'}. Voir la fiche`}
+                aria-label={`${player.name}, n° ${player.number ?? '—'}. ${attributes}. Voir la fiche`}
               >
                 <Portrait src={player.portraitUrl} small />
                 <span className={styles.identity}>
@@ -43,27 +54,35 @@ export function PlayerList({
                         .map((entry) => <RarityBadge key={entry.code} name={entry.name} />)}
                   </span>
                   <small>
-                    N° {player.number?.padStart(4, '0') ?? '—'} ·{' '}
-                    {player.formLabel ?? age(player.ageGroup)}
-                  </small>
-                  <small className={styles.mobileMeta}>
-                    {player.playStyle ? `${PLAY_STYLES[player.playStyle]} · ` : ''}
-                    {origin}
+                    {team} - {origin}
                   </small>
                 </span>
-                <span className={styles.gender}>
-                  {player.gender ? GENDERS[player.gender] : '—'}
+                <span className={styles.attributes}>
+                  <span
+                    className={styles.gender}
+                    title={player.gender ? GENDERS[player.gender] : 'Sexe non renseigné'}
+                  >
+                    {player.gender === 'male' || player.gender === 'female' ? (
+                      <GenderIcon gender={player.gender} />
+                    ) : player.gender ? (
+                      GENDERS[player.gender]
+                    ) : (
+                      '—'
+                    )}
+                  </span>
+                  <span className={styles.position}>
+                    <PositionBadge position={player.position} />
+                  </span>
+                  <span className={styles.element}>
+                    <ElementBadge element={player.element} compact />
+                  </span>
+                  <span
+                    className={styles.style}
+                    title={player.playStyle ? PLAY_STYLES[player.playStyle] : 'Style non renseigné'}
+                  >
+                    {player.playStyle ? <PlayStyleIcon style={player.playStyle} /> : '—'}
+                  </span>
                 </span>
-                <span className={styles.position}>
-                  <PositionBadge position={player.position} />
-                </span>
-                <span className={styles.element}>
-                  <ElementBadge element={player.element} compact />
-                </span>
-                <span className={styles.style}>
-                  {player.playStyle ? PLAY_STYLES[player.playStyle] : '—'}
-                </span>
-                <span className={styles.origin}>{origin}</span>
               </a>
             </li>
           );

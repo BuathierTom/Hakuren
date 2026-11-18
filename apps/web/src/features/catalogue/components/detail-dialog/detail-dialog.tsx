@@ -39,7 +39,7 @@ export function DetailDialog({
     };
   }, []);
   useEffect(() => {
-    if (request.data) document.title = `${request.data.name} · Hakuren`;
+    if (request.data) document.title = `${request.data.name} - Hakuren`;
   }, [request.data]);
   return (
     <dialog

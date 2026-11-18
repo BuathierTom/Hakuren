@@ -14,7 +14,7 @@ const sections = [
 export function CatalogueHomePage() {
   const metadata = useRequest<CatalogueFilters>('/api/catalogue');
   useEffect(() => {
-    document.title = 'Catalogue · Hakuren';
+    document.title = 'Catalogue - Hakuren';
   }, []);
   return (
     <>

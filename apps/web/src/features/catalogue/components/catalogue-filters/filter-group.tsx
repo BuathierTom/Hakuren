@@ -5,18 +5,16 @@ export interface FilterOption {
   label: string;
   icon?: ReactNode;
   iconOnly?: boolean;
-  shortLabel?: string;
 }
 interface FilterGroupProps {
   label: string;
   value: string | null;
   options: FilterOption[];
   onChange: (value: string | null) => void;
-  wide?: boolean;
 }
-export function FilterGroup({ label, value, options, onChange, wide = false }: FilterGroupProps) {
+export function FilterGroup({ label, value, options, onChange }: FilterGroupProps) {
   return (
-    <fieldset className={`${styles.group} ${wide ? styles.wide : ''}`}>
+    <fieldset className={styles.group}>
       <legend>{label}</legend>
       <div className={styles.options}>
         {options.map((option) => (
@@ -29,9 +27,7 @@ export function FilterGroup({ label, value, options, onChange, wide = false }: F
             onClick={() => onChange(value === option.value ? null : option.value)}
           >
             {option.icon}
-            <span className={option.iconOnly ? 'sr-only' : undefined}>
-              {option.shortLabel ?? option.label}
-            </span>
+            <span className={option.iconOnly ? 'sr-only' : undefined}>{option.label}</span>
           </button>
         ))}
       </div>

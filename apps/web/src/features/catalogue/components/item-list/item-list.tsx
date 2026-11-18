@@ -36,7 +36,7 @@ export function ItemList({ items }: { items: CatalogueItem[] }) {
                   .map(
                     ([stat, value]) => `${STAT_NAMES[stat as keyof typeof STAT_NAMES]} +${value}`,
                   )
-                  .join(' · ')}
+                  .join(' - ')}
               </span>
               {item.tension != null && (
                 <span className={styles.tension}>{tensionLabel(item.tension)}</span>

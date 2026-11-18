@@ -31,9 +31,9 @@ export const CATEGORIES: Record<Category, string> = {
   other: 'Autre',
 };
 export const WORK_LABELS: Record<string, string> = {
-  IE: 'IE1',
-  IE2: 'IE2',
-  IE3: 'IE3',
+  IE: 'IE 1',
+  IE2: 'IE 2',
+  IE3: 'IE 3',
   GO: 'GO',
   CS: 'Chrono Stones',
   GX: 'Galaxy',
@@ -106,4 +106,11 @@ export const PLAY_STYLES: Record<PlayStyle, string> = {
   bond: 'Lien',
   rough_play: 'Violent',
   justice: 'Justice',
+};
+
+export const PLAYER_TYPES: Record<string, string> = {
+  player: 'Joueurs',
+  staff: 'Encadrement',
+  manager: 'Manager',
+  coordinator: 'Coordinateur',
 };

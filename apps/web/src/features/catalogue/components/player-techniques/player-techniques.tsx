@@ -103,8 +103,8 @@ export function PlayerTechniques({ player, episode }: { player: PlayerDetail; ep
                   <strong>{move.technique.name}</strong>
                   <span>
                     {move.technique.category ? CATEGORIES[move.technique.category] : ''}
-                    {episode === 'VR' && move.alternatePath ? ' · Chemin alternatif' : ''}
-                    {move.evolution ? ` · Évol. ${move.evolution}` : ''}
+                    {episode === 'VR' && move.alternatePath ? ' - Chemin alternatif' : ''}
+                    {move.evolution ? ` - Évol. ${move.evolution}` : ''}
                   </span>
                   {episode === 'VR' ? (
                     <span className={styles.moveRarities}>

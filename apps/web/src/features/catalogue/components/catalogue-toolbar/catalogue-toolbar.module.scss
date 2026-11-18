@@ -52,19 +52,16 @@
     padding: 1px 7px;
   }
 }
-.sort {
-  width: 170px;
+.workSelect {
+  width: 200px;
+  flex-shrink: 0;
   select {
     height: 48px;
     font-size: 12px;
   }
 }
 @media (max-width: 620px) {
-  .toolbar {
-    flex-wrap: wrap;
-  }
   .search {
-    flex-basis: 100%;
     input {
       font-size: 13px;
     }
@@ -72,10 +69,10 @@
       display: none;
     }
   }
-  .sort {
-    width: 150px;
+  .workSelect {
+    width: 130px;
     select {
-      height: 36px;
+      height: 48px;
     }
   }
 }

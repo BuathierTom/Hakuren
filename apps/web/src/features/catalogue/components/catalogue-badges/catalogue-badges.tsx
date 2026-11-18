@@ -1,5 +1,5 @@
 import type { Element, Position } from '@shared/catalogue';
-import { ElementIcon } from '../game-icon/game-icon';
+import { ElementIcon, PositionIcon } from '../game-icon/game-icon';
 import { ELEMENTS, POSITIONS } from '../../lib/labels';
 import styles from './catalogue-badges.module.scss';
 
@@ -28,8 +28,10 @@ export function PositionBadge({ position }: { position: Position | null }) {
       className={styles.position}
       data-position={position ?? 'unknown'}
       title={position ? POSITIONS[position] : 'Poste non renseigné'}
+      role="img"
+      aria-label={position ? POSITIONS[position] : 'Poste non renseigné'}
     >
-      {position ?? '—'}
+      {position ? <PositionIcon position={position} /> : '—'}
     </span>
   );
 }

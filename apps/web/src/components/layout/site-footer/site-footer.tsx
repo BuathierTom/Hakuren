@@ -3,7 +3,7 @@ export function SiteFooter() {
   return (
     <footer className={styles.footer}>
       <span>Hakuren</span>
-      <span>Inazuma Eleven · Victory Road</span>
+      <span>Inazuma Eleven - Victory Road</span>
     </footer>
   );
 }

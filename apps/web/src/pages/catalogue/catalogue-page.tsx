@@ -43,14 +43,14 @@ export function CataloguePage() {
           view={view}
           isPlayers={isPlayers}
           search={search}
-          sort={params.get('sort') ?? 'number'}
+          work={params.get('work') ?? ''}
           onSearchChange={setSearch}
           onSearchSubmit={() => update({ q: search.trim() }, true)}
           onSearchClear={() => {
             setSearch('');
             update({ q: null }, true);
           }}
-          onSortChange={(sort) => update({ sort })}
+          onWorkChange={(work) => update({ work })}
         />
         <CatalogueFilters
           view={view}

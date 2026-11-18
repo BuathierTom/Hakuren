@@ -12,6 +12,7 @@ import {
   EQUIPMENT_SLOTS,
   GENDERS,
   PLAY_STYLES,
+  PLAYER_TYPES,
 } from '../lib/labels';
 const FILTER_KEYS = [
   'q',
@@ -34,21 +35,11 @@ export function useCatalogue() {
   const q = params.get('q') ?? '';
   const [search, setSearch] = useState(q);
   const resultsRef = useRef<HTMLElement>(null);
+  const pageListRef = useRef<HTMLDivElement>(null);
+  const [pageHeight, setPageHeight] = useState<{ key: string; height: number } | null>(null);
   const query = new URLSearchParams();
   const allowed = isPlayers
-    ? [
-        'q',
-        'work',
-        'position',
-        'gender',
-        'style',
-        'element',
-        'rarity',
-        'role',
-        'sort',
-        'page',
-        'technique',
-      ]
+    ? ['q', 'work', 'position', 'gender', 'style', 'element', 'rarity', 'role', 'page', 'technique']
     : view === 'techniques'
       ? ['q', 'element', 'category', 'page']
       : ['q', 'slot', 'page'];
@@ -56,12 +47,18 @@ export function useCatalogue() {
     const value = params.get(key);
     if (value) query.set(key, value);
   }
-  const players = useRequest<Page<PlayerSummary>>(isPlayers ? `/api/players?${query}` : null);
+  if (isPlayers) query.set('sort', 'name');
+  const paginationQuery = new URLSearchParams(query);
+  paginationQuery.delete('page');
+  const paginationKey = `${view}?${paginationQuery}`;
+  const players = useRequest<Page<PlayerSummary>>(isPlayers ? `/api/players?${query}` : null, true);
   const techniques = useRequest<Page<TechniqueSummary>>(
     view === 'techniques' ? `/api/techniques?${query}` : null,
+    true,
   );
   const items = useRequest<Page<CatalogueItem>>(
     view === 'equipment' || view === 'tactics' ? `/api/${view}?${query}` : null,
+    true,
   );
   const request = isPlayers ? players : view === 'techniques' ? techniques : items;
   const data = request.data;
@@ -76,6 +73,11 @@ export function useCatalogue() {
   }
   useEffect(() => setSearch(q), [q, view]);
   useEffect(() => {
+    const resetHeight = () => setPageHeight(null);
+    window.addEventListener('resize', resetHeight);
+    return () => window.removeEventListener('resize', resetHeight);
+  }, []);
+  useEffect(() => {
     if (search === q) return;
     const timeout = window.setTimeout(
       () => navigate(href(view, { q: search.trim(), page: 1, detail: null }), { replace: true }),
@@ -84,7 +86,7 @@ export function useCatalogue() {
     return () => window.clearTimeout(timeout);
   }, [search, q, view]);
   useEffect(() => {
-    if (!detail) document.title = `${VIEWS[view]} · Hakuren`;
+    if (!detail) document.title = `${VIEWS[view]} - Hakuren`;
   }, [view, detail]);
   useEffect(() => {
     const focusSearch = (event: KeyboardEvent) => {
@@ -109,13 +111,10 @@ export function useCatalogue() {
     return () => window.removeEventListener('keydown', focusSearch);
   }, []);
   function changePage(value: number) {
+    if (request.loading || !data || value < 1 || value > data.pages) return;
+    const height = pageListRef.current?.getBoundingClientRect().height;
+    if (height) setPageHeight({ key: paginationKey, height: Math.ceil(height) });
     update({ page: value });
-    resultsRef.current?.scrollIntoView({
-      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
-        ? 'instant'
-        : 'smooth',
-      block: 'start',
-    });
   }
   function chipLabel(key: (typeof FILTER_KEYS)[number]) {
     const value = params.get(key)!;
@@ -126,7 +125,7 @@ export function useCatalogue() {
     if (key === 'gender') return label(GENDERS, value);
     if (key === 'style') return label(PLAY_STYLES, value);
     if (key === 'rarity') return ['hero', 'basara'].includes(value) ? value.toUpperCase() : value;
-    if (key === 'role') return value === 'player' ? 'Joueurs' : 'Encadrement';
+    if (key === 'role') return label(PLAYER_TYPES, value);
     if (key === 'slot') return label(EQUIPMENT_SLOTS, value);
     if (key === 'category') return label(CATEGORIES, value);
     return 'Technique sélectionnée';
@@ -140,6 +139,8 @@ export function useCatalogue() {
     search,
     setSearch,
     resultsRef,
+    pageListRef,
+    minimumPageHeight: pageHeight?.key === paginationKey ? pageHeight.height : undefined,
     players,
     techniques,
     items,

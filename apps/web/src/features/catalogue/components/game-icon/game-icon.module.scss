@@ -1,12 +1,24 @@
 .element,
+.gender,
+.position,
+.playStyle,
 .type {
   object-fit: contain;
   flex-shrink: 0;
   image-rendering: auto;
 }
-.element {
+.element,
+.gender,
+.playStyle {
   width: 20px;
   height: 20px;
+}
+.position {
+  width: 34px;
+  height: 20px;
+}
+.playStyle {
+  filter: brightness(0);
 }
 .type {
   width: 24px;

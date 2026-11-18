@@ -1,6 +1,12 @@
-import type { Category, Element } from '@shared/catalogue';
+import type { Category, Element, Gender, PlayStyle, Position } from '@shared/catalogue';
 import type { View } from '@/app/navigation';
-import { ElementIcon, TechniqueTypeIcon } from '../game-icon/game-icon';
+import {
+  ElementIcon,
+  GenderIcon,
+  PlayStyleIcon,
+  PositionIcon,
+  TechniqueTypeIcon,
+} from '../game-icon/game-icon';
 import {
   ELEMENTS,
   POSITIONS,
@@ -8,6 +14,7 @@ import {
   EQUIPMENT_SLOTS,
   GENDERS,
   PLAY_STYLES,
+  PLAYER_TYPES,
 } from '../../lib/labels';
 import { FilterGroup, type FilterOption } from './filter-group';
 import styles from './catalogue-filters.module.scss';
@@ -26,13 +33,12 @@ export function CatalogueFilters({
   reset,
 }: CatalogueFiltersProps) {
   if (view === 'tactics') return null;
-  const group = (key: string, label: string, options: FilterOption[], wide = false) => (
+  const group = (key: string, label: string, options: FilterOption[]) => (
     <FilterGroup
       key={key}
       label={label}
-      value={params.get(key)}
+      value={params.get(key) ?? ''}
       options={options}
-      wide={wide}
       onChange={(value) => update({ [key]: value })}
     />
   );
@@ -43,16 +49,32 @@ export function CatalogueFilters({
       <div className={styles.groups}>
         {view === 'players' && (
           <>
-            {group('gender', 'Sexes', options(GENDERS))}
+            {group(
+              'gender',
+              'Sexes',
+              Object.entries(GENDERS).map(([value, label]) => ({
+                value,
+                label,
+                icon: <GenderIcon gender={value as Gender} />,
+              })),
+            )}
             {group(
               'position',
               'Poste',
               Object.entries(POSITIONS).map(([value, label]) => ({
                 value,
-                label: `${value} · ${label}`,
-                shortLabel: value,
+                label,
+                icon: <PositionIcon position={value as Position} />,
+                iconOnly: true,
               })),
             )}
+            {group('role', 'Type de joueur', [
+              { value: '', label: 'All' },
+              ...['manager', 'coordinator'].map((value) => ({
+                value,
+                label: PLAYER_TYPES[value]!,
+              })),
+            ])}
           </>
         )}
         {view === 'techniques' &&
@@ -64,31 +86,36 @@ export function CatalogueFilters({
               label,
               icon: <TechniqueTypeIcon category={value as Category} />,
             })),
-            true,
           )}
         {(view === 'players' || view === 'techniques') &&
           group(
             'element',
             'Éléments',
-            Object.entries(ELEMENTS)
-              .filter(([value]) => view === 'players' || value !== 'void')
-              .map(([value, label]) => ({
-                value,
-                label,
-                icon: <ElementIcon element={value as Element} />,
-                iconOnly: true,
-              })),
+            Object.entries(ELEMENTS).map(([value, label]) => ({
+              value,
+              label,
+              icon: <ElementIcon element={value as Element} />,
+              iconOnly: true,
+            })),
           )}
         {view === 'players' && (
           <>
-            {group('style', 'Styles', options(PLAY_STYLES), true)}
+            {group(
+              'style',
+              'Styles',
+              Object.entries(PLAY_STYLES).map(([value, label]) => ({
+                value,
+                label,
+                icon: <PlayStyleIcon style={value as PlayStyle} />,
+              })),
+            )}
             {group('rarity', 'HERO / BASARA', [
               { value: 'hero', label: 'HERO' },
               { value: 'basara', label: 'BASARA' },
             ])}
           </>
         )}
-        {view === 'equipment' && group('slot', 'Catégories', options(EQUIPMENT_SLOTS), true)}
+        {view === 'equipment' && group('slot', 'Catégories', options(EQUIPMENT_SLOTS))}
       </div>
       {activeCount > 0 && (
         <button type="button" className={styles.reset} onClick={reset}>

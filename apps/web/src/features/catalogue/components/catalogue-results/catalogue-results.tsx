@@ -4,6 +4,7 @@ import { count, VIEWS } from '../../lib/labels';
 import { PlayerList } from '../player-list/player-list';
 import { TechniqueList } from '../technique-list/technique-list';
 import { ItemList } from '../item-list/item-list';
+import { CataloguePagination } from '../catalogue-pagination/catalogue-pagination';
 import styles from './catalogue-results.module.scss';
 const singular = {
   players: 'joueur',
@@ -22,18 +23,19 @@ export function CatalogueResults({ catalogue }: { catalogue: ReturnType<typeof u
     items,
     request,
     data,
-    page,
     active,
     update,
     reset,
     changePage,
     chipLabel,
+    pageListRef,
+    minimumPageHeight,
   } = catalogue;
   return (
     <>
       <div className={styles.resultsHeading}>
         <p aria-live="polite">
-          {request.loading ? (
+          {request.loading && !data ? (
             'Recherche en cours…'
           ) : data ? (
             <>
@@ -44,6 +46,15 @@ export function CatalogueResults({ catalogue }: { catalogue: ReturnType<typeof u
             'Résultats'
           )}
         </p>
+        {data && data.pages > 0 && !request.error && (
+          <CataloguePagination
+            page={data.page}
+            pages={data.pages}
+            label="Pagination en haut des résultats"
+            loading={request.loading}
+            onChange={changePage}
+          />
+        )}
       </div>
       {active.length > 0 && (
         <div className={styles.chips}>
@@ -68,7 +79,7 @@ export function CatalogueResults({ catalogue }: { catalogue: ReturnType<typeof u
             Réessayer
           </button>
         </div>
-      ) : request.loading ? (
+      ) : request.loading && !data ? (
         <div className={styles.loading} aria-label="Chargement des résultats">
           {Array.from({ length: 8 }, (_, index) => (
             <div key={index} className={styles.skeleton} />
@@ -84,14 +95,20 @@ export function CatalogueResults({ catalogue }: { catalogue: ReturnType<typeof u
         </div>
       ) : (
         <>
-          {isPlayers ? (
-            <PlayerList players={players.data?.items ?? []} rarity={params.get('rarity')} />
-          ) : view === 'techniques' ? (
-            <TechniqueList techniques={techniques.data?.items ?? []} />
-          ) : (
-            <ItemList items={items.data?.items ?? []} />
-          )}
-          <nav className={styles.pagination} aria-label="Pagination">
+          <div
+            ref={pageListRef}
+            className={styles.pageList}
+            style={{ minHeight: minimumPageHeight }}
+          >
+            {isPlayers ? (
+              <PlayerList players={players.data?.items ?? []} rarity={params.get('rarity')} />
+            ) : view === 'techniques' ? (
+              <TechniqueList techniques={techniques.data?.items ?? []} />
+            ) : (
+              <ItemList items={items.data?.items ?? []} />
+            )}
+          </div>
+          <div className={styles.paginationSummary}>
             <p>
               <strong>
                 {count((data.page - 1) * data.limit + 1)}–
@@ -99,26 +116,14 @@ export function CatalogueResults({ catalogue }: { catalogue: ReturnType<typeof u
               </strong>{' '}
               sur {count(data.total)}
             </p>
-            <div>
-              <button
-                onClick={() => changePage(page - 1)}
-                disabled={page <= 1}
-                aria-label="Page précédente"
-              >
-                Précédent
-              </button>
-              <span>
-                {data.page} / {data.pages}
-              </span>
-              <button
-                onClick={() => changePage(page + 1)}
-                disabled={page >= data.pages}
-                aria-label="Page suivante"
-              >
-                Suivant
-              </button>
-            </div>
-          </nav>
+            <CataloguePagination
+              page={data.page}
+              pages={data.pages}
+              label="Pagination en bas des résultats"
+              loading={request.loading}
+              onChange={changePage}
+            />
+          </div>
         </>
       )}
     </>

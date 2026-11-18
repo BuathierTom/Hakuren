@@ -43,7 +43,7 @@ export function TechniqueList({ techniques }: { techniques: TechniqueSummary[] }
                 <span className={styles.tension}>
                   {technique.tension != null ? `${technique.tension} TP` : '—'}
                 </span>
-                <span className={styles.notes}>{technique.notes?.join(' · ')}</span>
+                <span className={styles.notes}>{technique.notes?.join(' - ')}</span>
               </a>
             </li>
           );

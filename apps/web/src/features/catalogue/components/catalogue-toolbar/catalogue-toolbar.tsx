@@ -1,26 +1,26 @@
 import type { View } from '@/app/navigation';
-import { VIEWS } from '../../lib/labels';
+import { VIEWS, WORK_LABELS } from '../../lib/labels';
 import { Icon } from '@/components/ui/icon/icon';
 import styles from './catalogue-toolbar.module.scss';
 interface CatalogueToolbarProps {
   view: View;
   isPlayers: boolean;
   search: string;
-  sort: string;
+  work: string;
   onSearchChange: (value: string) => void;
   onSearchSubmit: () => void;
   onSearchClear: () => void;
-  onSortChange: (value: string) => void;
+  onWorkChange: (value: string) => void;
 }
 export function CatalogueToolbar({
   view,
   isPlayers,
   search,
-  sort,
+  work,
   onSearchChange,
   onSearchSubmit,
   onSearchClear,
-  onSortChange,
+  onWorkChange,
 }: CatalogueToolbarProps) {
   return (
     <div className={styles.toolbar}>
@@ -33,7 +33,9 @@ export function CatalogueToolbar({
         }}
       >
         <label htmlFor="catalogue-search" className="sr-only">
-          {isPlayers ? 'Rechercher un joueur' : `Rechercher dans les ${VIEWS[view].toLowerCase()}`}
+          {isPlayers
+            ? 'Rechercher un joueur ou une équipe'
+            : `Rechercher dans les ${VIEWS[view].toLowerCase()}`}
         </label>
         <Icon name="search" size={19} />
         <input
@@ -43,7 +45,7 @@ export function CatalogueToolbar({
           maxLength={100}
           placeholder={
             isPlayers
-              ? 'Un nom, un alias, un numéro…'
+              ? 'Un joueur, une équipe…'
               : `Rechercher dans les ${VIEWS[view].toLowerCase()}…`
           }
           value={search}
@@ -63,13 +65,21 @@ export function CatalogueToolbar({
         <kbd>/</kbd>
       </form>
       {isPlayers && (
-        <div className={`${styles.select} ${styles.sort}`}>
-          <label className="sr-only" htmlFor="sort">
-            Trier les joueurs
+        <div className={`${styles.select} ${styles.workSelect}`}>
+          <label className="sr-only" htmlFor="work-filter">
+            Jeu
           </label>
-          <select id="sort" value={sort} onChange={(event) => onSortChange(event.target.value)}>
-            <option value="number">N° de joueur</option>
-            <option value="name">Nom A → Z</option>
+          <select
+            id="work-filter"
+            value={work}
+            onChange={(event) => onWorkChange(event.target.value)}
+          >
+            <option value="">Tous les jeux</option>
+            {Object.entries(WORK_LABELS).map(([code, label]) => (
+              <option key={code} value={code}>
+                {label}
+              </option>
+            ))}
           </select>
           <Icon name="down" size={14} />
         </div>

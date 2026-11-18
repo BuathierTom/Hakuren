@@ -18,7 +18,17 @@ interface State<T> {
   error: Error | null;
   loading: boolean;
 }
-export function useRequest<T>(url: string | null) {
+function samePageQuery(previous: string | null, current: string | null) {
+  if (!previous || !current) return false;
+  const key = (value: string) => {
+    const parsed = new URL(value, window.location.origin);
+    parsed.searchParams.delete('page');
+    parsed.searchParams.sort();
+    return parsed.pathname + parsed.search;
+  };
+  return key(previous) === key(current);
+}
+export function useRequest<T>(url: string | null, keepPreviousPage = false) {
   const [state, setState] = useState<State<T>>({ url, data: null, error: null, loading: !!url });
   const [version, retry] = useReducer((value) => value + 1, 0);
   useEffect(() => {
@@ -32,7 +42,12 @@ export function useRequest<T>(url: string | null) {
       return;
     }
     const controller = new AbortController();
-    setState({ url, data: null, error: null, loading: true });
+    setState((previous) => ({
+      url,
+      data: keepPreviousPage && samePageQuery(previous.url, url) ? previous.data : null,
+      error: null,
+      loading: true,
+    }));
     fetch(url, { signal: controller.signal, headers: { Accept: 'application/json' } })
       .then(async (response) => {
         if (!response.ok) throw new ApiError(response.status);
@@ -55,8 +70,16 @@ export function useRequest<T>(url: string | null) {
           });
       });
     return () => controller.abort();
-  }, [url, version]);
-  const current = state.url === url ? state : { url, data: null, error: null, loading: !!url };
+  }, [url, version, keepPreviousPage]);
+  const current =
+    state.url === url
+      ? state
+      : {
+          url,
+          data: keepPreviousPage && samePageQuery(state.url, url) ? state.data : null,
+          error: null,
+          loading: !!url,
+        };
   return {
     ...current,
     retry: () => {

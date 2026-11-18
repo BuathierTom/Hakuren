@@ -57,7 +57,7 @@ export function PlayerPanel({
           </div>
           <p>
             {age(player.ageGroup)}
-            <span>·</span>
+            <span>-</span>
             {role(player.role)}
           </p>
           {(player.gender || player.playStyle) && (
@@ -67,7 +67,7 @@ export function PlayerPanel({
                 player.playStyle ? PLAY_STYLES[player.playStyle] : null,
               ]
                 .filter(Boolean)
-                .join(' · ')}
+                .join(' - ')}
             </p>
           )}
           {player.aliases.length > 0 && (
@@ -113,7 +113,7 @@ export function PlayerPanel({
         {unassignedTeams.length > 0 && (
           <div className={styles.recordedTeams}>
             <span>Équipes répertoriées</span>
-            <p>{unassignedTeams.join(' · ')}</p>
+            <p>{unassignedTeams.join(' - ')}</p>
             <small>Leur répartition par épisode est encore à compléter.</small>
           </div>
         )}
@@ -169,8 +169,8 @@ export function PlayerPanel({
                   <span>
                     <strong>{variant.name}</strong>
                     <small>
-                      {variant.formLabel ?? age(variant.ageGroup)} ·{' '}
-                      {variant.origin ? workLabel(variant.origin.code) : 'Origine inconnue'} · N°{' '}
+                      {variant.formLabel ?? age(variant.ageGroup)} -{' '}
+                      {variant.origin ? workLabel(variant.origin.code) : 'Origine inconnue'} - N°{' '}
                       {variant.number ?? '—'}
                     </small>
                   </span>
