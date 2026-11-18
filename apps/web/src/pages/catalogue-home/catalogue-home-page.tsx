@@ -21,7 +21,6 @@ export function CatalogueHomePage() {
       <SiteHeader view="catalogue" />
       <main className={styles.main}>
         <h1>Catalogue</h1>
-        <p className={styles.intro}>Techniques, équipements et tactiques de Victory Road.</p>
         <div className={styles.sections}>
           {sections.map((section) => {
             const target = href(section.view, {}, false);
