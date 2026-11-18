@@ -1,7 +1,12 @@
 import type { CataloguePlan, RecordSpec, TechniqueSpec } from './prepare.js';
 import { numberOrNull, object, safeUrl } from './prepare.js';
 import { digest, GAME_SNAPSHOT, type Resource } from './sources.js';
-import type { EquipmentSlot, ItemSection, PlayStyle } from '../../../../shared/catalogue.js';
+import type {
+  EquipmentSlot,
+  ItemSection,
+  PlayStyle,
+  StatKey,
+} from '../../../../shared/catalogue.js';
 
 type Raw = Record<string, unknown>;
 export interface ItemSpec {
@@ -287,6 +292,38 @@ export function enrichGameData(plan: CataloguePlan, resources: Map<string, Resou
         skills: row.skills,
         alternative: row.skills_alt ?? [],
       });
+      const profileRecord = proof('player_profile', `${id}/${rarity ?? 'common'}`, {
+        id,
+        characterId: row.character_id,
+        rarity,
+        description: gameText(row.description),
+        stats_lv50: row.stats_lv50 ?? null,
+        stats_lv99: row.stats_lv99 ?? null,
+      });
+      for (const level of [50, 99]) {
+        const input = row[`stats_lv${level}`];
+        if (!input) continue;
+        const stats = object(input);
+        const keys: StatKey[] = [
+          'power',
+          'control',
+          'technique',
+          'pressure',
+          'physical',
+          'agility',
+          'intelligence',
+        ];
+        const values = Object.fromEntries(
+          keys.map((key) => [key, numberOrNull(stats[key === 'power' ? 'kick' : key])]),
+        ) as Record<StatKey, number | null>;
+        variant.statProfiles ??= [];
+        variant.statProfiles.push({
+          rarity: rarity ?? 'common',
+          level,
+          values,
+          record: profileRecord,
+        });
+      }
       if (table === 'characters' && row.style != null) {
         if (!Object.hasOwn(playStyles, String(row.style)))
           throw new Error('Style de jeu non reconnu.');

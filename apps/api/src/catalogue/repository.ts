@@ -13,6 +13,7 @@ import type {
   Work,
   Rarity,
   PlayerLearnset,
+  PlayerStatProfile,
   TechniqueProfile,
   Element,
   CatalogueItem,
@@ -413,15 +414,16 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
           [id],
         ),
         rows(
-          `SELECT p.* FROM player_stat_profiles p JOIN game_contexts c ON c.id=p.context_id JOIN works w ON w.id=c.work_id
+          `SELECT p.*,r.code AS rarity_code,s.payload AS stat_payload FROM player_stat_profiles p JOIN game_contexts c ON c.id=p.context_id JOIN works w ON w.id=c.work_id
+          LEFT JOIN rarities r ON r.id=p.rarity_id
           LEFT JOIN source_records s ON s.id=p.source_record_id WHERE p.variant_id=? AND w.code='VR'
-          AND p.profile_key='base-lv50' AND p.rarity_id IS NULL AND c.mode_code='standard' AND ${approved('p', 's')} ORDER BY p.id DESC LIMIT 1`,
+          AND (p.profile_key='base-lv50' OR p.profile_key LIKE 'game-%') AND c.mode_code='standard' AND ${approved('p', 's')} ORDER BY p.level DESC,p.id DESC`,
           [id],
         ),
         rows(
           `SELECT l.id, l.unlock_level, l.source_flags, l.alternate_path, l.basara_only, l.rarity_scope, c.mode_code,c.game_version,
           ls.external_key AS learnset_source_key,ls.payload AS learnset_source_payload,lds.code AS learnset_source,
-          t.id AS technique_id,t.name AS technique_name,t.category,${TECH_ELEMENT} AS element,ts.payload AS technique_element_payload,
+          t.id AS technique_id,t.name AS technique_name,t.category,t.tension AS technique_tension,${TECH_ELEMENT} AS element,ts.payload AS technique_element_payload,
           w.id AS work_id,w.code AS work_code,w.name AS work_name,w.kind AS work_kind
           FROM variant_learnsets l JOIN techniques t ON t.id=l.technique_id JOIN game_contexts c ON c.id=l.context_id JOIN works w ON w.id=c.work_id
           LEFT JOIN source_records ls ON ls.id=l.source_record_id LEFT JOIN source_records ts ON ts.id=t.source_record_id
@@ -477,6 +479,7 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
             id: l.technique_id,
             name: l.technique_name,
             category: l.category,
+            tension: l.technique_tension ?? null,
             element: contextualElement(l.technique_element_payload, l.work_code, l.element),
           },
           work: work(l, 'work_'),
@@ -494,9 +497,39 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
       const payload = json(row.payload);
       const teams =
         payload && typeof payload === 'object' && 'teams' in payload ? payload.teams : null;
-      const profile = stats[0];
+      const profile = stats.find((entry) => entry.profile_key === 'base-lv50');
+      const statProfiles: PlayerStatProfile[] = stats
+        .filter((entry) => entry.profile_key.startsWith('game-'))
+        .map((entry) => ({
+          rarity:
+            entry.rarity_code === 'hero' || entry.rarity_code === 'basara'
+              ? entry.rarity_code
+              : 'common',
+          level: entry.level,
+          values: {
+            power: entry.power,
+            control: entry.control,
+            technique: entry.technique,
+            pressure: entry.pressure,
+            physical: entry.physical,
+            agility: entry.agility,
+            intelligence: entry.intelligence,
+          },
+        }));
+      const descriptionPayload = json(
+        stats.find((entry) => entry.profile_key.startsWith('game-common-'))?.stat_payload,
+      );
+      const description =
+        descriptionPayload &&
+        typeof descriptionPayload === 'object' &&
+        'description' in descriptionPayload &&
+        typeof descriptionPayload.description === 'string'
+          ? descriptionPayload.description
+          : null;
       return {
         ...summary,
+        description,
+        statProfiles,
         gender: row.gender,
         schoolYear: row.school_year,
         aliases: [...new Set(aliases.map((row) => row.name as string))].filter(

@@ -289,6 +289,36 @@ export async function importCatalogue(
         ]);
       }
     }
+    for (const variant of plan.variants) {
+      const variantId = variants.get(variant.externalId)!;
+      for (const profile of variant.statProfiles ?? []) {
+        await put(
+          db,
+          'player_stat_profiles',
+          {
+            variant_id: variantId,
+            context_id: vr,
+            profile_key: `game-${profile.rarity}-lv${profile.level}`,
+            rarity_id: profile.rarity === 'common' ? null : rarities.get(profile.rarity),
+            level: profile.level,
+            ...profile.values,
+            source_record_id: verified(profile.record),
+          },
+          [
+            'rarity_id',
+            'level',
+            'power',
+            'control',
+            'technique',
+            'pressure',
+            'physical',
+            'agility',
+            'intelligence',
+            'source_record_id',
+          ],
+        );
+      }
+    }
     log(`${variants.size} variantes préparées.`);
     const [techniqueRows] = await db.query<RowDataPacket[]>(
       'SELECT source_id, external_key, technique_id FROM technique_external_ids',

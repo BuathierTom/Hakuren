@@ -56,3 +56,25 @@ test('game element five is exposed as Void for techniques', async () => {
   const plan = await fixtureGamePlan(false, 5);
   assert.equal(plan.techniques.find((row) => row.gameId === '221679467')?.element, 'void');
 });
+
+test('game profiles preserve French descriptions and independent stats for every rarity and level', async () => {
+  const plan = await fixtureGamePlan(false, 3, true);
+  const profiles = plan.variants[2]!.statProfiles!;
+  assert.equal(profiles.length, 6);
+  assert.equal(
+    profiles.find((profile) => profile.rarity === 'common' && profile.level === 99)?.values.power,
+    150,
+  );
+  assert.equal(
+    profiles.find((profile) => profile.rarity === 'hero' && profile.level === 99)?.values.power,
+    180,
+  );
+  assert.equal(
+    profiles.find((profile) => profile.rarity === 'basara' && profile.level === 99)?.values.power,
+    210,
+  );
+  assert.equal(
+    (profiles[0]!.record.payload as { description: string }).description,
+    'Une description\nfrançaise.',
+  );
+});

@@ -121,7 +121,7 @@ export function fixturePlan() {
   return plan;
 }
 
-export async function fixtureGamePlan(unknownLegacy = false, moveElement = 3) {
+export async function fixtureGamePlan(unknownLegacy = false, moveElement = 3, forms = false) {
   const { enrichGameData } = await import('../../src/catalogue/game-data.js');
   const plan = fixturePlan();
   if (unknownLegacy) {
@@ -177,6 +177,25 @@ export async function fixtureGamePlan(unknownLegacy = false, moveElement = 3) {
           id: 42,
           character_id: 'c01000010',
           name: 'Player 2',
+          description: 'Une description\\nfrançaise.',
+          stats_lv50: {
+            kick: 100,
+            control: 110,
+            technique: 120,
+            pressure: 130,
+            physical: 140,
+            agility: 150,
+            intelligence: 160,
+          },
+          stats_lv99: {
+            kick: 150,
+            control: 160,
+            technique: 170,
+            pressure: 180,
+            physical: 190,
+            agility: 200,
+            intelligence: 210,
+          },
           style: 5,
           main_position: 3,
           element: 1,
@@ -191,6 +210,24 @@ export async function fixtureGamePlan(unknownLegacy = false, moveElement = 3) {
       basaras: [],
       passives: [{ id: 444, name: 'Ne pas importer' }],
     };
+    if (forms) {
+      for (const [table, bonus] of [
+        ['heroes', 30],
+        ['basaras', 60],
+      ] as const) {
+        const base = bundle.characters[0]!;
+        Object.assign(bundle, {
+          [table]: [
+            {
+              ...base,
+              stats_lv99: Object.fromEntries(
+                Object.entries(base.stats_lv99).map(([key, value]) => [key, value + bonus]),
+              ),
+            },
+          ],
+        });
+      }
+    }
     const body = '\uFEFF' + JSON.stringify(bundle);
     const id = `game-${locale}`;
     resources.set(id, {

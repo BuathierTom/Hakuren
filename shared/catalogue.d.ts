@@ -92,6 +92,10 @@ export interface PlayerStats {
   level: number | null;
   values: Record<StatKey, number | null>;
 }
+export type PlayerForm = 'common' | 'hero' | 'basara';
+export interface PlayerStatProfile extends PlayerStats {
+  rarity: PlayerForm;
+}
 export interface PlayerLearnset {
   id: number;
   technique: TechniqueSummary;
@@ -107,6 +111,8 @@ export interface PlayerLearnset {
   rarities: Rarity[];
 }
 export interface PlayerDetail extends PlayerSummary {
+  description: string | null;
+  statProfiles: PlayerStatProfile[];
   schoolYear: string | null;
   aliases: string[];
   recordedTeams: string[];

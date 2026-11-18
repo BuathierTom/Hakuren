@@ -347,6 +347,17 @@ test(
           assert.equal((await read.techniques({ q: 'Tir français', category: 'shoot' })).total, 1);
           assert.equal((await read.items!('tactics', { q: 'Défense' })).total, 1);
           assert.equal((await read.items!('equipment', { q: 'Équipement absent' })).total, 0);
+          await importCatalogue(db, await fixtureGamePlan(false, 3, true));
+          const playerProfiles = await read.player(player);
+          assert.equal(playerProfiles?.description, 'Une description\nfrançaise.');
+          assert.equal(playerProfiles?.statProfiles.length, 6);
+          assert.equal(
+            playerProfiles?.statProfiles.find(
+              (profile) => profile.rarity === 'basara' && profile.level === 99,
+            )?.values.power,
+            210,
+          );
+          assert(playerProfiles?.learnsets.some((move) => move.technique.tension === 80));
           await importCatalogue(db, await fixtureGamePlan(false, 5));
           const neutral = await read.techniques({ element: 'void' });
           assert.equal(neutral.total, 1);
