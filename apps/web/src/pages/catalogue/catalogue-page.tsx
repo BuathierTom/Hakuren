@@ -70,14 +70,7 @@ export function CataloguePage() {
         </section>
         <SiteFooter />
       </main>
-      {detail !== null && (
-        <DetailDialog
-          key={`${view}/${detail}`}
-          view={view}
-          id={detail}
-          selectedWork={params.get('work')}
-        />
-      )}
+      {detail !== null && <DetailDialog key={`${view}/${detail}`} view={view} id={detail} />}
     </>
   );
 }

@@ -1,0 +1,58 @@
+.radar {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto 12px;
+  text {
+    fill: var(--color-muted);
+    font-size: var(--font-size-caption);
+    font-weight: 650;
+  }
+}
+.grid {
+  stroke: var(--color-border);
+  stroke-width: 1;
+  fill: none;
+}
+.values {
+  fill: color-mix(in srgb, var(--color-gold) 20%, transparent);
+  stroke: var(--color-gold);
+  stroke-width: 1.8;
+}
+.dot {
+  fill: var(--color-gold);
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-small);
+  th,
+  td {
+    padding: 9px 0;
+    border-bottom: 1px solid var(--color-border-soft);
+  }
+  th {
+    text-align: left;
+    color: var(--color-muted);
+    font-weight: 550;
+  }
+  td {
+    text-align: right;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+  }
+  tfoot {
+    th,
+    td {
+      padding-top: 13px;
+      border: 0;
+      font-weight: 700;
+    }
+  }
+}
+.empty {
+  color: var(--color-muted);
+  font-size: var(--font-size-small);
+  line-height: 1.7;
+  margin: 0;
+}

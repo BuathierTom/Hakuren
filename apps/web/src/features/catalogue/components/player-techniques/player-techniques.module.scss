@@ -1,129 +1,80 @@
-@use '@/styles/patterns/details';
-
-.section {
-  @include details.section;
-}
-
-.sectionHeading {
-  @include details.sectionHeading;
-}
-
-.unknown {
-  @include details.unknown;
-}
-
-.moveFilters {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 12px;
-  label {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    flex: 1;
-    font-size: 9px;
-    color: var(--color-muted);
-  }
-  select {
-    min-width: 0;
-    width: 100%;
-    height: 34px;
-    padding: 0 9px;
-    border: 1px solid var(--color-border);
-    background: white;
-    color: var(--color-muted);
-    font-size: 11px;
-  }
-}
-
 .moves {
-  border: 1px solid var(--color-border);
-  overflow: hidden;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  li + li {
+    border-top: 1px solid var(--color-border-soft);
+  }
 }
-
 .move {
-  display: flex;
+  display: grid;
+  grid-template-columns: 46px 28px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 12px;
-  padding: 13px;
-  border-bottom: 1px solid var(--color-border-soft);
+  gap: 10px;
+  padding: 14px 0;
   color: inherit;
   text-decoration: none;
-  &:last-child {
-    border: 0;
-  }
   &:hover {
-    background: var(--color-background);
-  }
-  > svg {
-    color: var(--color-muted);
-    flex-shrink: 0;
+    background: var(--color-hover);
+    .name {
+      color: var(--color-link);
+    }
   }
 }
-
-.moveIcon {
+.level,
+.tension {
+  font-size: var(--font-size-small);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.level {
+  color: var(--color-muted);
+}
+.tension {
+  text-align: right;
+  font-weight: 600;
+}
+.icon {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 37px;
-
+  img {
+    width: 25px;
+    height: 25px;
+    object-fit: contain;
+  }
+}
+.name {
+  font-size: var(--font-size-small);
+  font-weight: 600;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.branch {
+  margin: 14px 0 0;
+  padding: 12px 0;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
   color: var(--color-muted);
-  flex-shrink: 0;
+  font-size: var(--font-size-small);
+  font-weight: 650;
 }
-
-.moveName {
-  min-width: 0;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  > strong {
-    font-size: 12px;
-    font-weight: 650;
-  }
-  > span {
-    font-size: 10px;
-    color: var(--color-muted);
-    line-height: 1.5;
-  }
-}
-
-.moveRarities {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-  align-items: center;
-  small {
-    font-size: 9px;
-    color: var(--color-muted);
-  }
-}
-
-.moveLevel {
+.empty {
   color: var(--color-muted);
-  font-size: 9px;
-  white-space: nowrap;
-  strong {
-    color: var(--color-muted);
-    font-size: 11px;
-  }
+  font-size: var(--font-size-small);
+  line-height: 1.7;
+  margin: 0;
 }
-
 @media (max-width: 560px) {
   .move {
-    gap: 8px;
-    padding: 11px 9px;
+    grid-template-columns: 40px 22px minmax(0, 1fr) auto;
+    gap: 7px;
   }
-
-  .move > svg {
-    display: none;
+  .level,
+  .tension {
+    font-size: var(--font-size-caption);
   }
-
-  .moveName > strong {
-    font-size: 11px;
-  }
-
-  .moveIcon {
-    width: 29px;
+  .icon img {
+    width: 22px;
+    height: 22px;
   }
 }

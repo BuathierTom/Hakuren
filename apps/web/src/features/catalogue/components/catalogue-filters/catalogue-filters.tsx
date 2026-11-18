@@ -109,7 +109,7 @@ export function CatalogueFilters({
                 icon: <PlayStyleIcon style={value as PlayStyle} />,
               })),
             )}
-            {group('rarity', 'HERO / BASARA', [
+            {group('rarity', 'Rareté', [
               { value: 'hero', label: 'HERO' },
               { value: 'basara', label: 'BASARA' },
             ])}

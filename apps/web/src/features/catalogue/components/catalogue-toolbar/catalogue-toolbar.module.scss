@@ -30,7 +30,7 @@
     padding: 0;
     color: var(--color-text);
     background: none;
-    font-size: 14px;
+    font-size: var(--font-size-body);
     &::placeholder {
       color: var(--color-muted);
     }
@@ -47,7 +47,7 @@
   }
   kbd {
     font-family: inherit;
-    font-size: 12px;
+    font-size: var(--font-size-small);
     border: 1px solid var(--color-border);
     padding: 1px 7px;
   }
@@ -57,13 +57,13 @@
   flex-shrink: 0;
   select {
     height: 48px;
-    font-size: 12px;
+    font-size: var(--font-size-small);
   }
 }
 @media (max-width: 620px) {
   .search {
     input {
-      font-size: 13px;
+      font-size: var(--font-size-body);
     }
     kbd {
       display: none;

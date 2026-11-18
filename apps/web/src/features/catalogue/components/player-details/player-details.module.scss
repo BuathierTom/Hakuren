@@ -1,212 +1,188 @@
 @use '@/styles/patterns/details';
-
-.episodes {
-  @include details.episodes;
-}
-
 .eyebrow {
   @include details.eyebrow;
 }
-
 .related {
   @include details.related;
 }
-
 .section {
   @include details.section;
 }
-
 .sectionHeading {
   @include details.sectionHeading;
 }
-
-.source {
-  @include details.source;
+.hero {
+  display: grid;
+  grid-template-columns: 148px minmax(0, 1fr) 230px;
+  align-items: center;
+  gap: 14px 28px;
+  margin-bottom: 24px;
 }
-
-.unknown {
-  @include details.unknown;
+.portrait {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  width: 148px;
+  height: 168px;
+  flex-shrink: 0;
 }
-
-.playerHero {
+.identity {
+  grid-column: 2;
+  min-width: 0;
+  flex: 1;
+}
+.name {
   display: flex;
   align-items: center;
-  gap: 24px;
-}
-
-.heroPortrait {
-  display: grid;
-  place-items: center;
-  width: 151px;
-  height: 172px;
-  flex-shrink: 0;
-  overflow: hidden;
-}
-
-.heroIdentity {
-  min-width: 0;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 8px 0 14px;
   h2 {
-    margin: 8px 0 12px;
+    margin: 0;
     font-size: 30px;
-    line-height: 1.12;
+    line-height: 1.2;
     font-weight: 750;
-    letter-spacing: -0.055em;
+    letter-spacing: -0.045em;
     overflow-wrap: anywhere;
   }
-  p {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 7px;
-    margin: 12px 0 0;
-    font-size: 11px;
-    color: var(--color-muted);
-    line-height: 1.7;
-  }
-  p.aliases {
-    display: block;
-    margin-top: 9px;
-    font-size: 10px;
-  }
 }
-
-.badges {
+.rarities,
+.attributes {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
 }
-
-.origin {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 15px;
-  margin-top: 24px;
-  padding: 14px 17px;
-  background: var(--color-background);
-  border: 1px solid var(--color-border-soft);
-  span {
-    flex-shrink: 0;
-    font-size: 10px;
-    color: var(--color-muted);
-  }
-  strong {
-    font-size: 10px;
-    font-weight: 600;
-    line-height: 1.6;
-    text-align: right;
+.attribute {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--font-size-small);
+  img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
   }
 }
-
-.history {
-  padding: 15px;
-  background: var(--color-background);
-  > span {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--color-muted);
-  }
-  p {
-    font-size: 11px;
-    color: var(--color-muted);
-    margin: 9px 0 0;
-  }
-}
-
-.teamTags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin-top: 9px;
-  span {
-    padding: 6px 10px;
-    font-size: 12px;
-    font-weight: 650;
-    color: var(--color-accent);
-    border: 1px solid var(--color-border);
-    background: white;
-  }
-}
-
-.recordedTeams {
-  padding: 15px 1px 0;
+.meta {
+  margin: 12px 0 0;
+  font-size: var(--font-size-small);
   color: var(--color-muted);
-  > span {
-    font-size: 10px;
-    font-weight: 600;
+}
+.description {
+  grid-column: 2;
+  margin: 0;
+  font-size: var(--font-size-body);
+  line-height: 1.8;
+  white-space: normal;
+}
+.origin {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  min-width: 0;
+  margin: 0;
+  border: 1px solid var(--color-border);
+  background: var(--color-background);
+  > div {
+    padding: 12px 16px;
+    + div {
+      border-top: 1px solid var(--color-border-soft);
+    }
   }
-  p {
-    margin: 7px 0;
-    font-size: 12px;
+  dt {
     color: var(--color-muted);
+    font-size: var(--font-size-small);
   }
-  small {
-    font-size: 9px;
+  dd {
+    margin: 5px 0 0;
+    font-weight: 600;
+    font-size: var(--font-size-small);
+    line-height: 1.6;
+    overflow-wrap: anywhere;
   }
 }
-
-.stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px 28px;
-  > div > div:first-child {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    font-size: 11px;
+.formButtons {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 20px;
+  button {
+    flex: 1;
+    min-width: 0;
+    padding: 14px 12px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    font-size: var(--font-size-small);
+    font-weight: 650;
     color: var(--color-muted);
-    margin-bottom: 7px;
-    strong {
-      font-size: 12px;
-      color: var(--color-muted);
-      font-weight: 650;
+    &:hover {
+      background: var(--color-hover);
+    }
+    &[aria-pressed='true'] {
+      background: var(--color-accent-strong);
+      color: white;
     }
   }
 }
-
-.statTrack {
-  height: 5px;
-  overflow: hidden;
-  background: var(--color-background);
-  span {
-    display: block;
-    height: 100%;
-    background: var(--color-accent);
+.panels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 148px minmax(0, 1fr);
+  }
+  .origin {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    > div {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    dt {
+      flex-shrink: 0;
+    }
+    dd {
+      margin: 0;
+      text-align: right;
+    }
   }
 }
-
+@media (max-width: 760px) {
+  .panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 @media (max-width: 560px) {
-  .playerHero {
-    gap: 17px;
+  .hero {
+    grid-template-columns: 80px minmax(0, 1fr);
+    align-items: flex-start;
+    gap: 14px;
   }
-
-  .heroPortrait {
-    width: 110px;
-    height: 143px;
+  .portrait {
+    grid-row: 1;
+    width: 80px;
+    height: 110px;
   }
-
-  .heroIdentity h2 {
-    font-size: 24px;
+  .name {
+    gap: 8px;
+    h2 {
+      font-size: 24px;
+    }
   }
-
-  .heroIdentity p {
-    font-size: 10px;
-    margin-top: 8px;
-  }
-
-  .heroIdentity p.aliases {
-    font-size: 9px;
-  }
-
-  .badges {
+  .rarities,
+  .attributes {
     gap: 7px;
   }
-
-  .origin {
-    padding: 12px;
+  .description {
+    grid-column: 1 / -1;
+    font-size: var(--font-size-small);
   }
-
-  .stats {
-    gap: 17px 24px;
+  .origin {
+    > div {
+      padding: 12px;
+      gap: 12px;
+    }
   }
 }

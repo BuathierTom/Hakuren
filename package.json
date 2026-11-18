@@ -18,7 +18,7 @@
     "import:catalogue": "node --import tsx apps/api/src/catalogue/cli.ts",
     "build": "npm run build --workspaces",
     "typecheck": "npm run typecheck --workspaces",
-    "test": "node --import tsx --test apps/api/test/*.test.ts",
+    "test": "node --import tsx --test apps/api/test/*.test.ts apps/web/test/*.test.ts",
     "check": "npm run typecheck && npm test && npm run build",
     "start": "npm run start --workspace @hakuren/api",
     "format": "prettier --write \"apps/**/*.{ts,tsx,scss,html,json}\" \"shared/**/*.ts\" \"scripts/**/*.mjs\" \"*.json\"",

@@ -9,15 +9,7 @@ import { VIEWS } from '../../lib/labels';
 import { TechniquePanel } from '../technique-details/technique-details';
 import styles from './detail-dialog.module.scss';
 
-export function DetailDialog({
-  view,
-  id,
-  selectedWork,
-}: {
-  view: View;
-  id: number;
-  selectedWork: string | null;
-}) {
+export function DetailDialog({ view, id }: { view: View; id: number }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const title = useId();
   const player = useRequest<PlayerDetail>(view === 'players' ? `/api/players/${id}` : null);
@@ -44,13 +36,14 @@ export function DetailDialog({
   return (
     <dialog
       ref={dialog}
-      className={styles.dialog}
+      className={`${styles.dialog} ${view === 'players' ? styles.playerDialog : ''}`}
       aria-labelledby={title}
       onCancel={(event) => {
         event.preventDefault();
-        closeDetail(view);
+        if (view !== 'players') closeDetail(view);
       }}
       onClick={(event) => {
+        if (view === 'players') return;
         if (event.target !== event.currentTarget) return;
         const rect = event.currentTarget.getBoundingClientRect();
         if (
@@ -88,9 +81,7 @@ export function DetailDialog({
           </div>
         ) : (
           <>
-            {player.data && (
-              <PlayerPanel player={player.data} titleId={title} selectedWork={selectedWork} />
-            )}
+            {player.data && <PlayerPanel player={player.data} titleId={title} />}
             {item.data && <ItemPanel item={item.data} titleId={title} />}
             {technique.data && <TechniquePanel technique={technique.data} titleId={title} />}
           </>

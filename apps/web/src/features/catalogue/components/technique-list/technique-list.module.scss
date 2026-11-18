@@ -35,7 +35,7 @@
   }
   strong {
     display: block;
-    font-size: 14px;
+    font-size: var(--font-size-body);
     font-weight: 600;
     overflow-wrap: anywhere;
   }
@@ -43,7 +43,7 @@
     display: block;
     margin-top: 5px;
     color: var(--color-muted);
-    font-size: 11px;
+    font-size: var(--font-size-small);
   }
 }
 .element {
@@ -57,13 +57,13 @@
   font-variant-numeric: tabular-nums;
 }
 .tension {
-  font-size: 12px;
+  font-size: var(--font-size-small);
   text-align: center;
   color: var(--color-muted);
   white-space: nowrap;
 }
 .notes {
-  font-size: 11px;
+  font-size: var(--font-size-small);
   color: var(--color-muted);
   text-align: center;
   line-height: 1.5;
@@ -91,16 +91,16 @@
   .identity {
     gap: 9px;
     strong {
-      font-size: 12px;
+      font-size: var(--font-size-small);
     }
     small {
-      font-size: 10px;
+      font-size: var(--font-size-caption);
     }
   }
   .power {
-    font-size: 13px;
+    font-size: var(--font-size-body);
   }
   .tension {
-    font-size: 10px;
+    font-size: var(--font-size-caption);
   }
 }

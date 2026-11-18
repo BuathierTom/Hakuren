@@ -29,7 +29,7 @@
   }
   a {
     color: var(--color-muted);
-    font-size: 12px;
+    font-size: var(--font-size-small);
     text-underline-offset: 4px;
     &:hover {
       color: var(--color-accent);
@@ -55,7 +55,7 @@
       font-size: 23px;
     }
     a {
-      font-size: 11px;
+      font-size: var(--font-size-small);
     }
   }
 }
