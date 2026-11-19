@@ -5,9 +5,16 @@ import { Icon } from '@/components/ui/icon/icon';
 import { closeDetail, type View } from '@/app/navigation';
 import { PlayerPanel } from '../player-details/player-details';
 import { ItemPanel } from '../item-details/item-details';
-import { VIEWS } from '../../lib/labels';
 import { TechniquePanel } from '../technique-details/technique-details';
 import styles from './detail-dialog.module.scss';
+
+const DETAIL_LABELS: Record<View, string> = {
+  players: 'Fiche joueur',
+  techniques: 'Fiche technique',
+  equipment: 'Fiche équipement',
+  tactics: 'Fiche tactique',
+  catalogue: 'Catalogue',
+};
 
 export function DetailDialog({ view, id }: { view: View; id: number }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -36,27 +43,12 @@ export function DetailDialog({ view, id }: { view: View; id: number }) {
   return (
     <dialog
       ref={dialog}
-      className={`${styles.dialog} ${view === 'players' ? styles.playerDialog : ''}`}
+      className={styles.dialog}
       aria-labelledby={title}
-      onCancel={(event) => {
-        event.preventDefault();
-        if (view !== 'players') closeDetail(view);
-      }}
-      onClick={(event) => {
-        if (view === 'players') return;
-        if (event.target !== event.currentTarget) return;
-        const rect = event.currentTarget.getBoundingClientRect();
-        if (
-          event.clientX < rect.left ||
-          event.clientX > rect.right ||
-          event.clientY < rect.top ||
-          event.clientY > rect.bottom
-        )
-          closeDetail(view);
-      }}
+      onCancel={(event) => event.preventDefault()}
     >
       <div className={styles.topbar}>
-        <span>{view === 'players' ? 'Fiche joueur' : VIEWS[view]}</span>
+        <span>{DETAIL_LABELS[view]}</span>
         <button
           type="button"
           onClick={() => closeDetail(view)}
