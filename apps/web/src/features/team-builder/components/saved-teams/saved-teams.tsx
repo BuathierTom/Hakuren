@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Icon } from '@/components/ui/icon/icon';
 import { TeamDialog } from '../team-dialog/team-dialog';
 import { teamCounts, type Team, type SavedTeam } from '../../lib/team';
 import styles from './saved-teams.module.scss';
@@ -13,10 +14,6 @@ export function SavedTeams({ teams, onLoad, onNew, onDelete, onClose }: Props) {
   const [deleting, setDeleting] = useState<string | null>(null);
   return (
     <TeamDialog title="Mes équipes" onClose={onClose}>
-      <p className={styles.note}>
-        Les équipes sont enregistrées dans ce navigateur. Enregistrez votre brouillon avant d’ouvrir
-        une autre équipe pour le retrouver dans cette liste.
-      </p>
       <button type="button" className={styles.newTeam} onClick={onNew}>
         Créer une nouvelle équipe
       </button>
@@ -35,18 +32,25 @@ export function SavedTeams({ teams, onLoad, onNew, onDelete, onClose }: Props) {
               </button>
               {deleting === team.id ? (
                 <div className={styles.confirm}>
-                  <span>Supprimer ?</span>
                   <button
                     type="button"
+                    className={styles.confirmDelete}
+                    aria-label={`Confirmer la suppression de ${team.name}`}
+                    title="Confirmer la suppression"
                     onClick={() => {
                       onDelete(team.id);
                       setDeleting(null);
                     }}
                   >
-                    Oui
+                    <Icon name="check" size={18} />
                   </button>
-                  <button type="button" onClick={() => setDeleting(null)}>
-                    Annuler
+                  <button
+                    type="button"
+                    aria-label={`Annuler la suppression de ${team.name}`}
+                    title="Annuler la suppression"
+                    onClick={() => setDeleting(null)}
+                  >
+                    <Icon name="close" size={18} />
                   </button>
                 </div>
               ) : (
@@ -55,8 +59,9 @@ export function SavedTeams({ teams, onLoad, onNew, onDelete, onClose }: Props) {
                   className={styles.delete}
                   onClick={() => setDeleting(team.id)}
                   aria-label={`Supprimer ${team.name}`}
+                  title="Supprimer l’équipe"
                 >
-                  Supprimer
+                  <Icon name="trash" size={18} />
                 </button>
               )}
             </li>
