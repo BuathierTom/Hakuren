@@ -1,7 +1,3 @@
-@use '@/styles/patterns/controls';
-.select {
-  @include controls.select;
-}
 .toolbar {
   display: flex;
   align-items: center;
@@ -55,10 +51,6 @@
 .workSelect {
   width: 200px;
   flex-shrink: 0;
-  select {
-    height: 48px;
-    font-size: var(--font-size-small);
-  }
 }
 @media (max-width: 620px) {
   .search {
@@ -71,8 +63,5 @@
   }
   .workSelect {
     width: 130px;
-    select {
-      height: 48px;
-    }
   }
 }

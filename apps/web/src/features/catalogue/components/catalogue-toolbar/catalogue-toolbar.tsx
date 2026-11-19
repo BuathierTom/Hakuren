@@ -1,5 +1,6 @@
 import type { View } from '@/app/navigation';
 import { VIEWS, WORK_LABELS } from '../../lib/labels';
+import { Select } from '@/components/ui/select/select';
 import { Icon } from '@/components/ui/icon/icon';
 import styles from './catalogue-toolbar.module.scss';
 interface CatalogueToolbarProps {
@@ -65,24 +66,17 @@ export function CatalogueToolbar({
         <kbd>/</kbd>
       </form>
       {isPlayers && (
-        <div className={`${styles.select} ${styles.workSelect}`}>
-          <label className="sr-only" htmlFor="work-filter">
-            Jeu
-          </label>
-          <select
-            id="work-filter"
-            value={work}
-            onChange={(event) => onWorkChange(event.target.value)}
-          >
-            <option value="">Tous les jeux</option>
-            {Object.entries(WORK_LABELS).map(([code, label]) => (
-              <option key={code} value={code}>
-                {label}
-              </option>
-            ))}
-          </select>
-          <Icon name="down" size={14} />
-        </div>
+        <Select
+          className={styles.workSelect}
+          label="Jeu"
+          value={work}
+          onChange={onWorkChange}
+          size="large"
+          options={[
+            { value: '', label: 'Tous les jeux' },
+            ...Object.entries(WORK_LABELS).map(([value, label]) => ({ value, label })),
+          ]}
+        />
       )}
     </div>
   );

@@ -1,0 +1,114 @@
+.root {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+}
+.label {
+  font-size: var(--font-size-small);
+  font-weight: 600;
+}
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 9px 11px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-body);
+  text-align: left;
+  cursor: pointer;
+  &[data-size='large'] {
+    min-height: 48px;
+  }
+  &:hover:not(:disabled),
+  &[aria-expanded='true'] {
+    border-color: var(--color-accent);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  > svg {
+    flex-shrink: 0;
+    color: var(--color-muted);
+  }
+}
+.value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  > span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+.panel {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  padding: 5px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 4px 5px 0 #1b30401a;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+.option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 9px 10px;
+  border: 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-align: left;
+  font-size: var(--font-size-body);
+  cursor: pointer;
+  &[data-active='true']:not(:disabled) {
+    background: var(--color-hover);
+  }
+  &[aria-selected='true'] {
+    background: var(--color-accent-soft);
+    color: var(--color-accent-strong);
+  }
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  > svg:last-child {
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+}
+.optionText {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  small {
+    font-size: var(--font-size-caption);
+    line-height: 1.5;
+    color: var(--color-muted);
+  }
+}
