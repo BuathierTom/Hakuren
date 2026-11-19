@@ -2,8 +2,8 @@ import type { PlayerDetail, PlayerForm, PlayerStats } from '@shared/catalogue';
 
 export const PLAYER_FORMS: Record<PlayerForm, string> = {
   common: 'Commun',
-  hero: 'HERO',
-  basara: 'BASARA',
+  hero: 'Héro',
+  basara: 'Basara',
 };
 
 export function playerForms(player: PlayerDetail): PlayerForm[] {

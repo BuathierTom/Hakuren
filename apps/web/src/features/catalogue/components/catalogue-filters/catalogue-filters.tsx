@@ -110,8 +110,8 @@ export function CatalogueFilters({
               })),
             )}
             {group('rarity', 'Rareté', [
-              { value: 'hero', label: 'HERO' },
-              { value: 'basara', label: 'BASARA' },
+              { value: 'hero', label: 'Héro' },
+              { value: 'basara', label: 'Basara' },
             ])}
           </>
         )}

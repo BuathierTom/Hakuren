@@ -36,9 +36,14 @@ export function PositionBadge({ position }: { position: Position | null }) {
   );
 }
 export function RarityBadge({ name }: { name: string }) {
+  const code = name
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase();
+  const title = code === 'hero' ? 'Héro' : code === 'basara' ? 'Basara' : name;
   return (
-    <span className={styles.rarity} data-rarity={name.toLowerCase()}>
-      {name}
+    <span className={styles.rarity} data-rarity={code}>
+      {title}
     </span>
   );
 }

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Page, PlayerSummary, TechniqueSummary, CatalogueItem } from '@shared/catalogue';
+import { PLAYER_FORMS } from '../lib/player-forms';
 import { useRequest } from './use-catalogue-request';
 import { href, navigate, useLocation } from '@/app/navigation';
 import {
@@ -124,7 +125,8 @@ export function useCatalogue() {
     if (key === 'position') return label(POSITIONS, value);
     if (key === 'gender') return label(GENDERS, value);
     if (key === 'style') return label(PLAY_STYLES, value);
-    if (key === 'rarity') return ['hero', 'basara'].includes(value) ? value.toUpperCase() : value;
+    if (key === 'rarity')
+      return value === 'hero' || value === 'basara' ? PLAYER_FORMS[value] : value;
     if (key === 'role') return label(PLAYER_TYPES, value);
     if (key === 'slot') return label(EQUIPMENT_SLOTS, value);
     if (key === 'category') return label(CATEGORIES, value);
