@@ -1,0 +1,87 @@
+.main {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 30px 40px 40px;
+}
+.title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+  h1 {
+    margin: 0;
+    font-size: 26px;
+    letter-spacing: -0.035em;
+    font-weight: 650;
+  }
+  > span {
+    font-size: var(--font-size-small);
+    color: var(--color-muted);
+  }
+}
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  align-items: start;
+  gap: 24px;
+}
+.notice {
+  min-height: 20px;
+  margin: -9px 0 18px;
+  color: var(--color-muted);
+  font-size: var(--font-size-small);
+  line-height: 1.5;
+}
+.state {
+  border: 1px solid var(--color-border);
+  padding: 40px;
+  text-align: center;
+  h2 {
+    font-size: 20px;
+  }
+  p {
+    font-size: var(--font-size-body);
+  }
+  button {
+    padding: 10px 16px;
+    border: 1px solid var(--color-border);
+    color: var(--color-accent);
+    background: white;
+    cursor: pointer;
+  }
+}
+.skip {
+  position: fixed;
+  top: -100px;
+  left: 16px;
+  padding: 12px;
+  background: white;
+  z-index: 30;
+  &:focus {
+    top: 10px;
+  }
+}
+@media (max-width: 1050px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 800px) {
+  .main {
+    padding: 24px;
+  }
+}
+@media (max-width: 480px) {
+  .main {
+    padding: 22px 16px;
+  }
+  .title {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+    h1 {
+      font-size: 23px;
+    }
+  }
+}

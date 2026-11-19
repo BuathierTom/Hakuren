@@ -9,6 +9,7 @@ import { TechniquePanel } from '../technique-details/technique-details';
 import styles from './detail-dialog.module.scss';
 
 const DETAIL_LABELS: Record<View, string> = {
+  builder: 'Composition',
   players: 'Fiche joueur',
   techniques: 'Fiche technique',
   equipment: 'Fiche équipement',

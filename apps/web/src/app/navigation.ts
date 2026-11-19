@@ -1,7 +1,8 @@
 import { useSyncExternalStore } from 'react';
 
-export type View = 'players' | 'techniques' | 'equipment' | 'tactics' | 'catalogue';
+export type View = 'builder' | 'players' | 'techniques' | 'equipment' | 'tactics' | 'catalogue';
 export const VIEW_PATHS: Record<View, string> = {
+  builder: '/',
   players: '/joueurs',
   techniques: '/techniques',
   equipment: '/equipements',

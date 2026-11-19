@@ -5,15 +5,22 @@ export function SiteHeader({ view }: { view: View }) {
     <header className={styles.header}>
       <div className={styles.inner}>
         <a
-          href="/joueurs"
+          href="/"
           className={styles.brand}
-          onClick={(event) => intercept(event, '/joueurs')}
+          onClick={(event) => intercept(event, '/')}
           aria-label="Hakuren, accueil"
         >
           <img src="/icon.webp" alt="" width="44" height="44" />
           <span>Hakuren</span>
         </a>
         <nav aria-label="Navigation principale" className={styles.nav}>
+          <a
+            href="/"
+            aria-current={view === 'builder' ? 'page' : undefined}
+            onClick={(event) => intercept(event, '/')}
+          >
+            Composition
+          </a>
           <a
             href="/joueurs"
             aria-current={view === 'players' ? 'page' : undefined}
@@ -23,7 +30,7 @@ export function SiteHeader({ view }: { view: View }) {
           </a>
           <a
             href="/catalogue"
-            aria-current={view !== 'players' ? 'page' : undefined}
+            aria-current={view !== 'players' && view !== 'builder' ? 'page' : undefined}
             onClick={(event) => intercept(event, '/catalogue')}
           >
             Catalogue

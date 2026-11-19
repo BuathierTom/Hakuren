@@ -104,3 +104,23 @@
     gap: 12px;
   }
 }
+
+@media (max-width: 600px) {
+  .inner {
+    gap: 18px;
+  }
+  .brand span {
+    display: none;
+  }
+  .nav {
+    gap: 20px;
+  }
+}
+@media (max-width: 350px) {
+  .nav {
+    gap: 14px;
+    a {
+      font-size: 12px;
+    }
+  }
+}

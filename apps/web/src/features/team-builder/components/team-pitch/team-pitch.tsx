@@ -1,0 +1,105 @@
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import type { Formation } from '@shared/formations';
+import { BENCH_SLOTS, STAFF_SLOTS, slotLabel, type Team } from '../../lib/team';
+import { pitchLayout, pitchCardWidth } from '../../lib/pitch-layout';
+import { PlayerSlot } from './player-slot';
+import { DragPreview } from './drag-preview';
+import { usePlayerDrag } from '../../hooks/use-player-drag';
+import styles from './team-pitch.module.scss';
+interface Props {
+  team: Team;
+  formation: Formation;
+  onSlot: (slot: string) => void;
+  onMove: (from: string, to: string) => void;
+}
+export function TeamPitch({ team, formation, onSlot, onMove }: Props) {
+  const board = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(850);
+  const { preview, over, dragging, handlers } = usePlayerDrag(team, onMove);
+  useEffect(() => {
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry) setWidth(entry.contentRect.width);
+    });
+    observer.observe(board.current!);
+    return () => observer.disconnect();
+  }, []);
+  const positions = pitchLayout(formation.positions, width);
+  const tile = (slot: string, position?: Formation['positions'][number]['position']) => (
+    <PlayerSlot
+      slot={slot}
+      position={position}
+      label={slotLabel(slot, formation)}
+      assignment={team.slots[slot]}
+      dragging={dragging === slot}
+      onClick={() => onSlot(slot)}
+    />
+  );
+  return (
+    <div
+      className={styles.composition}
+      data-over={over}
+      style={
+        {
+          '--tile-width': `${pitchCardWidth(width)}px`,
+          '--tile-height': width < 500 ? '44px' : '60px',
+        } as CSSProperties
+      }
+      {...handlers}
+    >
+      {preview && team.slots[preview.slot] && (
+        <DragPreview preview={preview} assignment={team.slots[preview.slot]!} />
+      )}
+      <section className={styles.pitch} aria-label="Terrain de l’équipe">
+        <header className={styles.sectionHeader}>
+          <h2>{formation.name}</h2>
+          <span>
+            {dragging
+              ? 'Relâcher pour déplacer ou permuter'
+              : 'Glisser pour déplacer - déposer pour permuter'}
+          </span>
+        </header>
+        <div ref={board} className={styles.board}>
+          <div className={styles.playable}>
+            {positions.map((position) => (
+              <div
+                key={position.slot}
+                className={styles.fieldSlot}
+                data-target={over === `field-${position.slot}`}
+                style={{ left: `${position.x}%`, top: `${100 - position.y}%` }}
+              >
+                {tile(`field-${position.slot}`, position.position)}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section className={styles.roster} aria-label="Remplaçants et staff">
+        <header className={styles.sectionHeader}>
+          <h2>Effectif</h2>
+        </header>
+        <div className={styles.rosterBody}>
+          <div className={styles.rosterRow}>
+            <h3>Remplaçants</h3>
+            <div className={styles.bench}>
+              {BENCH_SLOTS.map((slot) => (
+                <div key={slot} data-target={over === slot}>
+                  {tile(slot)}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className={styles.rosterRow}>
+            <h3>Staff</h3>
+            <div className={styles.staff}>
+              {STAFF_SLOTS.map((slot) => (
+                <div key={slot} data-target={over === slot}>
+                  {tile(slot)}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}

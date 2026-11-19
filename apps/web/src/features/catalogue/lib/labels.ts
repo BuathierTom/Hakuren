@@ -67,6 +67,7 @@ export const workLabel = (code: string) => label(WORK_LABELS, code);
 export const count = (value: number) => value.toLocaleString('fr-FR');
 
 export const VIEWS = {
+  builder: 'Composition',
   players: 'Joueurs',
   techniques: 'Techniques',
   equipment: 'Équipements',
