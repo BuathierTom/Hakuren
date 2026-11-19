@@ -3,12 +3,16 @@ import type { Database } from './db/client.js';
 import { registerCatalogueRoutes } from './catalogue/routes.js';
 import type { CatalogueRepository } from './catalogue/repository.js';
 
+import { registerFormationRoutes } from './formations/routes.js';
+import type { FormationRepository } from './formations/repository.js';
+
 export interface AppOptions {
   database?: Database;
   catalogue?: CatalogueRepository;
+  formations?: FormationRepository;
   logger?: boolean;
 }
-export function buildApp({ database, catalogue, logger = false }: AppOptions = {}) {
+export function buildApp({ database, catalogue, formations, logger = false }: AppOptions = {}) {
   const app = Fastify({
     bodyLimit: 1_048_576,
     ajv: { customOptions: { removeAdditional: false } },
@@ -64,6 +68,7 @@ export function buildApp({ database, catalogue, logger = false }: AppOptions = {
   });
 
   registerCatalogueRoutes(app, catalogue);
+  registerFormationRoutes(app, formations);
   app.addHook('onClose', async () => {
     await database?.close();
   });

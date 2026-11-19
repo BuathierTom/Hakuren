@@ -1,6 +1,8 @@
 import { createPool as createMysqlPool, type Pool } from 'mysql2/promise';
 import { createCatalogueRepository, type CatalogueRepository } from '../catalogue/repository.js';
 
+import { createFormationRepository, type FormationRepository } from '../formations/repository.js';
+
 export interface Database {
   check(): Promise<void>;
   close(): Promise<void>;
@@ -23,10 +25,11 @@ export function createPool(connectionString: string): Pool {
 
 export function createDatabase(
   connectionString: string,
-): Database & { catalogue: CatalogueRepository } {
+): Database & { catalogue: CatalogueRepository; formations: FormationRepository } {
   const pool = createPool(connectionString);
   return {
     catalogue: createCatalogueRepository(pool),
+    formations: createFormationRepository(pool),
     async check() {
       await pool.execute({ sql: 'SELECT 1', timeout: 5_000 });
     },
