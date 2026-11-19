@@ -2,11 +2,9 @@
 
 Encyclopédie des personnages, suivi de collection Victory Road et création d'équipes personnalisées.
 
-React, TypeScript et SCSS côté frontend. Fastify et MySQL (`mysql2`) côté backend.
+React, TypeScript et SCSS côté frontend. Fastify et MySQL côté backend.
 
 ## Démarrage
-
-Prérequis : Node.js 24+, npm et MySQL.
 
 ```sh
 npm install
@@ -36,8 +34,6 @@ Le frontend est accessible sur [localhost:5173](http://localhost:5173) par défa
 | `npm run build`            | Compiler le projet                              |
 | `npm run format`           | Formater le code et les styles                  |
 | `npm run import:catalogue` | Importer le catalogue dans la base configurée   |
-
-Import : `--dry-run` pour prévisualiser, `--offline` pour utiliser le cache local, `--help` pour l’aide. Les options se passent après `--`.
 
 ## Organisation
 
