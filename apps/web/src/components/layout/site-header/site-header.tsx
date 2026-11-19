@@ -36,9 +36,6 @@ export function SiteHeader({ view }: { view: View }) {
             Catalogue
           </a>
         </nav>
-        <span className={styles.game}>
-          Inazuma Eleven <span>Victory Road</span>
-        </span>
       </div>
     </header>
   );
