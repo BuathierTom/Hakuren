@@ -1,0 +1,16 @@
+@use '@/styles/patterns/details';
+.video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #152734;
+}
+.unavailable {
+  @include details.unknown;
+  button {
+    padding: 8px 12px;
+    border: 1px solid var(--color-border);
+    color: var(--color-accent);
+    background: white;
+  }
+}

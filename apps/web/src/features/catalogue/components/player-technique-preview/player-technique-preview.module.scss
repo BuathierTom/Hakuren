@@ -1,0 +1,122 @@
+.popover {
+  position: fixed;
+  inset: auto;
+  width: min(480px, calc(100% - 24px));
+  max-width: none;
+  max-height: calc(100dvh - 24px);
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  &::before {
+    content: '';
+    position: absolute;
+    z-index: 2;
+    width: 12px;
+    height: 12px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    pointer-events: none;
+  }
+  &[data-side='left']::before {
+    right: -6px;
+    top: var(--arrow-offset);
+    transform: translateY(-50%) rotate(45deg);
+    border-left: 0;
+    border-bottom: 0;
+  }
+  &[data-side='right']::before {
+    left: -6px;
+    top: var(--arrow-offset);
+    transform: translateY(-50%) rotate(45deg);
+    border-right: 0;
+    border-top: 0;
+  }
+  &[data-side='bottom']::before {
+    top: -6px;
+    left: var(--arrow-offset);
+    transform: translateX(-50%) rotate(45deg);
+    border-right: 0;
+    border-bottom: 0;
+  }
+  &[data-side='top']::before {
+    bottom: -6px;
+    left: var(--arrow-offset);
+    transform: translateX(-50%) rotate(45deg);
+    border-left: 0;
+    border-top: 0;
+  }
+}
+.surface {
+  position: relative;
+  z-index: 1;
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: 0 4px 16px #1b304024;
+}
+.heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px;
+  strong {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--font-size-small);
+    font-weight: 600;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+  }
+}
+.actions {
+  display: flex;
+  gap: 4px;
+}
+.action {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-muted);
+  line-height: 0;
+  text-decoration: none;
+  &:hover {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+}
+.content {
+  padding: 0 10px 10px;
+}
+.message,
+.error {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: var(--font-size-small);
+  line-height: 1.7;
+}
+.error {
+  p {
+    margin: 0 0 12px;
+  }
+  button {
+    padding: 8px 12px;
+    border: 1px solid var(--color-border);
+    color: var(--color-accent);
+    background: var(--color-surface);
+  }
+}
+
+@media (max-width: 760px) {
+  .popover {
+    width: min(320px, calc(100% - 24px));
+  }
+}

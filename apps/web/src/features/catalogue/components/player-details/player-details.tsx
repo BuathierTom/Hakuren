@@ -102,7 +102,7 @@ export function PlayerPanel({ player, titleId }: { player: PlayerDetail; titleId
       </div>
       <div className={styles.panels} aria-live="polite">
         <PlayerStats stats={stats} ceiling={ceiling} />
-        <PlayerTechniques moves={moves} />
+        <PlayerTechniques key={rarity} moves={moves} />
       </div>
       {player.variants.length > 0 && (
         <section className={styles.section}>
