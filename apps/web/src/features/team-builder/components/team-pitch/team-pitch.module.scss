@@ -26,13 +26,13 @@
   }
   > span {
     font-size: var(--font-size-caption);
-    opacity: 0.85;
+    opacity: 1;
   }
 }
 .board {
   position: relative;
-  height: 490px;
-  background: #fff;
+  height: var(--pitch-height);
+  background: var(--color-surface);
   overflow: hidden;
 }
 .playable {
@@ -193,9 +193,9 @@
   gap: 12px;
   min-width: 0;
   > div {
-    flex: 0 0 var(--tile-width);
-    width: var(--tile-width);
-    height: var(--tile-height);
+    flex: 0 0 var(--roster-width);
+    width: var(--roster-width);
+    height: var(--roster-height);
   }
 }
 .dragPreview {
@@ -236,22 +236,22 @@
     left: 3px;
     top: 3px;
     > img {
-      height: 11px;
+      height: 13px;
     }
     strong {
-      font-size: 8px;
+      font-size: 10px;
       padding-right: 6px;
       margin-top: 2px;
     }
   }
   .portrait {
-    width: 37px;
-    height: 42px;
+    width: 44px;
+    height: 50px;
     right: -4px;
-    opacity: 0.85;
+    opacity: 1;
     > span img {
-      width: 42px;
-      height: 44px;
+      width: 48px;
+      height: 52px;
     }
   }
   .empty {
@@ -266,8 +266,55 @@
   @include compact-card;
 }
 @container (max-width: 500px) {
-  .board {
-    height: 410px;
-  }
   @include compact-card;
+}
+
+.warning {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  z-index: 2;
+  width: 19px;
+  height: 19px;
+  display: grid;
+  place-items: center;
+  background: #fff3bc;
+  color: #806000;
+  animation: warning-pulse 1.8s ease-in-out infinite;
+}
+@keyframes warning-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+@container (max-width: 500px) {
+  .warning {
+    width: 16px;
+    height: 16px;
+    top: 2px;
+    right: 2px;
+    svg {
+      width: 12px;
+      height: 12px;
+    }
+  }
+}
+.compactCard .warning {
+  width: 16px;
+  height: 16px;
+  top: 2px;
+  right: 2px;
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .warning {
+    animation: none;
+  }
 }

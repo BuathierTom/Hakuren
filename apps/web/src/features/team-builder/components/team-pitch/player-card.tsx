@@ -2,8 +2,15 @@ import type { Assignment } from '../../lib/team';
 import { playerSurname } from '../../lib/player-name';
 import { ElementIcon, PositionIcon } from '@/features/catalogue/components/game-icon/game-icon';
 import { Portrait } from '@/features/catalogue/components/player-portrait/player-portrait';
+import { Icon } from '@/components/ui/icon/icon';
 import styles from './team-pitch.module.scss';
-export function PlayerCard({ assignment }: { assignment: Assignment }) {
+export function PlayerCard({
+  assignment,
+  warning,
+}: {
+  assignment: Assignment;
+  warning?: string | null;
+}) {
   return (
     <span className={styles.slotInner}>
       <span className={styles.playerInfo}>
@@ -11,6 +18,16 @@ export function PlayerCard({ assignment }: { assignment: Assignment }) {
         {assignment.player.position && <PositionIcon position={assignment.player.position} />}
         <strong>{playerSurname(assignment.player.name)}</strong>
       </span>
+      {warning && (
+        <span
+          className={styles.warning}
+          role="img"
+          aria-label={`Alerte : ${warning}`}
+          title={warning}
+        >
+          <Icon name="warning" size={14} />
+        </span>
+      )}
       <span className={styles.portrait}>
         <Portrait small src={assignment.player.portraitUrl} />
       </span>

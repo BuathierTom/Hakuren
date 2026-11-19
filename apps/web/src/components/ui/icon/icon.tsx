@@ -7,6 +7,18 @@ const shapes = {
       <path d="m16 16 4.5 4.5" />
     </>
   ),
+  warning: (
+    <>
+      <path d="M10.3 3.7 2.4 18a2 2 0 0 0 1.8 3h15.6a2 2 0 0 0 1.8-3L13.7 3.7a2 2 0 0 0-3.4 0Z" />
+      <path d="M12 9v4m0 4h.01" />
+    </>
+  ),
+  trash: (
+    <>
+      <path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7" />
+    </>
+  ),
+  check: <path d="m5 12 4 4L19 6" />,
   close: <path d="m6 6 12 12M6 18 18 6" />,
   arrow: <path d="M5 12h14m-5-5 5 5-5 5" />,
   left: <path d="m14 6-6 6 6 6" />,

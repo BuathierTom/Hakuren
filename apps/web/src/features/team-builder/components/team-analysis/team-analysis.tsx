@@ -1,29 +1,13 @@
 import type { Formation } from '@shared/formations';
-import {
-  FIELD_SLOTS,
-  POWER_LABELS,
-  teamCounts,
-  teamPower,
-  ruleError,
-  type Team,
-} from '../../lib/team';
+import { POWER_LABELS, teamCounts, teamPower, type Team } from '../../lib/team';
+import { teamAlerts } from '../../lib/team-alerts';
+import { Icon } from '@/components/ui/icon/icon';
 import styles from './team-analysis.module.scss';
 export function TeamAnalysis({ team, formation }: { team: Team; formation: Formation }) {
   const counts = teamCounts(team);
-  const offPosition = FIELD_SLOTS.filter((slot) => {
-    const player = team.slots[slot]?.player;
-    return (
-      player?.position &&
-      formation.positions.find((p) => `field-${p.slot}` === slot)?.position !== player.position
-    );
-  });
+  const alerts = teamAlerts(team, formation);
+  const offPosition = alerts.find((alert) => alert.code === 'off-position')?.slots ?? [];
   const power = teamPower(team);
-  const alerts = [
-    ruleError(team),
-    power.missing
-      ? `${power.missing} joueur${power.missing > 1 ? 's' : ''} sans statistiques complètes.`
-      : null,
-  ].filter(Boolean);
   return (
     <aside className={styles.analysis} aria-label="Analyse de l’équipe">
       <h2>Analyse</h2>
@@ -37,7 +21,7 @@ export function TeamAnalysis({ team, formation }: { team: Team; formation: Forma
             </strong>
             <span>Titulaires</span>
           </div>
-          <div>
+          <div data-warning={offPosition.length > 0}>
             <strong>{offPosition.length}</strong>
             <span>Hors poste</span>
           </div>
@@ -51,9 +35,12 @@ export function TeamAnalysis({ team, formation }: { team: Team; formation: Forma
           <span data-full={counts.basaras === 1}>BASARA {counts.basaras}/1</span>
         </div>
         {alerts.length > 0 && (
-          <ul className={styles.alerts}>
+          <ul className={styles.alerts} aria-label="Alertes de composition" aria-live="polite">
             {alerts.map((alert) => (
-              <li key={alert}>{alert}</li>
+              <li key={alert.code}>
+                <Icon name="warning" size={15} />
+                <span>{alert.message}</span>
+              </li>
             ))}
           </ul>
         )}

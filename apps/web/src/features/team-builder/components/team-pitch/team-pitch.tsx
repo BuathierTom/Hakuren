@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, useMemo, type CSSProperties } from 'react';
 import type { Formation } from '@shared/formations';
 import { BENCH_SLOTS, STAFF_SLOTS, slotLabel, type Team } from '../../lib/team';
-import { pitchLayout, pitchCardWidth } from '../../lib/pitch-layout';
+import { pitchGeometry } from '../../lib/pitch-layout';
+import { teamAlerts, playerWarning } from '../../lib/team-alerts';
 import { PlayerSlot } from './player-slot';
 import { DragPreview } from './drag-preview';
 import { usePlayerDrag } from '../../hooks/use-player-drag';
@@ -23,13 +24,15 @@ export function TeamPitch({ team, formation, onSlot, onMove }: Props) {
     observer.observe(board.current!);
     return () => observer.disconnect();
   }, []);
-  const positions = pitchLayout(formation.positions, width);
+  const alerts = useMemo(() => teamAlerts(team, formation), [team, formation]);
+  const geometry = pitchGeometry(formation.positions, width);
   const tile = (slot: string, position?: Formation['positions'][number]['position']) => (
     <PlayerSlot
       slot={slot}
       position={position}
       label={slotLabel(slot, formation)}
       assignment={team.slots[slot]}
+      warning={playerWarning(alerts, slot)}
       dragging={dragging === slot}
       onClick={() => onSlot(slot)}
     />
@@ -40,14 +43,21 @@ export function TeamPitch({ team, formation, onSlot, onMove }: Props) {
       data-over={over}
       style={
         {
-          '--tile-width': `${pitchCardWidth(width)}px`,
-          '--tile-height': width < 500 ? '44px' : '60px',
+          '--tile-width': `${geometry.cardWidth}px`,
+          '--tile-height': `${geometry.cardHeight}px`,
+          '--pitch-height': `${geometry.boardHeight}px`,
+          '--roster-width': `${width < 500 ? Math.max(72, geometry.cardWidth) : geometry.cardWidth}px`,
+          '--roster-height': width < 500 ? '56px' : '60px',
         } as CSSProperties
       }
       {...handlers}
     >
       {preview && team.slots[preview.slot] && (
-        <DragPreview preview={preview} assignment={team.slots[preview.slot]!} />
+        <DragPreview
+          preview={preview}
+          assignment={team.slots[preview.slot]!}
+          warning={playerWarning(alerts, preview.slot)}
+        />
       )}
       <section className={styles.pitch} aria-label="Terrain de l’équipe">
         <header className={styles.sectionHeader}>
@@ -60,7 +70,7 @@ export function TeamPitch({ team, formation, onSlot, onMove }: Props) {
         </header>
         <div ref={board} className={styles.board}>
           <div className={styles.playable}>
-            {positions.map((position) => (
+            {geometry.positions.map((position) => (
               <div
                 key={position.slot}
                 className={styles.fieldSlot}

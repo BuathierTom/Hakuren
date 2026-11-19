@@ -12,9 +12,18 @@ interface Props {
   assignment?: Assignment;
   position?: Position;
   dragging: boolean;
+  warning: string | null;
   onClick: () => void;
 }
-export function PlayerSlot({ slot, label, assignment, position, dragging, onClick }: Props) {
+export function PlayerSlot({
+  slot,
+  label,
+  assignment,
+  position,
+  dragging,
+  warning,
+  onClick,
+}: Props) {
   const staffIcon = slot === 'coach' ? coach : slot.startsWith('manager-') ? manager : null;
   return (
     <button
@@ -30,7 +39,7 @@ export function PlayerSlot({ slot, label, assignment, position, dragging, onClic
       }
       aria-label={
         assignment
-          ? `${label} : ${assignment.player.name}, ${RARITIES[assignment.rarity].name}. Modifier`
+          ? `${label} : ${assignment.player.name}, ${RARITIES[assignment.rarity].name}${warning ? `. Alerte : ${warning}` : ''}. Modifier`
           : `Ajouter un personnage : ${label}`
       }
       data-dragging={dragging}
@@ -38,7 +47,7 @@ export function PlayerSlot({ slot, label, assignment, position, dragging, onClic
       title={assignment ? `${assignment.player.name} - ${RARITIES[assignment.rarity].name}` : label}
     >
       {assignment ? (
-        <PlayerCard assignment={assignment} />
+        <PlayerCard assignment={assignment} warning={warning} />
       ) : (
         <span className={styles.slotInner}>
           <span className={styles.empty}>
