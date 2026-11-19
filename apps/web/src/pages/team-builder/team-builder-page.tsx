@@ -40,7 +40,7 @@ export function TeamBuilderPage() {
   const move = (from: string, to: string) =>
     builder.change((current) => movePlayer(current, from, to));
   return (
-    <>
+    <div className={styles.page}>
       <a className={styles.skip} href="#composition">
         Aller à la composition
       </a>
@@ -68,9 +68,6 @@ export function TeamBuilderPage() {
             setModal({ kind: 'teams' });
           }}
         />
-        <p className={styles.notice} role="status">
-          {builder.notice || 'Cliquez sur un emplacement pour ajouter un personnage.'}
-        </p>
         {request.loading ? (
           <div className={styles.state}>Chargement des formations…</div>
         ) : request.error || !formations.length ? (
@@ -108,6 +105,10 @@ export function TeamBuilderPage() {
           <PlayerPicker
             key={modal.slot}
             slot={modal.slot}
+            position={
+              formation?.positions.find((position) => `field-${position.slot}` === modal.slot)
+                ?.position
+            }
             label={slotLabel(modal.slot, formation)}
             selectedIds={Object.entries(team.slots)
               .filter(([slot]) => slot !== modal.slot)
@@ -150,6 +151,6 @@ export function TeamBuilderPage() {
           />
         )}
       </main>
-    </>
+    </div>
   );
 }

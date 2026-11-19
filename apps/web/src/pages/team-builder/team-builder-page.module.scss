@@ -1,3 +1,8 @@
+.page {
+  min-height: 100dvh;
+  background: #f4f7f9 url('../../../assets/backgrounds/composition.svg') center 76px / 100% auto
+    repeat-y;
+}
 .main {
   max-width: var(--content-max-width);
   margin: 0 auto;

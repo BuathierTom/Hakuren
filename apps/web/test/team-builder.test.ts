@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
 import {
   baseStats,
   changeFormation,
@@ -20,7 +21,8 @@ import {
   saveTeam,
   writeDraft,
 } from '../src/features/team-builder/lib/storage.ts';
-import { pitchLayout, pitchCardWidth } from '../src/features/team-builder/lib/pitch-layout.ts';
+import { pitchGeometry } from '../src/features/team-builder/lib/pitch-layout.ts';
+import { teamAlerts, playerWarning } from '../src/features/team-builder/lib/team-alerts.ts';
 import type { Formation } from '../../../shared/formations.js';
 function player(id: number, role = 'Player'): TeamPlayer {
   return {
@@ -227,18 +229,129 @@ test('corrupt or incompatible saved data is rejected without overwriting the lib
     null,
   );
 });
-test('all cards stay inside the pitch and clear their neighbours at narrow widths', () => {
-  const positions: Formation['positions'] = [
-    { slot: 1, position: 'GK', x: 50, y: 0 },
-    ...[12.5, 37.5, 62.5, 87.5].map((x, i) => ({ slot: i + 2, position: 'MF' as const, x, y: 47 })),
-    { slot: 6, position: 'FW', x: 50, y: 100 },
-  ];
-  for (const width of [271, 286, 340, 620, 850]) {
-    const layout = pitchLayout(positions, width);
-    assert(layout.every((p) => p.x >= 0 && p.x <= 100 && p.y >= 0 && p.y <= 100));
-    const row = layout.filter((p) => p.position === 'MF').sort((a, b) => a.x - b.x);
-    const cardWidth = pitchCardWidth(width);
-    for (let i = 1; i < row.length; i++)
-      assert(((row[i]!.x - row[i - 1]!.x) / 100) * (width - cardWidth - 28) >= cardWidth + 9.99);
+test('all eight formations keep larger mobile cards inside the pitch without collisions', () => {
+  const sql = readFileSync(
+    new URL('../../api/database/changes/005-formations.sql', import.meta.url),
+    'utf8',
+  );
+  const formations = new Map<string, Formation['positions']>();
+  for (const match of sql.matchAll(
+    /SELECT id, (\d+), '(GK|DF|MF|FW)', ([\d.]+), ([\d.]+) FROM formations WHERE code = '([^']+)'/g,
+  )) {
+    const code = match[5]!;
+    if (!formations.has(code)) formations.set(code, []);
+    const members = formations.get(code)!;
+    members.push({
+      slot: Number(match[1]),
+      position: match[2] as 'GK' | 'DF' | 'MF' | 'FW',
+      x: Number(match[3]),
+      y: Number(match[4]),
+    });
   }
+  assert.equal(formations.size, 8);
+  for (const [code, positions] of formations)
+    for (const width of [271, 286, 311, 343, 390, 480, 620, 850, 1024]) {
+      const geometry = pitchGeometry(positions, width);
+      const { cardWidth, cardHeight, boardHeight } = geometry;
+      const playableWidth = width - cardWidth - 28;
+      const playableHeight = boardHeight - cardHeight - 30;
+      assert.equal(geometry.positions.length, 11);
+      assert.equal(new Set(geometry.positions.map((p) => p.slot)).size, 11);
+      assert(geometry.positions.every((p) => p.x >= 0 && p.x <= 100 && p.y >= 0 && p.y <= 100));
+      if (width < 500) {
+        assert(cardWidth >= 64);
+        assert.equal(cardHeight, 52);
+      }
+      if (width < 500 && code === '4-3-3-triangle') {
+        const centerX = (slot: number) =>
+          cardWidth / 2 +
+          14 +
+          (geometry.positions.find((position) => position.slot === slot)!.x / 100) * playableWidth;
+        assert(centerX(10) - centerX(9) >= width * 0.55, 'The wingers must stay wide on mobile.');
+        assert(
+          centerX(5) - centerX(4) >= width * 0.6,
+          'The full-backs must stay wider than the centre-backs.',
+        );
+        assert(centerX(9) < centerX(6) && centerX(10) > centerX(7));
+      }
+      for (let i = 0; i < geometry.positions.length; i++)
+        for (let j = i + 1; j < geometry.positions.length; j++) {
+          const a = geometry.positions[i]!,
+            b = geometry.positions[j]!;
+          const dx = (Math.abs(a.x - b.x) / 100) * playableWidth;
+          const dy = (Math.abs(a.y - b.y) / 100) * playableHeight;
+          const shearedWidth = cardWidth + cardHeight * Math.tan(Math.PI / 20);
+          assert(
+            dx >= shearedWidth - 0.01 || dy >= cardHeight + 5.99,
+            `${code} at ${width}px: slots ${a.slot} and ${b.slot} overlap`,
+          );
+        }
+    }
+});
+
+test('off-position alerts share French labels with the card and disappear after correcting the position', () => {
+  const formation: Formation = {
+    id: 1,
+    code: 'test',
+    name: 'Test',
+    positions: Array.from({ length: 11 }, (_, i) => ({
+      slot: i + 1,
+      position: i === 0 ? 'GK' : i < 5 ? 'DF' : 'MF',
+      x: 50,
+      y: i * 10,
+    })),
+  };
+  const team = putPlayer(emptyTeam(), 'field-2', {
+    ...assignment(1),
+    player: { ...player(1), name: 'Byron Love' },
+  });
+  const alerts = teamAlerts(team, formation);
+  assert.equal(alerts.length, 1);
+  assert.equal(alerts[0]?.message, '1 joueur hors poste : Byron Love (MIL → DÉF)');
+  assert.equal(playerWarning(alerts, 'field-2'), 'Hors poste : Byron Love (MIL → DÉF)');
+  assert.equal(playerWarning(alerts, 'field-3'), null);
+  assert.deepEqual(teamAlerts(movePlayer(team, 'field-2', 'field-6'), formation), []);
+  assert.deepEqual(teamAlerts(movePlayer(team, 'field-2', 'bench-1'), formation), []);
+});
+test('card alerts combine missing data and role warnings while special rarity limits ignore the bench', () => {
+  const formation: Formation = {
+    id: 1,
+    code: 'test',
+    name: 'Test',
+    positions: Array.from({ length: 11 }, (_, i) => ({
+      slot: i + 1,
+      position: i === 0 ? 'GK' : 'MF',
+      x: 50,
+      y: i * 10,
+    })),
+  };
+  let team = putPlayer(emptyTeam(), 'field-1', {
+    ...assignment(1),
+    player: { ...player(1), profiles: [] },
+  });
+  let alerts = teamAlerts(team, formation);
+  assert.equal(alerts.length, 2);
+  assert.match(playerWarning(alerts, 'field-1')!, /MIL → GAR/);
+  assert.match(playerWarning(alerts, 'field-1')!, /Statistiques de base incomplètes/);
+  team = {
+    ...team,
+    slots: {
+      'field-2': assignment(2, 'hero'),
+      'field-3': assignment(3, 'hero'),
+      'field-4': assignment(4, 'hero'),
+      'field-5': assignment(5, 'basara'),
+      'field-6': assignment(6, 'basara'),
+      'bench-1': assignment(7, 'hero'),
+      'bench-2': assignment(8, 'basara'),
+    },
+  };
+  alerts = teamAlerts(team, formation);
+  assert.deepEqual(alerts.find((a) => a.code === 'hero-limit')?.slots, [
+    'field-2',
+    'field-3',
+    'field-4',
+  ]);
+  assert.deepEqual(alerts.find((a) => a.code === 'basara-limit')?.slots, ['field-5', 'field-6']);
+  assert.equal(playerWarning(alerts, 'bench-1'), null);
+  assert.equal(playerWarning(alerts, 'bench-2'), null);
 });

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { Page, PlayerSummary, PlayerDetail } from '@shared/catalogue';
+import type { Page, PlayerSummary, PlayerDetail, Position } from '@shared/catalogue';
 import { CatalogueFilters } from '@/features/catalogue/components/catalogue-filters/catalogue-filters';
 import { CatalogueToolbar } from '@/features/catalogue/components/catalogue-toolbar/catalogue-toolbar';
 import { CataloguePagination } from '@/features/catalogue/components/catalogue-pagination/catalogue-pagination';
@@ -16,13 +16,16 @@ import { snapshotPlayer, type TeamPlayer } from '../../lib/team';
 import styles from './player-picker.module.scss';
 interface Props {
   slot: string;
+  position?: Position;
   label: string;
   selectedIds: number[];
   onSelect: (player: TeamPlayer) => void;
   onClose: () => void;
 }
-export function PlayerPicker({ slot, label, selectedIds, onSelect, onClose }: Props) {
-  const [params, setParams] = useState(new URLSearchParams());
+export function PlayerPicker({ slot, position, label, selectedIds, onSelect, onClose }: Props) {
+  const [params, setParams] = useState(
+    () => new URLSearchParams(position ? { position } : undefined),
+  );
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const eligibility =
