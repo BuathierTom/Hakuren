@@ -386,6 +386,13 @@ test(
             ]);
           assert.equal((await read.players({ role: 'manager' })).total, 2);
           assert.equal((await read.players({ role: 'coordinator' })).total, 2);
+          assert.equal((await read.players({ eligibility: 'coach' })).total, 2);
+          assert.equal((await read.players({ eligibility: 'manager' })).total, 2);
+          assert.equal((await read.players({ eligibility: 'player', role: 'manager' })).total, 1);
+          assert.equal(
+            (await read.players({ eligibility: 'coach', role: 'coordinator' })).total,
+            0,
+          );
           for (const entry of selected)
             await db.execute("UPDATE player_variants SET role='Player' WHERE id=?", [entry.id]);
           await db.execute(

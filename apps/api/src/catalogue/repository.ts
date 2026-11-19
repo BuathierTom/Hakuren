@@ -213,6 +213,12 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
       );
       values.push(query.style);
     }
+    if (query.eligibility === 'player')
+      conditions.push("v.role IN ('Player','Player Manager','Player Coordinator')");
+    if (query.eligibility === 'coach')
+      conditions.push("v.role IN ('Manager','Coach','Player Manager')");
+    if (query.eligibility === 'manager')
+      conditions.push("v.role IN ('Coordinator','Player Coordinator')");
     if (query.role === 'player')
       conditions.push(`v.role IN ('Player','Player Manager','Player Coordinator')`);
     if (query.role === 'staff')

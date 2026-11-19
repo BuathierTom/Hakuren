@@ -55,6 +55,7 @@ export interface PlayerQuery {
   element?: Element;
   rarity?: string;
   role?: 'player' | 'staff' | 'manager' | 'coordinator';
+  eligibility?: 'player' | 'coach' | 'manager';
   technique?: number;
   sort?: 'number' | 'name';
   page?: number;

@@ -102,6 +102,7 @@ export function registerCatalogueRoutes(app: FastifyInstance, catalogue?: Catalo
               enum: ['breach', 'tension', 'counter', 'bond', 'rough_play', 'justice'],
             },
             rarity: { type: 'string', pattern: '^[a-z0-9-]+$', maxLength: 32 },
+            eligibility: { type: 'string', enum: ['player', 'coach', 'manager'] },
             role: { type: 'string', enum: ['player', 'staff', 'manager', 'coordinator'] },
             technique: id,
             sort: { type: 'string', enum: ['number', 'name'], default: 'name' },
