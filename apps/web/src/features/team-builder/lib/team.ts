@@ -1,6 +1,7 @@
 import type {
   PlayerDetail,
   PlayerStatProfile,
+  PlayerStats,
   Position,
   Element,
   Gender,
@@ -9,13 +10,13 @@ import type {
 } from '@shared/catalogue';
 import type { Formation } from '@shared/formations';
 export const RARITIES = {
-  common: { name: 'Commun', color: '#8794b1', scale: 1 },
-  rising: { name: 'Émergent', color: '#34d399', scale: 1.1 },
-  advanced: { name: 'Avancé', color: '#38bdf8', scale: 1.2 },
-  top: { name: 'Top', color: '#a78bfa', scale: 1.3 },
-  legendary: { name: 'Légendaire', color: '#ffd400', scale: 1.4 },
-  hero: { name: 'HERO', color: '#f472b6', scale: 1 },
-  basara: { name: 'BASARA', color: '#67e8f9', scale: 1 },
+  common: { name: 'Commun', color: '#b3bdd3', shadow: '#8794b140', scale: 1 },
+  rising: { name: 'Émergent', color: '#34d399', shadow: '#34d39959', scale: 1.1 },
+  advanced: { name: 'Avancé', color: '#38bdf8', shadow: '#38bdf859', scale: 1.2 },
+  top: { name: 'Top', color: '#a78bfa', shadow: '#a78bfa5e', scale: 1.3 },
+  legendary: { name: 'Légendaire', color: '#f0b800', shadow: '#d9a3006b', scale: 1.4 },
+  hero: { name: 'Héro', color: '#f472b6', shadow: '#f472b657', scale: 1 },
+  basara: { name: 'Basara', color: '#67e8f9', shadow: '#0d948859', scale: 1 },
 } as const;
 export type TeamRarity = keyof typeof RARITIES;
 export interface TeamPlayer {
@@ -31,6 +32,7 @@ export interface TeamPlayer {
   profiles: PlayerStatProfile[];
 }
 export interface Assignment {
+  playStyle?: PlayStyle;
   player: TeamPlayer;
   rarity: TeamRarity;
 }
@@ -60,6 +62,9 @@ export const STAT_KEYS: StatKey[] = [
 export const isField = (slot: string) => FIELD_SLOTS.includes(slot);
 export function emptyTeam(): Team {
   return { id: crypto.randomUUID(), name: 'Mon équipe', formation: '4-3-3-triangle', slots: {} };
+}
+export function clearTeam(team: Team): Team {
+  return Object.keys(team.slots).length ? { ...team, slots: {} } : team;
 }
 export function snapshotPlayer(player: PlayerDetail): TeamPlayer {
   return {
@@ -101,8 +106,8 @@ export function teamCounts(team: Team) {
 }
 export function ruleError(team: Team): string | null {
   const { heroes, basaras } = teamCounts(team);
-  if (heroes > 2) return 'Deux HERO maximum sont autorisés sur le terrain.';
-  if (basaras > 1) return 'Un seul BASARA est autorisé sur le terrain.';
+  if (heroes > 2) return 'Deux joueurs Héro maximum sont autorisés sur le terrain.';
+  if (basaras > 1) return 'Un seul Basara est autorisé sur le terrain.';
   return null;
 }
 export function putPlayer(team: Team, slot: string, assignment?: Assignment): Team {
@@ -160,18 +165,28 @@ export function changeFormation(team: Team, next: Formation, previous?: Formatio
       slots[`field-${position.slot}`] = remaining.shift()!.assignment;
   return { ...team, formation: next.code, slots };
 }
-export function baseStats(assignment: Assignment) {
+export function assignmentStats(assignment: Assignment): PlayerStats | null {
   const special = assignment.rarity === 'hero' || assignment.rarity === 'basara';
   const profile = assignment.player.profiles.find(
-    (p) => p.rarity === (special ? assignment.rarity : 'common') && p.level === 99,
+    (entry) => entry.rarity === (special ? assignment.rarity : 'common') && entry.level === 99,
   );
-  if (!profile || STAT_KEYS.some((key) => profile.values[key] === null)) return null;
-  return Object.fromEntries(
-    STAT_KEYS.map((key) => [
-      key,
-      Math.round(profile.values[key]! * RARITIES[assignment.rarity].scale),
-    ]),
-  ) as Record<StatKey, number>;
+  if (!profile) return null;
+  return {
+    level: profile.level,
+    values: Object.fromEntries(
+      STAT_KEYS.map((key) => [
+        key,
+        profile.values[key] === null
+          ? null
+          : Math.round(profile.values[key]! * RARITIES[assignment.rarity].scale),
+      ]),
+    ) as PlayerStats['values'],
+  };
+}
+export function baseStats(assignment: Assignment) {
+  const stats = assignmentStats(assignment);
+  if (!stats || STAT_KEYS.some((key) => stats.values[key] === null)) return null;
+  return stats.values as Record<StatKey, number>;
 }
 export const POWER_LABELS = {
   shootAT: 'Shoot AT',

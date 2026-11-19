@@ -35,7 +35,7 @@
     font-size: 19px;
     font-weight: 650;
   }
-  button {
+  .close {
     width: 36px;
     height: 36px;
     display: grid;
@@ -63,5 +63,17 @@
   }
   .body {
     padding: 14px;
+  }
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+@media (max-width: 500px) {
+  .header {
+    gap: 10px;
   }
 }

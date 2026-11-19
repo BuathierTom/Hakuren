@@ -7,6 +7,7 @@ import {
   type SavedTeam,
   type Assignment,
 } from './team';
+const playStyles = ['breach', 'tension', 'counter', 'bond', 'rough_play', 'justice'];
 const DRAFT_KEY = 'hakuren.team-draft.v1';
 export const TEAMS_KEY = 'hakuren.teams.v1';
 const record = (value: unknown): value is Record<string, unknown> =>
@@ -32,7 +33,9 @@ export function decodeTeam(value: unknown): Team | null {
       !record(assignment) ||
       !record(assignment.player) ||
       typeof assignment.rarity !== 'string' ||
-      !Object.hasOwn(RARITIES, assignment.rarity)
+      !Object.hasOwn(RARITIES, assignment.rarity) ||
+      (assignment.playStyle !== undefined &&
+        !(typeof assignment.playStyle === 'string' && playStyles.includes(assignment.playStyle)))
     )
       return null;
     const p = assignment.player;
@@ -48,7 +51,7 @@ export function decodeTeam(value: unknown): Team | null {
       !optional(p.position, ['GK', 'DF', 'MF', 'FW']) ||
       !optional(p.element, ['wind', 'forest', 'fire', 'mountain', 'void']) ||
       !optional(p.gender, ['male', 'female', 'neutral']) ||
-      !optional(p.playStyle, ['breach', 'tension', 'counter', 'bond', 'rough_play', 'justice']) ||
+      !optional(p.playStyle, playStyles) ||
       !(p.role === null || text(p.role, 80)) ||
       !Array.isArray(p.rarities) ||
       p.rarities.length > 7 ||

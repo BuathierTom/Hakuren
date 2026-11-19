@@ -1,4 +1,5 @@
 import type { Formation } from '@shared/formations';
+import { Select } from '@/components/ui/select/select';
 import { Icon } from '@/components/ui/icon/icon';
 import type { Team } from '../../lib/team';
 import styles from './team-toolbar.module.scss';
@@ -13,6 +14,7 @@ interface Props {
   onRedo: () => void;
   onSave: () => void;
   onTeams: () => void;
+  onClear: () => void;
 }
 export function TeamToolbar(p: Props) {
   return (
@@ -25,20 +27,18 @@ export function TeamToolbar(p: Props) {
           onChange={(event) => p.onName(event.target.value)}
         />
       </label>
-      <label className={styles.formation}>
-        Formation
-        <select
-          value={p.team.formation}
-          onChange={(event) => p.onFormation(event.target.value)}
-          disabled={!p.formations.length}
-        >
-          {p.formations.map((formation) => (
-            <option key={formation.code} value={formation.code}>
-              {formation.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      <Select
+        className={styles.formation}
+        label="Formation"
+        showLabel
+        value={p.team.formation}
+        options={p.formations.map((formation) => ({
+          value: formation.code,
+          label: formation.name,
+        }))}
+        onChange={p.onFormation}
+        disabled={!p.formations.length}
+      />
       <div className={styles.history}>
         <button
           type="button"
@@ -64,10 +64,11 @@ export function TeamToolbar(p: Props) {
       <div className={styles.actions}>
         <button
           type="button"
-          disabled
-          title="L’équipement automatique sera disponible prochainement"
+          className={styles.clear}
+          disabled={!Object.keys(p.team.slots).length}
+          onClick={p.onClear}
         >
-          Équiper les cases vides
+          Vider l’équipe
         </button>
         <button type="button" onClick={p.onTeams}>
           Mes équipes

@@ -3,6 +3,8 @@ import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import {
   baseStats,
+  clearTeam,
+  assignmentStats,
   changeFormation,
   emptyTeam,
   movePlayer,
@@ -22,6 +24,10 @@ import {
   writeDraft,
 } from '../src/features/team-builder/lib/storage.ts';
 import { pitchGeometry } from '../src/features/team-builder/lib/pitch-layout.ts';
+import {
+  assignmentAppearance,
+  rarityAppearance,
+} from '../src/features/team-builder/lib/rarity-appearance.ts';
 import { teamAlerts, playerWarning } from '../src/features/team-builder/lib/team-alerts.ts';
 import type { Formation } from '../../../shared/formations.js';
 function player(id: number, role = 'Player'): TeamPlayer {
@@ -104,8 +110,8 @@ test('caps count the pitch only and reject an illegal swap atomically', () => {
   team = putPlayer(team, 'field-3', assignment(5, 'hero'));
   team = putPlayer(team, 'bench-3', assignment(6, 'hero'));
   assert.deepEqual(teamCounts(team), { starters: 3, heroes: 2, basaras: 1 });
-  assert.throws(() => movePlayer(team, 'bench-1', 'field-4'), /Un seul BASARA/);
-  assert.throws(() => movePlayer(team, 'bench-3', 'field-4'), /Deux HERO/);
+  assert.throws(() => movePlayer(team, 'bench-1', 'field-4'), /Un seul Basara/);
+  assert.throws(() => movePlayer(team, 'bench-3', 'field-4'), /Deux joueurs Héro/);
   assert.equal(team.slots['bench-1']?.player.id, 2);
   assert.equal(movePlayer(team, 'bench-1', 'field-1').slots['field-1']?.player.id, 2);
 });
@@ -354,4 +360,94 @@ test('card alerts combine missing data and role warnings while special rarity li
   assert.deepEqual(alerts.find((a) => a.code === 'basara-limit')?.slots, ['field-5', 'field-6']);
   assert.equal(playerWarning(alerts, 'bench-1'), null);
   assert.equal(playerWarning(alerts, 'bench-2'), null);
+});
+
+test('a selected archetype survives save, move and undo without changing the catalogue player', () => {
+  const original = putPlayer(emptyTeam(), 'field-6', assignment(1));
+  const changed = putPlayer(original, 'field-6', {
+    ...original.slots['field-6']!,
+    playStyle: 'justice',
+  });
+  assert.equal(changed.slots['field-6']?.player.playStyle, 'bond');
+  assert.equal(changed.slots['field-6']?.playStyle, 'justice');
+  const storage = memoryStorage();
+  saveTeam(storage, changed);
+  assert.equal(readTeams(storage)[0]?.team.slots['field-6']?.playStyle, 'justice');
+  assert.equal(movePlayer(changed, 'field-6', 'bench-1').slots['bench-1']?.playStyle, 'justice');
+  const history = teamReducer(
+    { past: [], present: original, future: [] },
+    { type: 'change', team: changed },
+  );
+  assert.equal(
+    teamReducer(history, { type: 'undo' }).present.slots['field-6']?.playStyle,
+    undefined,
+  );
+  assert(decodeTeam(original));
+  assert.equal(
+    decodeTeam({
+      ...changed,
+      slots: { 'field-6': { ...changed.slots['field-6'], playStyle: 'unknown' } },
+    }),
+    null,
+  );
+});
+test('rarity stats keep partial values for the profile while excluding them from team power', () => {
+  const partial = {
+    ...player(1),
+    profiles: [
+      { ...player(1).profiles[0]!, values: { ...player(1).profiles[0]!.values, power: null } },
+    ],
+  };
+  const selected = { player: partial, rarity: 'legendary' as const };
+  assert.equal(assignmentStats(selected)?.values.power, null);
+  assert.equal(assignmentStats(selected)?.values.control, 168);
+  assert.equal(baseStats(selected), null);
+  assert.equal(partial.profiles[0]?.values.control, 120);
+  assert.equal(assignmentStats(assignment(1, 'hero'))?.values.power, 110);
+  assert.equal(assignmentStats(assignment(1, 'basara')), null);
+});
+
+test('Hero colors follow every archetype and the selected override takes precedence', () => {
+  for (const [style, expected] of [
+    ['breach', '#f472b6'],
+    ['counter', '#f472b6'],
+    ['justice', '#cbd5e1'],
+    ['bond', '#cbd5e1'],
+    ['rough_play', '#eb0000'],
+    ['tension', '#eb0000'],
+  ] as const) {
+    assert.equal(rarityAppearance('hero', style).color, expected);
+  }
+  const hero = {
+    ...assignment(1, 'hero'),
+    player: { ...player(1), playStyle: 'justice' as const },
+    playStyle: 'breach' as const,
+  };
+  assert.equal(assignmentAppearance(hero).color, '#f472b6');
+  assert.equal(assignmentAppearance({ ...hero, playStyle: undefined }).color, '#cbd5e1');
+  assert.deepEqual(
+    rarityAppearance('legendary', 'justice'),
+    rarityAppearance('legendary', 'tension'),
+  );
+  assert.equal(rarityAppearance('hero', 'tension').shadow, '#eb00004d');
+});
+test('clearing a team removes every slot, keeps its identity and can be undone', () => {
+  let team = { ...emptyTeam(), name: 'Hakuren', formation: '4-4-2-diamond' };
+  team = putPlayer(team, 'field-1', assignment(1, 'hero'));
+  team = putPlayer(team, 'bench-1', assignment(2, 'basara'));
+  team = putPlayer(team, 'coach', { player: player(3, 'Manager'), rarity: 'legendary' });
+  team = putPlayer(team, 'manager-1', { player: player(4, 'Coordinator'), rarity: 'legendary' });
+  const empty = clearTeam(team);
+  assert.deepEqual(empty.slots, {});
+  assert.equal(empty.id, team.id);
+  assert.equal(empty.name, team.name);
+  assert.equal(empty.formation, team.formation);
+  assert.equal(Object.keys(team.slots).length, 4);
+  assert.deepEqual(teamCounts(empty), { starters: 0, heroes: 0, basaras: 0 });
+  const state = teamReducer(
+    { past: [], present: team, future: [] },
+    { type: 'change', team: empty },
+  );
+  assert.deepEqual(teamReducer(state, { type: 'undo' }).present, team);
+  assert.equal(clearTeam(empty), empty);
 });

@@ -31,8 +31,8 @@ export function TeamAnalysis({ team, formation }: { team: Team; formation: Forma
           </div>
         </div>
         <div className={styles.limits} aria-label="Limites sur le terrain">
-          <span data-full={counts.heroes === 2}>HERO {counts.heroes}/2</span>
-          <span data-full={counts.basaras === 1}>BASARA {counts.basaras}/1</span>
+          <span data-full={counts.heroes === 2}>Héro {counts.heroes}/2</span>
+          <span data-full={counts.basaras === 1}>Basara {counts.basaras}/1</span>
         </div>
         {alerts.length > 0 && (
           <ul className={styles.alerts} aria-label="Alertes de composition" aria-live="polite">

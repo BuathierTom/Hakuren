@@ -8,9 +8,11 @@ import { TeamPitch } from '@/features/team-builder/components/team-pitch/team-pi
 import { TeamAnalysis } from '@/features/team-builder/components/team-analysis/team-analysis';
 import { PlayerPicker } from '@/features/team-builder/components/player-picker/player-picker';
 import { PlayerEditor } from '@/features/team-builder/components/player-editor/player-editor';
+import { ClearTeamDialog } from '@/features/team-builder/components/clear-team-dialog/clear-team-dialog';
 import { SavedTeams } from '@/features/team-builder/components/saved-teams/saved-teams';
 import {
   changeFormation,
+  clearTeam,
   emptyTeam,
   movePlayer,
   putPlayer,
@@ -25,7 +27,7 @@ export function TeamBuilderPage() {
   const formations = request.data?.items ?? [];
   const formation = formations.find((entry) => entry.code === team.formation);
   const [modal, setModal] = useState<
-    { kind: 'picker' | 'editor'; slot: string } | { kind: 'teams' } | null
+    { kind: 'picker' | 'editor'; slot: string } | { kind: 'teams' | 'clear' } | null
   >(null);
   useEffect(() => {
     document.title = 'Composition d’équipe - Hakuren';
@@ -63,6 +65,10 @@ export function TeamBuilderPage() {
           onUndo={builder.undo}
           onRedo={builder.redo}
           onSave={builder.save}
+          onClear={() => {
+            builder.setNotice('');
+            setModal({ kind: 'clear' });
+          }}
           onTeams={() => {
             builder.setNotice('');
             setModal({ kind: 'teams' });
@@ -122,17 +128,22 @@ export function TeamBuilderPage() {
             notice={builder.notice}
             team={team}
             slot={modal.slot}
-            formation={formation}
             onClose={() => setModal(null)}
-            onRarity={(rarity) =>
-              builder.change((current) =>
-                putPlayer(current, modal.slot, { ...current.slots[modal.slot]!, rarity }),
-              )
+            onChange={(assignment) =>
+              builder.change((current) => putPlayer(current, modal.slot, assignment))
             }
             onRemove={() => {
               if (builder.change((current) => putPlayer(current, modal.slot))) setModal(null);
             }}
             onReplace={() => setModal({ kind: 'picker', slot: modal.slot })}
+          />
+        )}
+        {modal?.kind === 'clear' && (
+          <ClearTeamDialog
+            onClose={() => setModal(null)}
+            onConfirm={() => {
+              if (builder.change(clearTeam)) setModal(null);
+            }}
           />
         )}
         {modal?.kind === 'teams' && (

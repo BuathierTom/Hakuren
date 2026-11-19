@@ -5,6 +5,7 @@ import { PlayerCard } from './player-card';
 import coach from '../../../../../assets/icons/positions/icon_position_coach.png';
 import manager from '../../../../../assets/icons/positions/icon_position_manager.png';
 import { RARITIES, type Assignment } from '../../lib/team';
+import { assignmentAppearance } from '../../lib/rarity-appearance';
 import styles from './team-pitch.module.scss';
 interface Props {
   slot: string;
@@ -24,6 +25,7 @@ export function PlayerSlot({
   warning,
   onClick,
 }: Props) {
+  const appearance = assignment ? assignmentAppearance(assignment) : null;
   const staffIcon = slot === 'coach' ? coach : slot.startsWith('manager-') ? manager : null;
   return (
     <button
@@ -33,8 +35,11 @@ export function PlayerSlot({
       data-rarity={assignment?.rarity}
       className={styles.slot}
       style={
-        assignment
-          ? ({ '--rarity': RARITIES[assignment.rarity].color } as CSSProperties)
+        appearance
+          ? ({
+              '--rarity': appearance.color,
+              '--rarity-shadow': appearance.shadow,
+            } as CSSProperties)
           : undefined
       }
       aria-label={

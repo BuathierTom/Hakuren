@@ -1,83 +1,78 @@
-.identity {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding-bottom: 22px;
-  h3 {
-    font-size: 20px;
-    margin: 0 0 6px;
-  }
-  p {
-    margin: 0;
-    font-size: var(--font-size-small);
-    color: var(--color-muted);
-  }
+.controls {
+  display: grid;
+  gap: 18px;
 }
-.rarities {
+.rarityColor {
+  width: 15px;
+  height: 15px;
+  display: block;
+  border: 1px solid #1b304024;
+}
+.separator {
   border: 0;
-  padding: 0;
-  margin: 0;
+  border-top: 1px solid var(--color-border);
+  margin: 0 0 24px;
+}
+.panels {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  legend {
-    padding: 0;
-    margin-bottom: 12px;
-    font-size: var(--font-size-body);
-    font-weight: 650;
-  }
-  label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px;
-    background: #fafcfd;
-    border: 1px solid var(--color-border);
-    border-left: 5px solid;
-    cursor: pointer;
-    font-size: var(--font-size-small);
-    &:has(:checked) {
-      background: var(--color-accent-soft);
-      outline: 1px solid var(--color-accent);
-    }
-    &[data-disabled='true'] {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-  }
-  input {
-    accent-color: var(--color-accent);
+  align-items: stretch;
+  gap: 20px;
+}
+.state {
+  padding: 40px 20px;
+  text-align: center;
+  font-size: var(--font-size-body);
+  h3 {
+    margin-top: 0;
   }
 }
-.actions button {
+.state button,
+.change,
+.remove {
   border: 1px solid var(--color-border);
   padding: 10px 12px;
   color: var(--color-text);
   background: var(--color-surface);
   font-size: var(--font-size-small);
   cursor: pointer;
-  &:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-  &:hover:not(:disabled) {
+  &:hover {
     border-color: var(--color-accent);
   }
 }
-.actions {
-  margin-top: 22px;
-  border-top: 1px solid var(--color-border-soft);
-  padding-top: 20px;
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  .remove {
-    color: #a13c32;
-  }
+.change,
+.remove {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
-
+.change {
+  padding: 8px 12px;
+}
+.remove {
+  width: 36px;
+  padding: 0;
+  color: #a13c32;
+}
 .error {
   color: #a13c32;
   font-size: var(--font-size-small);
   line-height: 1.5;
+}
+@media (max-width: 900px) {
+  .controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+@media (max-width: 760px) {
+  .panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 420px) {
+  .controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

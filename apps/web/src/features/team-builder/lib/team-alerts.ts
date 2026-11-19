@@ -42,13 +42,13 @@ export function teamAlerts(team: Team, formation: Formation): TeamAlert[] {
   if (heroes.length > 2)
     alerts.push({
       code: 'hero-limit',
-      message: 'Deux HERO maximum sont autorisés sur le terrain.',
+      message: 'Deux joueurs Héro maximum sont autorisés sur le terrain.',
       slots: heroes,
     });
   if (basaras.length > 1)
     alerts.push({
       code: 'basara-limit',
-      message: 'Un seul BASARA est autorisé sur le terrain.',
+      message: 'Un seul Basara est autorisé sur le terrain.',
       slots: basaras,
     });
   if (missing.length)
