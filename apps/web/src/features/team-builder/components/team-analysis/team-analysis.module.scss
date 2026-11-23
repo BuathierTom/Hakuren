@@ -150,3 +150,30 @@
     margin: 0;
   }
 }
+
+.projection {
+  display: block;
+  margin-top: 5px;
+  font-size: var(--font-size-caption);
+  line-height: 1.5;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+.note {
+  margin: 0;
+  padding: 9px;
+  border-top: 1px solid var(--color-border-soft);
+  font-size: var(--font-size-caption);
+  line-height: 1.6;
+  color: var(--color-muted);
+  p {
+    margin: 0 0 8px;
+  }
+  button {
+    padding: 7px 10px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+  }
+}

@@ -38,6 +38,33 @@ export function decodeTeam(value: unknown): Team | null {
         !(typeof assignment.playStyle === 'string' && playStyles.includes(assignment.playStyle)))
     )
       return null;
+    if (
+      assignment.equipment !== undefined &&
+      (!record(assignment.equipment) ||
+        Object.entries(assignment.equipment).some(
+          ([key, id]) =>
+            !['boots', 'pendant', 'bracelet', 'accessory'].includes(key) ||
+            !(id === null || (Number.isSafeInteger(id) && Number(id) > 0)),
+        ))
+    )
+      return null;
+    if (
+      assignment.passives !== undefined &&
+      (!Array.isArray(assignment.passives) ||
+        assignment.passives.length > 6 ||
+        assignment.passives.some(
+          (entry) =>
+            entry !== null &&
+            (!record(entry) ||
+              !Number.isSafeInteger(entry.id) ||
+              Number(entry.id) <= 0 ||
+              typeof entry.value !== 'number' ||
+              !Number.isFinite(entry.value) ||
+              entry.value < 0 ||
+              entry.value > 99999),
+        ))
+    )
+      return null;
     const p = assignment.player;
     if (
       !Number.isSafeInteger(p.id) ||

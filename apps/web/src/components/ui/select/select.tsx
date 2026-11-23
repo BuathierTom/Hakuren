@@ -24,8 +24,10 @@ interface Props {
   placeholder?: string;
   disabled?: boolean;
   showLabel?: boolean;
+  showSelectedIcon?: boolean;
   size?: 'normal' | 'large';
   className?: string;
+  searchable?: boolean;
 }
 const normalized = (value: string) =>
   value
@@ -40,25 +42,36 @@ export function Select({
   placeholder = 'Choisir…',
   disabled = false,
   showLabel = false,
+  showSelectedIcon = true,
   size = 'normal',
   className = '',
+  searchable = false,
 }: Props) {
   const id = useId();
+  const [query, setQuery] = useState('');
+  const searchInput = useRef<HTMLInputElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
   const search = useRef({ text: '', at: 0 });
   const selected = options.find((option) => option.value === value);
-  const enabled = options.flatMap((option, index) => (option.disabled ? [] : [index]));
+  const visible = options.flatMap((option, index) =>
+    !query || normalized(option.label).includes(normalized(query)) ? [index] : [],
+  );
+  const shown = searchable ? visible.slice(0, 100) : visible;
+  const enabled = shown.filter((index) => !options[index]!.disabled);
   const close = (focus = false) => {
     if (panel.current?.matches(':popover-open')) panel.current.hidePopover();
     setOpen(false);
+    setQuery('');
     if (focus) trigger.current?.focus({ preventScroll: true });
   };
   const expand = (last = false) => {
     if (disabled || !enabled.length) return;
-    const current = options.findIndex((option) => option.value === value && !option.disabled);
+    const current = options.findIndex(
+      (option, index) => option.value === value && !option.disabled && enabled.includes(index),
+    );
     setActive(current >= 0 ? current : last ? enabled.at(-1)! : enabled[0]!);
     panel.current?.showPopover();
     setOpen(true);
@@ -87,6 +100,7 @@ export function Select({
       node.style.top = `${upwards ? rect.top - Math.min(node.scrollHeight, height) - 6 : rect.bottom + 6}px`;
     };
     place();
+    if (searchable) searchInput.current?.focus({ preventScroll: true });
     const onScroll = (event: Event) => {
       if (event.target instanceof Node && node.contains(event.target)) return;
       if (node.matches(':popover-open')) node.hidePopover();
@@ -97,7 +111,7 @@ export function Select({
       window.removeEventListener('resize', place);
       window.removeEventListener('scroll', onScroll, true);
     };
-  }, [open, options]);
+  }, [open, options, searchable]);
   useLayoutEffect(() => {
     const node = panel.current;
     const option = node?.querySelector<HTMLElement>(`[data-index="${active}"]`);
@@ -109,7 +123,8 @@ export function Select({
   useEffect(() => {
     if (disabled && panel.current?.matches(':popover-open')) panel.current.hidePopover();
   }, [disabled]);
-  const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+  const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    const typing = event.target instanceof HTMLInputElement;
     if (['ArrowDown', 'ArrowUp'].includes(event.key)) {
       event.preventDefault();
       if (!open) {
@@ -118,21 +133,33 @@ export function Select({
       }
       const direction = event.key === 'ArrowDown' ? 1 : -1;
       const index = enabled.indexOf(active);
-      setActive(enabled[(index + direction + enabled.length) % enabled.length] ?? -1);
-    } else if (event.key === 'Home' || event.key === 'End') {
+      setActive(
+        index < 0
+          ? direction > 0
+            ? (enabled[0] ?? -1)
+            : (enabled.at(-1) ?? -1)
+          : (enabled[(index + direction + enabled.length) % enabled.length] ?? -1),
+      );
+    } else if (!typing && (event.key === 'Home' || event.key === 'End')) {
       if (!open) return;
       event.preventDefault();
       setActive(event.key === 'Home' ? (enabled[0] ?? -1) : (enabled.at(-1) ?? -1));
-    } else if (event.key === 'Enter' || event.key === ' ') {
+    } else if (event.key === 'Enter' || (!typing && event.key === ' ')) {
       event.preventDefault();
-      if (open) choose(active);
+      if (open) choose(active >= 0 ? active : (enabled[0] ?? -1));
       else expand();
     } else if (event.key === 'Escape' && open) {
       event.preventDefault();
       event.stopPropagation();
       close(true);
     } else if (event.key === 'Tab') close();
-    else if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+    else if (
+      !typing &&
+      event.key.length === 1 &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey
+    ) {
       event.preventDefault();
       const now = Date.now();
       search.current = {
@@ -163,7 +190,7 @@ export function Select({
         aria-controls={`${id}-options`}
         aria-expanded={open}
         aria-activedescendant={open && active >= 0 ? `${id}-option-${active}` : undefined}
-        disabled={disabled || !enabled.length}
+        disabled={disabled || !options.some((option) => !option.disabled)}
         className={styles.trigger}
         data-size={size}
         title={selected?.label ?? placeholder}
@@ -171,48 +198,77 @@ export function Select({
         onKeyDown={onKeyDown}
       >
         <span className={styles.value}>
-          {selected?.icon && <span className={styles.icon}>{selected.icon}</span>}
+          {showSelectedIcon && selected?.icon && (
+            <span className={styles.icon}>{selected.icon}</span>
+          )}
           <span>{selected?.label ?? placeholder}</span>
         </span>
         <Icon name="down" size={15} />
       </button>
       <div
         ref={panel}
-        id={`${id}-options`}
         popover="auto"
-        role="listbox"
-        aria-label={label}
         className={styles.panel}
-        onToggle={(event) => setOpen(event.newState === 'open')}
+        onToggle={(event) => {
+          setOpen(event.newState === 'open');
+          if (event.newState !== 'open') setQuery('');
+        }}
       >
-        {options.map((option, index) => (
-          <button
-            key={option.value}
-            id={`${id}-option-${index}`}
-            type="button"
-            role="option"
-            aria-selected={option.value === value}
-            aria-disabled={option.disabled || undefined}
-            disabled={option.disabled}
-            tabIndex={-1}
-            data-index={index}
-            data-active={active === index}
-            className={styles.option}
-            title={option.description}
-            onPointerDown={(event) => event.preventDefault()}
-            onPointerMove={() => {
-              if (!option.disabled) setActive(index);
-            }}
-            onClick={() => choose(index)}
-          >
-            {option.icon && <span className={styles.icon}>{option.icon}</span>}
-            <span className={styles.optionText}>
-              <span>{option.label}</span>
-              {option.description && <small>{option.description}</small>}
-            </span>
-            {option.value === value && <Icon name="check" size={15} />}
-          </button>
-        ))}
+        {searchable && (
+          <div className={styles.search}>
+            <Icon name="search" size={16} />
+            <input
+              ref={searchInput}
+              type="search"
+              value={query}
+              aria-label={`Rechercher dans ${label}`}
+              placeholder="Rechercher…"
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setActive(-1);
+              }}
+              onKeyDown={onKeyDown}
+            />
+          </div>
+        )}
+        <div id={`${id}-options`} role="listbox" aria-label={label}>
+          {open &&
+            shown.map((index) => {
+              const option = options[index]!;
+              return (
+                <button
+                  key={option.value}
+                  id={`${id}-option-${index}`}
+                  type="button"
+                  role="option"
+                  aria-selected={option.value === value}
+                  aria-disabled={option.disabled || undefined}
+                  disabled={option.disabled}
+                  tabIndex={-1}
+                  data-index={index}
+                  data-active={active === index}
+                  className={styles.option}
+                  title={option.description}
+                  onPointerDown={(event) => event.preventDefault()}
+                  onPointerMove={() => {
+                    if (!option.disabled) setActive(index);
+                  }}
+                  onClick={() => choose(index)}
+                >
+                  {option.icon && <span className={styles.icon}>{option.icon}</span>}
+                  <span className={styles.optionText}>
+                    <span>{option.label}</span>
+                    {option.description && <small>{option.description}</small>}
+                  </span>
+                  {option.value === value && <Icon name="check" size={15} />}
+                </button>
+              );
+            })}
+        </div>
+        {open && !shown.length && <p className={styles.hint}>Aucun résultat</p>}
+        {open && searchable && visible.length > shown.length && (
+          <p className={styles.hint}>Précise ta recherche pour afficher d’autres résultats.</p>
+        )}
       </div>
     </div>
   );

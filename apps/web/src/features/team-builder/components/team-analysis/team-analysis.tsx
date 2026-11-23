@@ -1,3 +1,6 @@
+import { useMemo } from 'react';
+import type { LoadoutOptions } from '@shared/catalogue';
+import { useRequest } from '@/features/catalogue/hooks/use-catalogue-request';
 import type { Formation } from '@shared/formations';
 import { POWER_LABELS, teamCounts, teamPower, type Team } from '../../lib/team';
 import { teamAlerts } from '../../lib/team-alerts';
@@ -7,7 +10,19 @@ export function TeamAnalysis({ team, formation }: { team: Team; formation: Forma
   const counts = teamCounts(team);
   const alerts = teamAlerts(team, formation);
   const offPosition = alerts.find((alert) => alert.code === 'off-position')?.slots ?? [];
-  const power = teamPower(team);
+  const hasLoadout = Object.entries(team.slots).some(
+    ([slot, assignment]) =>
+      !slot.startsWith('bench-') &&
+      (Object.values(assignment.equipment ?? {}).some(Boolean) ||
+        assignment.passives?.some((passive) => passive && passive.value !== 0)),
+  );
+  const loadout = useRequest<LoadoutOptions>(hasLoadout ? '/api/catalogue/loadouts' : null);
+  const power = useMemo(() => teamPower(team, loadout.data ?? undefined), [team, loadout.data]);
+  const showProjection = Object.keys(power.totals).some(
+    (key) =>
+      power.totals[key as keyof typeof power.totals] !==
+      power.potential[key as keyof typeof power.potential],
+  );
   return (
     <aside className={styles.analysis} aria-label="Analyse de l’équipe">
       <h2>Analyse</h2>
@@ -44,16 +59,75 @@ export function TeamAnalysis({ team, formation }: { team: Team; formation: Forma
             ))}
           </ul>
         )}
-        <section className={styles.power}>
+        <section
+          className={styles.power}
+          aria-label="Puissance cumulée"
+          aria-busy={loadout.loading}
+        >
           <h3>Puissance cumulée</h3>
-          <dl>
+          <dl aria-live="polite">
             {Object.entries(POWER_LABELS).map(([key, label]) => (
               <div key={key}>
                 <dt>{label}</dt>
-                <dd>{power.totals[key as keyof typeof power.totals].toLocaleString('fr-FR')}</dd>
+                <dd>
+                  {loadout.loading || loadout.error
+                    ? '—'
+                    : power.totals[key as keyof typeof power.totals].toLocaleString('fr-FR')}
+                </dd>
+                {!loadout.loading &&
+                  !loadout.error &&
+                  power.potential[key as keyof typeof power.potential] !==
+                    power.totals[key as keyof typeof power.totals] && (
+                    <span className={styles.projection}>
+                      Sous conditions :{' '}
+                      {power.potential[key as keyof typeof power.potential].toLocaleString('fr-FR')}
+                    </span>
+                  )}
               </div>
             ))}
           </dl>
+          {loadout.loading && (
+            <p className={styles.note} role="status">
+              Chargement des bonus…
+            </p>
+          )}
+          {loadout.error && (
+            <div className={styles.note} role="alert">
+              <p>Impossible de calculer les bonus pour le moment.</p>
+              <button type="button" onClick={loadout.retry}>
+                Réessayer
+              </button>
+            </div>
+          )}
+          {hasLoadout && !loadout.loading && !loadout.error && (
+            <>
+              <p className={styles.note}>Équipements et bonus permanents inclus.</p>
+              {showProjection && (
+                <p className={styles.note}>
+                  Les valeurs sous conditions sont des projections de match.
+                </p>
+              )}
+              {power.matchState > 0 && (
+                <p className={styles.note}>
+                  {power.matchState} passif{power.matchState > 1 ? 's' : ''} en attente du rang de
+                  build, de la puissance de lien ou d’un remplacement.
+                </p>
+              )}
+              {power.gauges > 0 && (
+                <p className={styles.note}>
+                  {power.gauges} passif{power.gauges > 1 ? 's' : ''} concerne
+                  {power.gauges > 1 ? 'nt' : ''} d’autres paramètres de jeu.
+                </p>
+              )}
+              {(power.unavailable > 0 || power.unresolved > 0) && (
+                <p className={styles.note}>
+                  {power.unavailable + power.unresolved} bonus indisponible
+                  {power.unavailable + power.unresolved > 1 ? 's' : ''} ou non reconnu
+                  {power.unavailable + power.unresolved > 1 ? 's' : ''}.
+                </p>
+              )}
+            </>
+          )}
         </section>
       </div>
     </aside>

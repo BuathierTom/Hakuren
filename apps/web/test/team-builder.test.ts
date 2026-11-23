@@ -1,3 +1,11 @@
+import {
+  EQUIPMENT_ORDER,
+  fillEquipment,
+  fillPassives,
+  groupedPassives,
+  setPassive,
+} from '../src/features/team-builder/lib/loadouts.ts';
+import type { Passive, CatalogueItem } from '../../../shared/catalogue.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
@@ -141,17 +149,15 @@ test('rarity changes update base power and use actual HERO tables; missing BASAR
   assert.equal(baseStats(assignment(1, 'basara')), null);
   let team = putPlayer(emptyTeam(), 'field-1', assignment(1, 'common'));
   team = putPlayer(team, 'bench-1', assignment(2));
-  assert.deepEqual(teamPower(team), {
-    missing: 0,
-    totals: {
-      shootAT: 220,
-      focusAT: 310,
-      focusDF: 460,
-      wallDF: 340,
-      scrambleAT: 400,
-      scrambleDF: 380,
-      kp: 1660,
-    },
+  assert.equal(teamPower(team).missing, 0);
+  assert.deepEqual(teamPower(team).totals, {
+    shootAT: 220,
+    focusAT: 310,
+    focusDF: 460,
+    wallDF: 340,
+    scrambleAT: 400,
+    scrambleDF: 380,
+    kp: 1660,
   });
   assert.equal(teamPower(putPlayer(team, 'field-1', assignment(1, 'basara'))).missing, 1);
 });
@@ -450,4 +456,84 @@ test('clearing a team removes every slot, keeps its identity and can be undone',
   );
   assert.deepEqual(teamReducer(state, { type: 'undo' }).present, team);
   assert.equal(clearTeam(empty), empty);
+});
+
+function loadoutPassive(id: number, source: Passive['source'] = 'player', tier = 4): Passive {
+  return {
+    id,
+    gameId: String(id),
+    stringId: `ps_${id}`,
+    name: 'ATT +… %',
+    description: 'ATT +5 %',
+    source,
+    playStyle: 'breach',
+    value: 5,
+    unit: 'percent',
+    icon: 1,
+    family: id,
+    tier,
+    sourceUrl: null,
+  };
+}
+test('equipment and six passive slots survive saving, movement and undo without mutating old teams', () => {
+  const initial = putPlayer(emptyTeam(), 'field-1', assignment(1));
+  let next = { ...initial.slots['field-1']!, equipment: { boots: 42 } };
+  const configured = setPassive(next, 5, loadoutPassive(9, 'custom'));
+  configured.passives![5] = { id: 9, value: 1.25 };
+  const changed = putPlayer(initial, 'field-1', configured);
+  const storage = memoryStorage();
+  saveTeam(storage, changed);
+  const loaded = readTeams(storage)[0]!.team;
+  assert.equal(loaded.slots['field-1']?.equipment?.boots, 42);
+  assert.equal(loaded.slots['field-1']?.passives?.[5]?.value, 1.25);
+  assert.equal(movePlayer(loaded, 'field-1', 'bench-1').slots['bench-1']?.passives?.[5]?.id, 9);
+  assert.equal(initial.slots['field-1']?.passives, undefined);
+  const history = teamReducer(
+    { past: [], present: initial, future: [] },
+    { type: 'change', team: changed },
+  );
+  assert.deepEqual(teamReducer(history, { type: 'undo' }).present, initial);
+  assert(decodeTeam(initial));
+  for (const malformed of [
+    { equipment: { boots: -1 } },
+    { equipment: { unknown: 2 } },
+    { passives: [{ id: 9, value: Infinity }] },
+    { passives: Array(7).fill(null) },
+  ])
+    assert.equal(
+      decodeTeam({ ...changed, slots: { 'field-1': { ...configured, ...malformed } } }),
+      null,
+    );
+});
+test('automatic fill preserves occupied slots, uses the right passive sources and respects available rarity tiers', () => {
+  const common = loadoutPassive(1, 'player', 0);
+  const legendary = { ...common, id: 2, tier: 4, value: 8 };
+  const customs = loadoutPassive(3, 'custom');
+  assert.equal(groupedPassives([common, legendary], 'player', 'common')[0]?.id, 1);
+  assert.equal(groupedPassives([common, legendary], 'player', 'hero')[0]?.id, 2);
+  const base = {
+    ...assignment(1),
+    playStyle: 'breach' as const,
+    equipment: { boots: 99 },
+    passives: [{ id: 10, value: 2 }],
+  };
+  const options = [
+    common,
+    legendary,
+    customs,
+    ...Array.from({ length: 5 }, (_, i) => loadoutPassive(20 + i)),
+  ];
+  const filled = fillPassives(base, 'field-1', options);
+  assert.equal(filled.passives?.length, 6);
+  assert.equal(filled.passives?.[0]?.id, 10);
+  assert.equal(filled.passives?.[5]?.id, 3);
+  assert.equal(new Set(filled.passives?.map((p) => p?.id)).size, 6);
+  const items = EQUIPMENT_ORDER.map(
+    (slot, index) =>
+      ({ id: index + 1, slot, stats: { power: 10 }, section: 'equipment' }) as CatalogueItem,
+  );
+  const equipped = fillEquipment(base, items);
+  assert.equal(equipped.equipment?.boots, 99);
+  assert.equal(equipped.equipment?.accessory, 4);
+  assert.deepEqual(base.equipment, { boots: 99 });
 });

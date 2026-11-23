@@ -1,3 +1,6 @@
+import { calculateTeamPower } from './team-power';
+import type { LoadoutOptions } from '@shared/catalogue';
+export { POWER_LABELS } from './power-stats';
 import type {
   PlayerDetail,
   PlayerStatProfile,
@@ -7,6 +10,7 @@ import type {
   Gender,
   PlayStyle,
   StatKey,
+  EquipmentSlot,
 } from '@shared/catalogue';
 import type { Formation } from '@shared/formations';
 export const RARITIES = {
@@ -31,7 +35,13 @@ export interface TeamPlayer {
   rarities: TeamRarity[];
   profiles: PlayerStatProfile[];
 }
+export interface PassiveAssignment {
+  id: number;
+  value: number;
+}
 export interface Assignment {
+  equipment?: Partial<Record<EquipmentSlot, number | null>>;
+  passives?: (PassiveAssignment | null)[];
   playStyle?: PlayStyle;
   player: TeamPlayer;
   rarity: TeamRarity;
@@ -188,43 +198,8 @@ export function baseStats(assignment: Assignment) {
   if (!stats || STAT_KEYS.some((key) => stats.values[key] === null)) return null;
   return stats.values as Record<StatKey, number>;
 }
-export const POWER_LABELS = {
-  shootAT: 'Shoot AT',
-  focusAT: 'Focus AT',
-  focusDF: 'Focus DF',
-  wallDF: 'Wall DF',
-  scrambleAT: 'Scramble AT',
-  scrambleDF: 'Scramble DF',
-  kp: 'KP',
-};
-export function teamPower(team: Team) {
-  const totals = {
-    shootAT: 0,
-    focusAT: 0,
-    focusDF: 0,
-    wallDF: 0,
-    scrambleAT: 0,
-    scrambleDF: 0,
-    kp: 0,
-  };
-  let missing = 0;
-  for (const slot of FIELD_SLOTS) {
-    const assignment = team.slots[slot];
-    if (!assignment) continue;
-    const s = baseStats(assignment);
-    if (!s) {
-      missing++;
-      continue;
-    }
-    totals.shootAT += Math.round(s.power + s.control);
-    totals.focusAT += Math.round(s.technique + s.control + s.power * 0.5);
-    totals.focusDF += Math.round(s.technique + s.intelligence + s.agility * 0.5);
-    totals.wallDF += Math.round(s.pressure + s.physical);
-    totals.scrambleAT += Math.round(s.intelligence + s.physical);
-    totals.scrambleDF += Math.round(s.intelligence + s.pressure);
-    totals.kp += Math.round(s.pressure * 2 + s.physical * 3 + s.agility * 4);
-  }
-  return { totals, missing };
+export function teamPower(team: Team, catalogue: LoadoutOptions = { equipment: [], passives: [] }) {
+  return calculateTeamPower(team, catalogue, baseStats);
 }
 export interface TeamHistory {
   past: Team[];

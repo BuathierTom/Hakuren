@@ -1,3 +1,4 @@
+import { PlayerLoadout } from '../player-loadout/player-loadout';
 import { useId } from 'react';
 import type { PlayStyle, PlayerDetail } from '@shared/catalogue';
 import { Select } from '@/components/ui/select/select';
@@ -146,6 +147,7 @@ export function PlayerEditor({
             <PlayerStats stats={stats} ceiling={ceiling} />
             <PlayerTechniques key={`${assignment.player.id}-${form}`} moves={moves} />
           </div>
+          <PlayerLoadout assignment={current} slot={slot} onChange={onChange} />
         </>
       ) : (
         <div className={styles.state} role="alert">
