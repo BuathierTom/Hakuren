@@ -1,3 +1,4 @@
+import passiveSpriteMap from '../../../../../assets/icons/passives/_passive_icons.csv?raw';
 import type { Category, Element, Gender, PlayStyle, Position } from '@shared/catalogue';
 import wind from '../../../../../assets/icons/elements/icon_element_wind.png';
 import forest from '../../../../../assets/icons/elements/icon_element_wood.png';
@@ -112,6 +113,36 @@ export function TacticIcon({ stringId }: { stringId: string }) {
   return src ? (
     <img
       className={styles.type}
+      src={src}
+      width="24"
+      height="24"
+      alt=""
+      aria-hidden="true"
+      loading="lazy"
+    />
+  ) : null;
+}
+
+const passiveIcons = import.meta.glob('../../../../../assets/icons/passives/*.png', {
+  eager: true,
+  query: '?url&no-inline',
+  import: 'default',
+}) as Record<string, string>;
+const passiveSprites = new Map(
+  passiveSpriteMap.split('\n').flatMap((line) => {
+    const match = /^"(\d+)","[^"]*","(icon_teambuff\d+)","(?:fort|moyen)"/.exec(line.trim());
+    return match ? [[Number(match[1]), match[2]!] as const] : [];
+  }),
+);
+export function PassiveIcon({ icon }: { icon: number | null }) {
+  const sprite = icon == null ? null : passiveSprites.get(icon);
+  const suffix = sprite ? `/${sprite}.png` : '';
+  const src = suffix
+    ? Object.entries(passiveIcons).find(([path]) => path.endsWith(suffix))?.[1]
+    : null;
+  return src ? (
+    <img
+      className={styles.passive}
       src={src}
       width="24"
       height="24"

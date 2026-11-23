@@ -9,7 +9,15 @@ import { PlayerStats } from '../player-stats/player-stats';
 import { PlayerProfileHeader } from './player-profile-header';
 import styles from './player-details.module.scss';
 
-export function PlayerPanel({ player, titleId }: { player: PlayerDetail; titleId: string }) {
+export function PlayerPanel({
+  player,
+  titleId,
+  playerLink,
+}: {
+  player: PlayerDetail;
+  titleId: string;
+  playerLink?: (id: number) => string;
+}) {
   const [rarity, setRarity] = useState<PlayerForm>('common');
   const forms = playerForms(player);
   const stats = playerStats(player, rarity);
@@ -66,7 +74,7 @@ export function PlayerPanel({ player, titleId }: { player: PlayerDetail; titleId
           </div>
           <div className={styles.related}>
             {player.variants.map((variant) => {
-              const target = href('players', { detail: variant.id });
+              const target = playerLink?.(variant.id) ?? href('players', { detail: variant.id });
               return (
                 <a
                   key={variant.id}

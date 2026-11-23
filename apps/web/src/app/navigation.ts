@@ -1,12 +1,22 @@
 import { useSyncExternalStore } from 'react';
 
-export type View = 'builder' | 'players' | 'techniques' | 'equipment' | 'tactics' | 'catalogue';
+export type View =
+  | 'builder'
+  | 'players'
+  | 'techniques'
+  | 'equipment'
+  | 'tactics'
+  | 'passives'
+  | 'teams'
+  | 'catalogue';
 export const VIEW_PATHS: Record<View, string> = {
   builder: '/',
   players: '/joueurs',
   techniques: '/techniques',
   equipment: '/equipements',
   tactics: '/tactiques',
+  passives: '/passifs',
+  teams: '/equipes',
   catalogue: '/catalogue',
 };
 const subscribe = (callback: () => void) => {
@@ -22,10 +32,12 @@ export function useLocation() {
       View | undefined) ?? 'players';
   const params = url.searchParams;
   const rawDetail = params.get('detail') ?? '';
+  const rawPlayer = params.get('player') ?? '';
   return {
     view,
     params,
     detail: /^\d+$/.test(rawDetail) && Number(rawDetail) > 0 ? Number(rawDetail) : null,
+    playerDetail: /^\d+$/.test(rawPlayer) && Number(rawPlayer) > 0 ? Number(rawPlayer) : null,
   };
 }
 export function href(
@@ -48,9 +60,15 @@ export function navigate(target: string, options: { replace?: boolean; overlay?:
   else window.history.pushState(state, '', target);
   window.dispatchEvent(new PopStateEvent('popstate'));
 }
-export function closeDetail(view: View) {
+export function teamPlayerHref(teamId: number, playerId: number) {
+  return href('teams', { detail: teamId, player: playerId });
+}
+export function closeDetail(view: View, key: 'detail' | 'player' = 'detail') {
   if (window.history.state?.overlay) window.history.back();
-  else navigate(href(view, { detail: null }), { replace: true });
+  else
+    navigate(href(view, key === 'player' ? { player: null } : { detail: null, player: null }), {
+      replace: true,
+    });
 }
 export function intercept(
   event: React.MouseEvent<HTMLAnchorElement>,

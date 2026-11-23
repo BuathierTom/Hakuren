@@ -8,9 +8,11 @@ import styles from './player-list.module.scss';
 export function PlayerList({
   players,
   rarity,
+  playerLink,
 }: {
   players: PlayerSummary[];
   rarity: string | null;
+  playerLink?: (id: number) => string;
 }) {
   return (
     <div className={styles.table}>
@@ -23,7 +25,7 @@ export function PlayerList({
       </div>
       <ul className={styles.list}>
         {players.map((player) => {
-          const target = href('players', { detail: player.id });
+          const target = playerLink?.(player.id) ?? href('players', { detail: player.id });
           const origin = player.origin
             ? workLabel(player.origin.code).replace(/^IE(\d)$/, 'IE $1')
             : 'Origine non renseignée';

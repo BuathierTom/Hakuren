@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import type { CatalogueFilters } from '@shared/catalogue';
 import { SiteHeader } from '@/components/layout/site-header/site-header';
 import { SiteFooter } from '@/components/layout/site-footer/site-footer';
@@ -10,12 +9,11 @@ const sections = [
   { view: 'techniques', description: 'Tirs, dribbles, défenses, arrêts et pouvoirs.' },
   { view: 'equipment', description: 'Chaussures, bracelets, pendentifs et accessoires.' },
   { view: 'tactics', description: 'Tactiques collectives et coûts en tension.' },
+  { view: 'passives', description: 'Passifs des joueurs, passifs custom et talents du staff.' },
+  { view: 'teams', description: 'Écussons et effectifs des équipes à travers les générations.' },
 ] as const;
 export function CatalogueHomePage() {
   const metadata = useRequest<CatalogueFilters>('/api/catalogue');
-  useEffect(() => {
-    document.title = 'Catalogue - Hakuren';
-  }, []);
   return (
     <>
       <SiteHeader view="catalogue" />

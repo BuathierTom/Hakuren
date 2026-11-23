@@ -1,3 +1,5 @@
+import { PassiveList } from '../passive-list/passive-list';
+import { TeamList } from '../team-list/team-list';
 import type { useCatalogue } from '../../hooks/use-catalogue';
 import { Icon } from '@/components/ui/icon/icon';
 import { count, VIEWS } from '../../lib/labels';
@@ -13,6 +15,8 @@ const singular = {
   equipment: 'équipement',
   tactics: 'tactique',
   catalogue: 'entrée',
+  passives: 'passif',
+  teams: 'équipe',
 };
 export function CatalogueResults({ catalogue }: { catalogue: ReturnType<typeof useCatalogue> }) {
   const {
@@ -22,6 +26,8 @@ export function CatalogueResults({ catalogue }: { catalogue: ReturnType<typeof u
     players,
     techniques,
     items,
+    passives,
+    teams,
     request,
     data,
     active,
@@ -105,6 +111,10 @@ export function CatalogueResults({ catalogue }: { catalogue: ReturnType<typeof u
               <PlayerList players={players.data?.items ?? []} rarity={params.get('rarity')} />
             ) : view === 'techniques' ? (
               <TechniqueList techniques={techniques.data?.items ?? []} />
+            ) : view === 'passives' ? (
+              <PassiveList passives={passives.data?.items ?? []} />
+            ) : view === 'teams' ? (
+              <TeamList teams={teams.data?.items ?? []} />
             ) : (
               <ItemList items={items.data?.items ?? []} />
             )}

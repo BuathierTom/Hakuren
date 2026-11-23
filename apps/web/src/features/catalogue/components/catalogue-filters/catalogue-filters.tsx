@@ -15,6 +15,7 @@ import {
   GENDERS,
   PLAY_STYLES,
   PLAYER_TYPES,
+  PASSIVE_SOURCES,
 } from '../../lib/labels';
 import { FilterGroup, type FilterOption } from './filter-group';
 import styles from './catalogue-filters.module.scss';
@@ -32,7 +33,7 @@ export function CatalogueFilters({
   update,
   reset,
 }: CatalogueFiltersProps) {
-  if (view === 'tactics') return null;
+  if (view === 'tactics' || view === 'teams') return null;
   const group = (key: string, label: string, options: FilterOption[]) => (
     <FilterGroup
       key={key}
@@ -113,6 +114,20 @@ export function CatalogueFilters({
               { value: 'hero', label: 'Héro' },
               { value: 'basara', label: 'Basara' },
             ])}
+          </>
+        )}
+        {view === 'passives' && (
+          <>
+            {group('source', 'Type de passif', options(PASSIVE_SOURCES))}
+            {group(
+              'style',
+              'Styles',
+              Object.entries(PLAY_STYLES).map(([value, label]) => ({
+                value,
+                label,
+                icon: <PlayStyleIcon style={value as PlayStyle} />,
+              })),
+            )}
           </>
         )}
         {view === 'equipment' && group('slot', 'Catégories', options(EQUIPMENT_SLOTS))}

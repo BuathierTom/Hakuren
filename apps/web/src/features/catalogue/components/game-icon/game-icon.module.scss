@@ -24,3 +24,10 @@
   width: 24px;
   height: 24px;
 }
+
+.passive {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  filter: brightness(0);
+}

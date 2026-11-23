@@ -72,6 +72,8 @@ export const VIEWS = {
   techniques: 'Techniques',
   equipment: 'Équipements',
   tactics: 'Tactiques',
+  passives: 'Passifs',
+  teams: 'Équipes',
   catalogue: 'Catalogue',
 };
 export const EQUIPMENT_SLOTS = {
@@ -114,4 +116,11 @@ export const PLAYER_TYPES: Record<string, string> = {
   staff: 'Encadrement',
   manager: 'Manager',
   coordinator: 'Coordinateur',
+};
+
+export const PASSIVE_SOURCES = {
+  player: 'Joueurs',
+  custom: 'Custom',
+  coach: 'Entraîneurs',
+  manager: 'Managers',
 };

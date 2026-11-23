@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { Formation } from '@shared/formations';
 import { SiteHeader } from '@/components/layout/site-header/site-header';
 import { useRequest } from '@/features/catalogue/hooks/use-catalogue-request';
@@ -29,9 +29,6 @@ export function TeamBuilderPage() {
   const [modal, setModal] = useState<
     { kind: 'picker' | 'editor'; slot: string } | { kind: 'teams' | 'clear' } | null
   >(null);
-  useEffect(() => {
-    document.title = 'Composition d’équipe - Hakuren';
-  }, []);
   const select = (player: TeamPlayer) => {
     if (!modal || modal.kind !== 'picker') return;
     if (

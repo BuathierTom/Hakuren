@@ -65,7 +65,7 @@ export function CatalogueToolbar({
         )}
         <kbd>/</kbd>
       </form>
-      {isPlayers && (
+      {(isPlayers || view === 'teams') && (
         <Select
           className={styles.workSelect}
           label="Jeu"
