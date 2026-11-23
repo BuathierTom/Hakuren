@@ -24,7 +24,9 @@
     "format": "prettier --write \"apps/**/*.{ts,tsx,scss,html,json}\" \"shared/**/*.ts\" \"scripts/**/*.mjs\" \"*.json\"",
     "format:check": "prettier --check \"apps/**/*.{ts,tsx,scss,html,json}\" \"shared/**/*.ts\" \"scripts/**/*.mjs\" \"*.json\"",
     "import:formations": "node --import tsx apps/api/src/formations/cli.ts",
-    "import:catalogue-extras": "node --import tsx apps/api/src/catalogue/extras-cli.ts"
+    "import:catalogue-extras": "node --import tsx apps/api/src/catalogue/extras-cli.ts",
+    "setup:auth": "node --import tsx apps/api/src/auth/migrate.ts",
+    "setup:teams": "node --import tsx apps/api/src/teams/migrate.ts"
   },
   "devDependencies": {
     "@types/node": "^24.10.0",

@@ -1,3 +1,8 @@
+import { registerTeamRoutes } from './teams/routes.js';
+import type { TeamRepository } from './teams/repository.js';
+import cookie from '@fastify/cookie';
+import { registerAuthRoutes, type AuthOptions } from './auth/routes.js';
+import { getAuthConfig } from './auth/config.js';
 import Fastify from 'fastify';
 import type { Database } from './db/client.js';
 import { registerCatalogueRoutes } from './catalogue/routes.js';
@@ -11,8 +16,17 @@ export interface AppOptions {
   catalogue?: CatalogueRepository;
   formations?: FormationRepository;
   logger?: boolean;
+  auth?: AuthOptions;
+  teams?: TeamRepository;
 }
-export function buildApp({ database, catalogue, formations, logger = false }: AppOptions = {}) {
+export function buildApp({
+  database,
+  catalogue,
+  formations,
+  auth,
+  teams,
+  logger = false,
+}: AppOptions = {}) {
   const app = Fastify({
     bodyLimit: 1_048_576,
     ajv: { customOptions: { removeAdditional: false } },
@@ -31,6 +45,8 @@ export function buildApp({ database, catalogue, formations, logger = false }: Ap
         }
       : false,
   });
+
+  app.register(cookie);
 
   app.addHook('onSend', async (_request, reply) => {
     reply.header('X-Content-Type-Options', 'nosniff');
@@ -67,6 +83,9 @@ export function buildApp({ database, catalogue, formations, logger = false }: Ap
     }
   });
 
+  const authentication = auth ?? { config: getAuthConfig({}) };
+  registerAuthRoutes(app, authentication);
+  registerTeamRoutes(app, authentication, teams);
   registerCatalogueRoutes(app, catalogue);
   registerFormationRoutes(app, formations);
   app.addHook('onClose', async () => {

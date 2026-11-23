@@ -1,3 +1,5 @@
+import { createTeamRepository, type TeamRepository } from '../teams/repository.js';
+import { createAuthRepository, type AuthRepository } from '../auth/repository.js';
 import { createPool as createMysqlPool, type Pool } from 'mysql2/promise';
 import { createCatalogueRepository, type CatalogueRepository } from '../catalogue/repository.js';
 
@@ -23,11 +25,16 @@ export function createPool(connectionString: string): Pool {
   });
 }
 
-export function createDatabase(
-  connectionString: string,
-): Database & { catalogue: CatalogueRepository; formations: FormationRepository } {
+export function createDatabase(connectionString: string): Database & {
+  catalogue: CatalogueRepository;
+  formations: FormationRepository;
+  auth: AuthRepository;
+  teams: TeamRepository;
+} {
   const pool = createPool(connectionString);
   return {
+    auth: createAuthRepository(pool),
+    teams: createTeamRepository(pool),
     catalogue: createCatalogueRepository(pool),
     formations: createFormationRepository(pool),
     async check() {

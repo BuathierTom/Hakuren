@@ -1,3 +1,4 @@
+import { getAuthConfig, type AuthConfig } from './auth/config.js';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
@@ -6,6 +7,7 @@ export interface AppConfig {
   port: number;
   databaseUrl: string | undefined;
   production: boolean;
+  auth: AuthConfig;
 }
 
 export function loadEnvironment(): void {
@@ -33,5 +35,6 @@ export function getConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     port,
     databaseUrl,
     production: env.NODE_ENV === 'production',
+    auth: getAuthConfig(env),
   };
 }

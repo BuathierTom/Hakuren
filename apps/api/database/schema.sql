@@ -428,3 +428,41 @@ CREATE TABLE IF NOT EXISTS team_badges (
   source_url VARCHAR(1024) NOT NULL,
   CONSTRAINT fk_team_badge_team FOREIGN KEY (historical_team_id) REFERENCES historical_teams(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS auth_states (
+  state_hash BINARY(32) PRIMARY KEY,
+  browser_hash BINARY(32) NOT NULL,
+  verifier VARCHAR(128) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  return_to VARCHAR(1024) NOT NULL,
+  expires_at DATETIME(3) NOT NULL,
+  KEY idx_auth_state_expiry (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS auth_sessions (
+  token_hash BINARY(32) PRIMARY KEY,
+  user_id INT UNSIGNED NOT NULL,
+  expires_at DATETIME(3) NOT NULL,
+  created_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  KEY idx_auth_session_expiry (expires_at),
+  KEY idx_auth_session_user (user_id),
+  CONSTRAINT fk_auth_session_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS user_teams (
+  user_id INT UNSIGNED NOT NULL,
+  team_id VARCHAR(80) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  payload JSON NOT NULL,
+  revision INT UNSIGNED NOT NULL DEFAULT 1,
+  updated_at DATETIME(3) NOT NULL,
+  PRIMARY KEY (user_id, team_id),
+  KEY idx_user_team_updated (user_id, updated_at),
+  CONSTRAINT fk_user_team_owner FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS user_team_drafts (
+  user_id INT UNSIGNED PRIMARY KEY,
+  payload JSON NOT NULL,
+  revision INT UNSIGNED NOT NULL DEFAULT 1,
+  updated_at DATETIME(3) NOT NULL,
+  CONSTRAINT fk_user_team_draft_owner FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
