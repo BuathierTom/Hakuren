@@ -1,3 +1,4 @@
+import { createExtrasRepository } from './extras-repository.js';
 import type { Pool, RowDataPacket } from 'mysql2/promise';
 import { WIKI_MAPPINGS } from './curation.js';
 import { NON_TEAMS } from './team-sources.js';
@@ -19,10 +20,21 @@ import type {
   CatalogueItem,
   ItemQuery,
   ItemSection,
+  Passive,
+  PassiveQuery,
+  HistoricalTeam,
+  HistoricalTeamDetail,
+  HistoricalTeamQuery,
+  LoadoutOptions,
 } from '../../../../shared/catalogue.js';
 
 export interface CatalogueRepository {
   filters(): Promise<CatalogueFilters>;
+  passives?(query: PassiveQuery): Promise<Page<Passive>>;
+  passive?(id: number): Promise<Passive | null>;
+  teams?(query: HistoricalTeamQuery): Promise<Page<HistoricalTeam>>;
+  team?(id: number): Promise<HistoricalTeamDetail | null>;
+  loadouts?(): Promise<LoadoutOptions>;
   items?(section: ItemSection, query: ItemQuery): Promise<Page<CatalogueItem>>;
   item?(section: ItemSection, id: number): Promise<CatalogueItem | null>;
   players(query: PlayerQuery): Promise<Page<PlayerSummary>>;
@@ -298,7 +310,21 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
       sourceUrl: url(row.source_url),
     };
   }
+  const extras = createExtrasRepository(
+    pool,
+    async (ids) => {
+      if (!ids.length) return [];
+      return summaries(
+        await rows(
+          `SELECT ${PLAYER_FIELDS} ${PLAYER_FROM} WHERE v.id IN (${ids.map(() => '?').join(',')}) AND ${approved('v', 'vs')}`,
+          ids,
+        ),
+      );
+    },
+    itemSummary,
+  );
   return {
+    ...extras,
     async items(section, query) {
       const values: Values = [section];
       const conditions = ['i.section=?', 'i.is_published=1', approved('i', 's')];
@@ -354,6 +380,7 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
         works: works.map((row) => ({ ...work(row), playerCount: Number(row.player_count) })),
         rarities: rarities.map(rarity),
         counts: {
+          ...(await extras.extraCounts()),
           players: Number(counts[0]?.players ?? 0),
           techniques: Number(counts[0]?.techniques ?? 0),
           equipment: Number(

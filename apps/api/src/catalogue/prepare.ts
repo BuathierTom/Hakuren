@@ -6,6 +6,7 @@ import { literalTable, pageName, parseMoves, wikiContent } from './wiki.js';
 import { playerModuleId } from './team-sources.js';
 import { prepareMemberships } from './memberships.js';
 import { enrichGameData, type ItemSpec } from './game-data.js';
+import { prepareExtras, type CatalogueExtras } from './extras.js';
 
 type Raw = Record<string, unknown>;
 export type Review = 'pending' | 'verified' | 'quarantined';
@@ -80,6 +81,7 @@ export interface LearnsetSpec {
 }
 export interface CataloguePlan {
   items?: ItemSpec[];
+  extras?: CatalogueExtras;
   gameData?: boolean;
   records: RecordSpec[];
   variants: VariantSpec[];
@@ -617,7 +619,10 @@ export function prepareCatalogue(
   plan.memberships.push(...historical.memberships);
   plan.records.push(...historical.records);
   enrichGameData(plan, resources);
+  plan.extras = prepareExtras(resources);
   plan.summary = {
+    passives: plan.extras.passives.length,
+    teamBadges: plan.extras.badges.length,
     variants: plan.variants.length,
     techniques: plan.techniques.length,
     publishedTechniques: plan.techniques.filter((technique) => technique.published !== false)

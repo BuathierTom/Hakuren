@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { teamBadgeFiles } from './team-badges.js';
 import { lastPage, parseOfficial } from './official.js';
 import { NON_TEAMS, playerModuleId, TEAM_PAGES, wikiQuery } from './team-sources.js';
 
@@ -168,5 +169,18 @@ export async function collectSources(
     ]);
   for (let index = 0; index < extra.length; index += 3)
     await Promise.all(extra.slice(index, index + 3).map(([id, url]) => collect(id, url)));
+  const badgeFiles = [...new Set(teamBadgeFiles(sources).map((badge) => badge.file))].sort();
+  for (let index = 0; index < badgeFiles.length; index += 40)
+    await collect(
+      `wiki-team-images-${index / 40 + 1}`,
+      wikiQuery({
+        action: 'query',
+        titles: badgeFiles.slice(index, index + 40).join('|'),
+        prop: 'imageinfo',
+        iiprop: 'url',
+        iiurlwidth: '128',
+        redirects: '1',
+      }),
+    );
   return sources;
 }

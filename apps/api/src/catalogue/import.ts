@@ -1,3 +1,4 @@
+import { importExtras } from './extras.js';
 import type { Pool, PoolConnection, ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import { FAMILIES } from './curation.js';
 import { WORKS } from './official.js';
@@ -638,6 +639,7 @@ export async function importCatalogue(
         );
       await db.execute(`DELETE FROM techniques WHERE category='passive'`);
     }
+    if (plan.extras) await importExtras(db, plan.extras);
     await db.commit();
   } catch (error) {
     try {

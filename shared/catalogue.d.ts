@@ -37,6 +37,8 @@ export interface CatalogueFilters {
     appearances: number;
     equipment?: number;
     tactics?: number;
+    passives?: number;
+    teams?: number;
   };
 }
 export interface Page<T> {
@@ -176,4 +178,49 @@ export interface CatalogueItem {
   tension: number | null;
   stats: Partial<Record<StatKey, number>>;
   sourceUrl: string | null;
+}
+
+export type PassiveSource = 'player' | 'custom' | 'coach' | 'manager';
+export interface PassiveQuery {
+  q?: string;
+  source?: PassiveSource;
+  style?: PlayStyle;
+  page?: number;
+  limit?: number;
+}
+export interface Passive {
+  id: number;
+  gameId: string;
+  stringId: string;
+  name: string;
+  description: string;
+  source: PassiveSource;
+  playStyle: PlayStyle | null;
+  value: number;
+  unit: 'percent' | 'points';
+  icon: number | null;
+  family: number | null;
+  tier: number | null;
+  sourceUrl: string | null;
+}
+export interface HistoricalTeamQuery {
+  q?: string;
+  work?: string;
+  page?: number;
+  limit?: number;
+}
+export interface HistoricalTeam {
+  id: number;
+  name: string;
+  logoUrl: string | null;
+  sourceUrl: string | null;
+  playerCount: number;
+  works: Work[];
+}
+export interface HistoricalTeamDetail extends HistoricalTeam {
+  rosters: { work: Work | null; players: PlayerSummary[] }[];
+}
+export interface LoadoutOptions {
+  equipment: CatalogueItem[];
+  passives: Passive[];
 }

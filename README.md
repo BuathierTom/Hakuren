@@ -27,13 +27,14 @@ Le frontend est accessible sur [localhost:5173](http://localhost:5173) par défa
 
 ## Commandes
 
-| Commande                   | Action                                          |
-| -------------------------- | ----------------------------------------------- |
-| `npm run dev`              | Lancer le frontend et l'API                     |
-| `npm run check`            | Vérifier les types, les tests et la compilation |
-| `npm run build`            | Compiler le projet                              |
-| `npm run format`           | Formater le code et les styles                  |
-| `npm run import:catalogue` | Importer le catalogue dans la base configurée   |
+| Commande                          | Action                                          |
+| --------------------------------- | ----------------------------------------------- |
+| `npm run dev`                     | Lancer le frontend et l'API                     |
+| `npm run check`                   | Vérifier les types, les tests et la compilation |
+| `npm run build`                   | Compiler le projet                              |
+| `npm run format`                  | Formater le code et les styles                  |
+| `npm run import:catalogue`        | Importer le catalogue dans la base configurée   |
+| `npm run import:catalogue-extras` | Charger les passifs et les écussons des équipes |
 
 ## Organisation
 

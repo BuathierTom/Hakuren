@@ -4,6 +4,8 @@ import type {
   TechniqueQuery,
   ItemQuery,
   ItemSection,
+  PassiveQuery,
+  HistoricalTeamQuery,
 } from '../../../../shared/catalogue.js';
 import type { CatalogueRepository } from './repository.js';
 
@@ -20,7 +22,9 @@ const id = { type: 'integer', minimum: 1, maximum: 4_294_967_295 };
 export function registerCatalogueRoutes(app: FastifyInstance, catalogue?: CatalogueRepository) {
   app.addHook('onRequest', async (request, reply) => {
     if (
-      /^\/api\/(?:catalogue|players|techniques|equipment|tactics)(?:\/|\?|$)/.test(request.url) &&
+      /^\/api\/(?:catalogue|players|techniques|equipment|tactics|passives|teams)(?:\/|\?|$)/.test(
+        request.url,
+      ) &&
       !catalogue
     ) {
       return reply.code(503).send({
@@ -78,6 +82,93 @@ export function registerCatalogueRoutes(app: FastifyInstance, catalogue?: Catalo
       },
     );
   }
+  app.get(
+    '/api/catalogue/loadouts',
+    { schema: { querystring: { type: 'object', additionalProperties: false, properties: {} } } },
+    async (_request, reply) => {
+      if (!catalogue?.loadouts)
+        return reply.code(503).send({
+          error: 'CATALOGUE_UNAVAILABLE',
+          message: 'Le catalogue est momentanément indisponible.',
+        });
+      return catalogue.loadouts();
+    },
+  );
+  app.get<{ Querystring: PassiveQuery }>(
+    '/api/passives',
+    {
+      schema: {
+        querystring: {
+          type: 'object',
+          additionalProperties: false,
+          properties: {
+            q: common.q,
+            page: common.page,
+            limit: common.limit,
+            source: { type: 'string', enum: ['player', 'custom', 'coach', 'manager'] },
+            style: {
+              type: 'string',
+              enum: ['breach', 'tension', 'counter', 'bond', 'rough_play', 'justice'],
+            },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      if (!catalogue?.passives)
+        return reply.code(503).send({
+          error: 'CATALOGUE_UNAVAILABLE',
+          message: 'Le catalogue est momentanément indisponible.',
+        });
+      return catalogue.passives(request.query);
+    },
+  );
+  app.get<{ Querystring: HistoricalTeamQuery }>(
+    '/api/teams',
+    {
+      schema: {
+        querystring: {
+          type: 'object',
+          additionalProperties: false,
+          properties: { q: common.q, work: common.work, page: common.page, limit: common.limit },
+        },
+      },
+    },
+    async (request, reply) => {
+      if (!catalogue?.teams)
+        return reply.code(503).send({
+          error: 'CATALOGUE_UNAVAILABLE',
+          message: 'Le catalogue est momentanément indisponible.',
+        });
+      return catalogue.teams(request.query);
+    },
+  );
+  for (const section of ['passives', 'teams'] as const)
+    app.get<{ Params: { id: number } }>(
+      `/api/${section}/:id`,
+      {
+        schema: {
+          params: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['id'],
+            properties: { id },
+          },
+        },
+      },
+      async (request, reply) => {
+        const method = section === 'passives' ? catalogue?.passive : catalogue?.team;
+        if (!method)
+          return reply.code(503).send({
+            error: 'CATALOGUE_UNAVAILABLE',
+            message: 'Le catalogue est momentanément indisponible.',
+          });
+        return (
+          (await method(request.params.id)) ??
+          reply.code(404).send({ error: 'ITEM_NOT_FOUND', message: 'Cette fiche est introuvable.' })
+        );
+      },
+    );
   app.get(
     '/api/catalogue',
     { schema: { querystring: { type: 'object', additionalProperties: false, properties: {} } } },
