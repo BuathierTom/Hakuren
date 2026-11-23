@@ -1,3 +1,4 @@
+@use '@/styles/patterns/controls';
 .pagination {
   display: flex;
   align-items: center;
@@ -15,6 +16,7 @@
     background: var(--color-surface);
     font-size: inherit;
     line-height: 1.4;
+    @include controls.label;
     &:disabled {
       opacity: 0.4;
     }
@@ -25,7 +27,6 @@
       border-color: var(--color-accent-strong);
       background: var(--color-accent-strong);
       color: white;
-      font-weight: 650;
     }
   }
   .pageButton {

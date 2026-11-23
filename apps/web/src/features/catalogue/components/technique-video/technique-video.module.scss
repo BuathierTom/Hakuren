@@ -1,3 +1,4 @@
+@use '@/styles/patterns/controls';
 @use '@/styles/patterns/details';
 .video {
   display: block;
@@ -12,5 +13,6 @@
     border: 1px solid var(--color-border);
     color: var(--color-accent);
     background: white;
+    @include controls.label;
   }
 }

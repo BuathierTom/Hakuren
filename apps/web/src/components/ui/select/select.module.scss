@@ -1,3 +1,4 @@
+@use '@/styles/patterns/controls';
 .root {
   min-width: 0;
   display: grid;
@@ -5,7 +6,7 @@
 }
 .label {
   font-size: var(--font-size-small);
-  font-weight: 600;
+  @include controls.label;
 }
 .trigger {
   display: flex;
@@ -21,6 +22,7 @@
   color: var(--color-text);
   font-size: var(--font-size-body);
   text-align: left;
+  @include controls.label;
   cursor: pointer;
   &[data-size='large'] {
     min-height: 48px;
@@ -85,6 +87,7 @@
   color: var(--color-text);
   text-align: left;
   font-size: var(--font-size-body);
+  @include controls.label;
   cursor: pointer;
   &[data-active='true']:not(:disabled) {
     background: var(--color-hover);

@@ -1,3 +1,4 @@
+@use '@/styles/patterns/controls';
 @use '@/styles/patterns/details';
 .eyebrow {
   @include details.eyebrow;
@@ -114,7 +115,7 @@
     border: 1px solid var(--color-border);
     background: var(--color-surface);
     font-size: var(--font-size-small);
-    font-weight: 650;
+    @include controls.label;
     color: var(--color-muted);
     &:hover {
       background: var(--color-hover);

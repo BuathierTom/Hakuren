@@ -1,3 +1,4 @@
+@use '@/styles/patterns/controls';
 .heading {
   display: flex;
   justify-content: space-between;
@@ -72,6 +73,7 @@
   border: 1px solid #d79999;
   button {
     margin-left: 8px;
+    @include controls.label;
   }
 }
 @media (max-width: 720px) {

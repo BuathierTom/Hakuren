@@ -1,3 +1,4 @@
+@use '@/styles/patterns/controls';
 .root {
   margin-top: 20px;
 }
@@ -102,6 +103,7 @@
   color: var(--color-accent-strong);
   padding: 7px 8px;
   font-size: var(--font-size-caption);
+  @include controls.label;
   cursor: pointer;
   &:disabled {
     opacity: 0.5;
@@ -117,6 +119,7 @@
     border: 1px solid var(--color-border);
     background: var(--color-surface);
     color: var(--color-text);
+    @include controls.label;
     cursor: pointer;
   }
 }

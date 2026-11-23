@@ -1,3 +1,4 @@
+@use '@/styles/patterns/controls';
 .analysis {
   align-self: start;
   border: 1px solid var(--color-border);
@@ -174,6 +175,7 @@
     border: 1px solid var(--color-border);
     background: var(--color-surface);
     color: var(--color-text);
+    @include controls.label;
     cursor: pointer;
   }
 }

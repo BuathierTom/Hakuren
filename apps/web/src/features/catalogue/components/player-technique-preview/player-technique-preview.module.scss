@@ -1,3 +1,4 @@
+@use '@/styles/patterns/controls';
 .popover {
   position: fixed;
   inset: auto;
@@ -112,6 +113,7 @@
     border: 1px solid var(--color-border);
     color: var(--color-accent);
     background: var(--color-surface);
+    @include controls.label;
   }
 }
 
