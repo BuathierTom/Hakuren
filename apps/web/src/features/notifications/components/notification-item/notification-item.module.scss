@@ -1,0 +1,80 @@
+@use '@/styles/patterns/controls';
+.notification {
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-accent);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: 0 3px 12px #1b30401a;
+  pointer-events: auto;
+  cursor: pointer;
+  animation: notification-enter var(--notification-transition, 180ms) ease-out both;
+  &[data-tone='success'] {
+    border-left-color: #277654;
+  }
+  &[data-tone='error'] {
+    border-left-color: #a13c32;
+  }
+  &[data-closing='true'] {
+    pointer-events: none;
+    animation: notification-leave var(--notification-transition, 180ms) ease-in both;
+  }
+}
+.message {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font-size: var(--font-size-body);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  &:focus-visible {
+    outline-offset: -4px;
+  }
+}
+.action {
+  @include controls.label;
+  margin: 0 14px 14px;
+  padding: 7px 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-accent-strong);
+  font-size: var(--font-size-small);
+  cursor: pointer;
+  &:hover {
+    border-color: var(--color-accent);
+  }
+}
+@keyframes notification-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes notification-leave {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .notification {
+    animation: none;
+  }
+  .notification[data-closing='true'] {
+    animation: none;
+    opacity: 0;
+  }
+}

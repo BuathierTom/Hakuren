@@ -1,3 +1,4 @@
+@use '@/styles/patterns/controls';
 .toolbar {
   display: flex;
   align-items: flex-end;
@@ -11,7 +12,7 @@
     display: grid;
     gap: 8px;
     font-size: var(--font-size-small);
-    font-weight: 600;
+    @include controls.label;
   }
   input {
     width: 100%;
@@ -21,6 +22,7 @@
     background: var(--color-surface);
     color: var(--color-text);
     font-size: var(--font-size-body);
+    @include controls.label;
   }
   .history button,
   .actions button {
@@ -33,7 +35,7 @@
     border: 1px solid var(--color-border);
     background: var(--color-surface);
     font-size: var(--font-size-small);
-    font-weight: 550;
+    @include controls.label;
     cursor: pointer;
     &:hover:not(:disabled) {
       border-color: var(--color-accent);
@@ -45,6 +47,15 @@
     }
   }
   .actions button.save {
+    display: inline-grid;
+    &::before {
+      content: 'Enregistrement…';
+      visibility: hidden;
+      grid-area: 1 / 1;
+    }
+    > span {
+      grid-area: 1 / 1;
+    }
     background: var(--color-accent);
     border-color: var(--color-accent);
     color: white;

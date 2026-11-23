@@ -1,3 +1,4 @@
+@use '@/styles/patterns/controls';
 .page {
   min-height: 100dvh;
   background: #f4f7f9 url('../../../assets/backgrounds/composition.svg') center 76px / 100% auto
@@ -20,23 +21,12 @@
     letter-spacing: -0.035em;
     font-weight: 650;
   }
-  > span {
-    font-size: var(--font-size-small);
-    color: var(--color-muted);
-  }
 }
 .workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 290px;
   align-items: start;
   gap: 24px;
-}
-.notice {
-  min-height: 20px;
-  margin: -9px 0 18px;
-  color: var(--color-muted);
-  font-size: var(--font-size-small);
-  line-height: 1.5;
 }
 .state {
   border: 1px solid var(--color-border);
@@ -53,6 +43,7 @@
     border: 1px solid var(--color-border);
     color: var(--color-accent);
     background: white;
+    @include controls.label;
     cursor: pointer;
   }
 }
@@ -88,5 +79,22 @@
     h1 {
       font-size: 23px;
     }
+  }
+}
+
+.syncStatus {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  font-size: var(--font-size-small);
+  color: var(--color-muted);
+  button {
+    @include controls.label;
+    padding: 6px 9px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-accent-strong);
   }
 }

@@ -9,14 +9,56 @@ interface Props {
   onNew: () => void;
   onDelete: (id: string) => void;
   onClose: () => void;
+  busy?: boolean;
+  imports?: number;
+  onImport?: () => void;
+  localDraft?: Team | null;
+  onResume?: (team: Team) => void;
 }
-export function SavedTeams({ teams, onLoad, onNew, onDelete, onClose }: Props) {
+export function SavedTeams({
+  teams,
+  onLoad,
+  onNew,
+  onDelete,
+  onClose,
+  busy = false,
+  imports = 0,
+  onImport,
+  localDraft,
+  onResume,
+}: Props) {
   const [deleting, setDeleting] = useState<string | null>(null);
   return (
     <TeamDialog title="Mes équipes" onClose={onClose}>
       <button type="button" className={styles.newTeam} onClick={onNew}>
         Créer une nouvelle équipe
       </button>
+      {imports > 0 && (
+        <div className={styles.import}>
+          <p>
+            {imports} équipe{imports > 1 ? 's' : ''} enregistrée{imports > 1 ? 's' : ''} dans ce
+            navigateur.
+          </p>
+          <button type="button" disabled={busy} onClick={onImport}>
+            Importer sur mon compte
+          </button>
+        </div>
+      )}
+      {localDraft && onResume && (
+        <div className={styles.import}>
+          <p>Une copie locale de « {localDraft.name} » est disponible.</p>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              onResume(localDraft);
+              onClose();
+            }}
+          >
+            Reprendre dans une nouvelle équipe
+          </button>
+        </div>
+      )}
       {teams.length === 0 ? (
         <p className={styles.empty}>Aucune équipe enregistrée pour le moment.</p>
       ) : (
@@ -37,6 +79,7 @@ export function SavedTeams({ teams, onLoad, onNew, onDelete, onClose }: Props) {
                     className={styles.confirmDelete}
                     aria-label={`Confirmer la suppression de ${team.name}`}
                     title="Confirmer la suppression"
+                    disabled={busy}
                     onClick={() => {
                       onDelete(team.id);
                       setDeleting(null);
@@ -57,6 +100,7 @@ export function SavedTeams({ teams, onLoad, onNew, onDelete, onClose }: Props) {
                 <button
                   type="button"
                   className={styles.delete}
+                  disabled={busy}
                   onClick={() => setDeleting(team.id)}
                   aria-label={`Supprimer ${team.name}`}
                   title="Supprimer l’équipe"

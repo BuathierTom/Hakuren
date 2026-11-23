@@ -1,3 +1,11 @@
+@mixin label {
+  font-family: var(--font-family-base);
+  font-style: italic;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: normal;
+}
+
 @mixin select {
   position: relative;
   min-width: 0;
@@ -10,7 +18,7 @@
     color: var(--color-muted);
     background: var(--color-surface);
     font-size: var(--font-size-small);
-    font-weight: 500;
+    @include label;
     text-overflow: ellipsis;
   }
   > svg {
@@ -32,7 +40,7 @@
   background: var(--color-accent);
   color: white;
   font-size: var(--font-size-small);
-  font-weight: 600;
+  @include label;
   &:hover {
     background: var(--color-accent-strong);
   }

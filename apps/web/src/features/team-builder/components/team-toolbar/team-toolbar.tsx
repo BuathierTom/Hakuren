@@ -8,6 +8,8 @@ interface Props {
   formations: Formation[];
   canUndo: boolean;
   canRedo: boolean;
+  saving?: boolean;
+  saveDisabled?: boolean;
   onName: (name: string) => void;
   onFormation: (code: string) => void;
   onUndo: () => void;
@@ -73,8 +75,14 @@ export function TeamToolbar(p: Props) {
         <button type="button" onClick={p.onTeams}>
           Mes équipes
         </button>
-        <button type="button" className={styles.save} onClick={p.onSave}>
-          Enregistrer
+        <button
+          type="button"
+          className={styles.save}
+          onClick={p.onSave}
+          disabled={p.saving || p.saveDisabled}
+          aria-busy={p.saving}
+        >
+          <span>{p.saving ? 'Enregistrement…' : 'Enregistrer'}</span>
         </button>
       </div>
     </section>

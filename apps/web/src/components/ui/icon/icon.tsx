@@ -19,6 +19,11 @@ const shapes = {
     </>
   ),
   check: <path d="m5 12 4 4L19 6" />,
+  logout: (
+    <>
+      <path d="M9 4H4v16h5M14 8l4 4-4 4M8 12h10" />
+    </>
+  ),
   close: <path d="m6 6 12 12M6 18 18 6" />,
   arrow: <path d="M5 12h14m-5-5 5 5-5 5" />,
   left: <path d="m14 6-6 6 6 6" />,

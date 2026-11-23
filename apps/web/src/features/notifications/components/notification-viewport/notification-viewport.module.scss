@@ -1,0 +1,27 @@
+.viewport {
+  position: fixed;
+  top: max(calc(var(--notification-header-bottom, 0px) + 12px), env(safe-area-inset-top));
+  right: max(20px, env(safe-area-inset-right));
+  z-index: 10000;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  width: min(380px, calc(100% - 40px));
+  max-height: calc(100dvh - var(--notification-header-bottom, 0px) - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  pointer-events: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  &:empty {
+    display: none;
+  }
+}
+@media (max-width: 520px) {
+  .viewport {
+    right: max(12px, env(safe-area-inset-right));
+    width: calc(100% - 24px);
+  }
+}

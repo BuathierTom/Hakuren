@@ -1,12 +1,43 @@
-import { useEffect, useReducer, useState } from 'react';
+import { useNotifications } from '@/features/notifications/notification-context';
+import { teamIdentity } from '../lib/team-identity';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { emptyTeam, teamReducer, type Team, type SavedTeam } from '../lib/team';
 import { readDraft, readTeams, saveTeam, writeDraft, writeTeams, TEAMS_KEY } from '../lib/storage';
-export function useTeamBuilder() {
+import {
+  readAccountBackup,
+  writeAccountBackup,
+  keepAccountRecovery,
+  clearAccountRecovery,
+  importReceiptKey,
+} from '../lib/account-backup';
+import type { TeamAccount, TeamAccountState } from '../lib/team-account';
+const same = (a: unknown, b: unknown) => teamIdentity(a) === teamIdentity(b);
+export function useTeamBuilder(
+  account: TeamAccount | null = null,
+  remote: TeamAccountState | null = null,
+) {
+  const { notify, dismiss } = useNotifications();
   const [initial] = useState(() => {
     try {
-      return readDraft(window.localStorage);
+      if (!account) return { ...readDraft(window.localStorage), recovery: null as Team | null };
+      const backup = readAccountBackup(window.localStorage, account.userId);
+      const recovery = readAccountBackup(window.localStorage, account.userId, true)?.team ?? null;
+      const revision = remote?.draft?.revision ?? null;
+      const stale =
+        backup && !same(backup.team, remote?.draft?.team) && backup.revision !== revision;
+      if (stale) keepAccountRecovery(window.localStorage, account.userId, backup);
+      return {
+        team:
+          backup && !stale ? backup.team : (remote?.draft?.team ?? remote?.items[0]?.team ?? null),
+        error: null,
+        recovery: stale ? backup.team : recovery,
+      };
     } catch {
-      return { team: null, error: 'Le stockage local est désactivé dans ce navigateur.' };
+      return {
+        team: remote?.draft?.team ?? null,
+        error: 'Le stockage local est indisponible. La sauvegarde sur le compte reste accessible.',
+        recovery: null as Team | null,
+      };
     }
   });
   const [history, dispatch] = useReducer(teamReducer, {
@@ -14,16 +45,68 @@ export function useTeamBuilder() {
     present: initial.team ?? emptyTeam(),
     future: [],
   });
-  const [notice, setNotice] = useState(initial.error ?? '');
-  const [teams, setTeams] = useState<SavedTeam[]>([]);
+  const present = useRef(history.present);
+  present.current = history.present;
+  const errorId = `team-sync-${account?.userId ?? 'guest'}`;
+  const [retryVersion, retry] = useReducer((version: number) => version + 1, 0);
+  const retrySave = useCallback(() => {
+    const state = account?.getSnapshot();
+    if (state?.errorCode === 'ACCOUNT_CHANGED' || state?.errorCode === 'LOGIN_REQUIRED')
+      window.location.reload();
+    else if (state?.blocked || state?.errorOperation === 'delete') void account?.load();
+    else if (state?.errorOperation === 'save') void account?.save(present.current);
+    else retry();
+  }, [account]);
+  useEffect(() => {
+    if (initial.error) notify({ id: 'team-local-initial', message: initial.error, tone: 'error' });
+  }, [initial.error, notify]);
+  useEffect(() => {
+    if (!remote?.error) {
+      dismiss(errorId);
+      return;
+    }
+    notify({
+      id: errorId,
+      message: remote.error,
+      tone: 'error',
+      action: {
+        label: remote.blocked ? 'Recharger depuis le compte' : 'Réessayer',
+        onClick: retrySave,
+      },
+    });
+  }, [remote?.error, remote?.blocked, errorId, notify, dismiss, retrySave]);
+  useEffect(() => () => dismiss(errorId), [errorId, dismiss]);
+  const [localTeams, setLocalTeams] = useState<SavedTeam[]>([]);
+  const [imports, setImports] = useState<SavedTeam[]>([]);
+  const [recovery, setRecovery] = useState<Team | null>(initial.recovery);
+  const [localDraft, setLocalDraft] = useState<Team | null>(null);
+  const [receiptVersion, refreshReceipt] = useReducer((version: number) => version + 1, 0);
   useEffect(() => {
     const refresh = () => {
       try {
-        setTeams(readTeams(window.localStorage));
+        const teams = readTeams(window.localStorage);
+        setLocalTeams(teams);
+        if (account) {
+          const receipt = window.localStorage.getItem(importReceiptKey(account.userId));
+          const imported = receipt ? (JSON.parse(receipt) as unknown) : [];
+          if (!Array.isArray(imported)) throw new Error('Import local illisible.');
+          setImports(teams.filter((entry) => !imported.includes(JSON.stringify(entry))));
+          const draft = readDraft(window.localStorage).team;
+          setLocalDraft(
+            draft &&
+              Object.keys(draft.slots).length &&
+              !imported.includes('draft:' + teamIdentity(draft))
+              ? draft
+              : null,
+          );
+        }
       } catch {
-        setNotice(
-          'Impossible de lire les équipes locales. Les données existantes sont conservées.',
-        );
+        notify({
+          id: 'team-local-read',
+          message:
+            'Impossible de lire les équipes locales. Les données existantes sont conservées.',
+          tone: 'error',
+        });
       }
     };
     refresh();
@@ -32,66 +115,172 @@ export function useTeamBuilder() {
     };
     window.addEventListener('storage', listener);
     return () => window.removeEventListener('storage', listener);
-  }, []);
+  }, [account, receiptVersion, notify]);
   useEffect(() => {
     try {
-      writeDraft(window.localStorage, history.present);
+      if (account)
+        writeAccountBackup(window.localStorage, account.userId, {
+          team: history.present,
+          revision: remote?.draft?.revision ?? null,
+        });
+      else writeDraft(window.localStorage, history.present);
     } catch {
-      setNotice(
-        'Le brouillon ne peut pas être sauvegardé : le stockage local est plein ou indisponible.',
-      );
+      notify({
+        id: 'team-local-backup',
+        message: 'La copie locale du brouillon ne peut pas être enregistrée dans ce navigateur.',
+        tone: 'error',
+      });
     }
-  }, [history.present]);
+  }, [account, history.present, remote?.draft?.revision, notify]);
+  useEffect(() => {
+    if (!account || !remote?.ready || remote.blocked || same(history.present, remote.draft?.team))
+      return;
+    const timeout = window.setTimeout(() => {
+      void account.saveDraft(history.present);
+    }, 700);
+    return () => window.clearTimeout(timeout);
+  }, [account, history.present, remote?.ready, remote?.blocked, retryVersion]);
+  useEffect(() => {
+    if (!account) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      if (!same(history.present, remote?.draft?.team)) {
+        event.preventDefault();
+        event.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [account, history.present, remote?.draft?.team]);
   const change = (update: Team | ((team: Team) => Team)) => {
     try {
       dispatch({
         type: 'change',
         team: typeof update === 'function' ? update(history.present) : update,
       });
-      setNotice('');
       return true;
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : 'Cette modification est impossible.');
+      notify({
+        message: error instanceof Error ? error.message : 'Cette modification est impossible.',
+        tone: 'error',
+      });
       return false;
     }
   };
-  const save = () => {
+  const save = async () => {
     if (!history.present.name.trim()) {
-      setNotice('Donnez un nom à votre équipe avant de l’enregistrer.');
+      notify({ message: 'Donne un nom à ton équipe avant de l’enregistrer.', tone: 'error' });
+      return;
+    }
+    if (account) {
+      const saved = account.save(history.present);
+      void account.saveDraft(history.present);
+      if (await saved)
+        notify({ message: 'Équipe enregistrée sur ton compte Hakuren.', tone: 'success' });
       return;
     }
     try {
-      setTeams(saveTeam(window.localStorage, history.present));
-      setNotice('Équipe enregistrée dans ce navigateur.');
+      setLocalTeams(saveTeam(window.localStorage, history.present));
+      notify({
+        message:
+          'Équipe enregistrée dans ce navigateur. Connecte-toi avec Discord pour la sauvegarder sur ton compte.',
+        tone: 'success',
+      });
     } catch (error) {
-      setNotice(
-        error instanceof Error && error.name !== 'QuotaExceededError'
-          ? error.message
-          : 'Le stockage local est plein ou indisponible.',
-      );
+      notify({
+        message:
+          error instanceof Error && error.name !== 'QuotaExceededError'
+            ? error.message
+            : 'Le stockage local est plein ou indisponible.',
+        tone: 'error',
+      });
     }
   };
-  const removeSaved = (id: string) => {
+  const removeSaved = async (id: string) => {
+    if (account) {
+      if (await account.remove(id)) notify({ message: 'Équipe supprimée.', tone: 'success' });
+      return;
+    }
     try {
       const next = readTeams(window.localStorage).filter((entry) => entry.team.id !== id);
       writeTeams(window.localStorage, next);
-      setTeams(next);
+      setLocalTeams(next);
+      notify({ message: 'Équipe supprimée.', tone: 'success' });
     } catch {
-      setNotice('Impossible de supprimer cette équipe du stockage local.');
+      notify({ message: 'Impossible de supprimer cette équipe du stockage local.', tone: 'error' });
     }
   };
+  const importLocal = async () => {
+    if (!account || !(await account.importTeams(imports))) return;
+    try {
+      const previous = JSON.parse(
+        window.localStorage.getItem(importReceiptKey(account.userId)) ?? '[]',
+      ) as unknown[];
+      window.localStorage.setItem(
+        importReceiptKey(account.userId),
+        JSON.stringify(
+          [...new Set([...previous, ...imports.map((entry) => JSON.stringify(entry))])].slice(-100),
+        ),
+      );
+      refreshReceipt();
+    } catch {
+      setImports([]);
+    }
+    notify({ message: 'Les équipes locales ont été ajoutées à ton compte.', tone: 'success' });
+  };
+  const resume = (team: Team) => {
+    change({ ...team, id: crypto.randomUUID() });
+    notify({ message: 'Le brouillon a été repris dans une nouvelle équipe.', tone: 'success' });
+    setRecovery(null);
+    setLocalDraft(null);
+    if (account) {
+      try {
+        clearAccountRecovery(window.localStorage, account.userId);
+        const receipt = JSON.parse(
+          window.localStorage.getItem(importReceiptKey(account.userId)) ?? '[]',
+        ) as unknown[];
+        window.localStorage.setItem(
+          importReceiptKey(account.userId),
+          JSON.stringify([...receipt, 'draft:' + teamIdentity(team)].slice(-100)),
+        );
+      } catch {}
+    }
+  };
+  const teams = remote?.items ?? localTeams;
+  const draftSaved = !!account && same(history.present, remote?.draft?.team);
+  const dirty = !teams.some((saved) => same(saved.team, history.present));
   return {
     team: history.present,
     teams,
-    notice,
-    setNotice,
     change,
     save,
     removeSaved,
+    imports,
+    importLocal,
+    recovery,
+    localDraft,
+    resume,
+    busy: remote?.busy ?? false,
+    error: remote?.error ?? null,
+    blocked: remote?.blocked ?? false,
+    retry: retrySave,
+    reload: () => {
+      if (account) void account.load();
+    },
+    status: account
+      ? remote?.error
+        ? 'Sauvegarde sur le compte interrompue'
+        : !draftSaved
+          ? 'Sauvegarde du brouillon…'
+          : dirty
+            ? 'Brouillon enregistré sur ton compte'
+            : 'Équipe enregistrée sur ton compte'
+      : dirty
+        ? 'Brouillon local'
+        : 'Équipe enregistrée dans ce navigateur',
     canUndo: history.past.length > 0,
     canRedo: history.future.length > 0,
     undo: () => dispatch({ type: 'undo' }),
     redo: () => dispatch({ type: 'redo' }),
-    dirty: !teams.some((saved) => JSON.stringify(saved.team) === JSON.stringify(history.present)),
+    dirty,
   };
 }

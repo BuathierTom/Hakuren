@@ -1,4 +1,8 @@
-import { useState } from 'react';
+import { useNotifications } from '@/features/notifications/notification-context';
+import { useAuth } from '@/features/auth/auth-context';
+import { useAccountTeams } from '@/features/team-builder/hooks/use-account-teams';
+import type { TeamAccount, TeamAccountState } from '@/features/team-builder/lib/team-account';
+import { useEffect, useState } from 'react';
 import type { Formation } from '@shared/formations';
 import { SiteHeader } from '@/components/layout/site-header/site-header';
 import { useRequest } from '@/features/catalogue/hooks/use-catalogue-request';
@@ -21,7 +25,58 @@ import {
 } from '@/features/team-builder/lib/team';
 import styles from './team-builder-page.module.scss';
 export function TeamBuilderPage() {
-  const builder = useTeamBuilder();
+  const auth = useAuth();
+  if (auth.loading)
+    return (
+      <div className={styles.page}>
+        <SiteHeader view="builder" />
+        <main className={styles.main}>
+          <div className={styles.state}>Chargement du compte…</div>
+        </main>
+      </div>
+    );
+  return <TeamBuilderAccount key={auth.user?.id ?? 'guest'} userId={auth.user?.id ?? null} />;
+}
+function TeamBuilderAccount({ userId }: { userId: number | null }) {
+  const { account, state } = useAccountTeams(userId);
+  if (state && !state.ready)
+    return (
+      <div className={styles.page}>
+        <SiteHeader view="builder" />
+        <main className={styles.main}>
+          <div className={styles.state} role={state.error ? 'alert' : 'status'}>
+            {state.error ? (
+              <>
+                <p>{state.error}</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    void account?.load();
+                  }}
+                >
+                  Réessayer
+                </button>
+              </>
+            ) : (
+              'Chargement de tes équipes…'
+            )}
+          </div>
+        </main>
+      </div>
+    );
+  return (
+    <TeamBuilderWorkspace key={state?.loadVersion ?? 'guest'} account={account} remote={state} />
+  );
+}
+function TeamBuilderWorkspace({
+  account,
+  remote,
+}: {
+  account: TeamAccount | null;
+  remote: TeamAccountState | null;
+}) {
+  const { notify, dismiss } = useNotifications();
+  const builder = useTeamBuilder(account, remote);
   const { team } = builder;
   const request = useRequest<{ items: Formation[] }>('/api/formations');
   const formations = request.data?.items ?? [];
@@ -29,6 +84,18 @@ export function TeamBuilderPage() {
   const [modal, setModal] = useState<
     { kind: 'picker' | 'editor'; slot: string } | { kind: 'teams' | 'clear' } | null
   >(null);
+  const importId = `local-import-${account?.userId ?? 'guest'}`;
+  useEffect(() => {
+    if (account && builder.imports.length)
+      notify({
+        id: importId,
+        message: 'Des équipes de ce navigateur peuvent être importées sur ton compte.',
+        tone: 'info',
+        action: { label: 'Mes équipes', onClick: () => setModal({ kind: 'teams' }) },
+      });
+    else dismiss(importId);
+  }, [account, builder.imports.length, importId, notify, dismiss]);
+  useEffect(() => () => dismiss(importId), [importId, dismiss]);
   const select = (player: TeamPlayer) => {
     if (!modal || modal.kind !== 'picker') return;
     if (
@@ -47,7 +114,14 @@ export function TeamBuilderPage() {
       <main className={styles.main} id="composition">
         <div className={styles.title}>
           <h1>Composition d’équipe</h1>
-          <span>{builder.dirty ? 'Brouillon local' : 'Équipe enregistrée'}</span>
+          <div className={styles.syncStatus}>
+            <span role="status">{builder.status}</span>
+            {builder.error && (
+              <button type="button" disabled={builder.busy} onClick={builder.retry}>
+                {builder.blocked ? 'Recharger' : 'Réessayer'}
+              </button>
+            )}
+          </div>
         </div>
         <TeamToolbar
           team={team}
@@ -61,13 +135,15 @@ export function TeamBuilderPage() {
           }}
           onUndo={builder.undo}
           onRedo={builder.redo}
-          onSave={builder.save}
+          saving={builder.busy}
+          saveDisabled={builder.blocked}
+          onSave={() => {
+            void builder.save();
+          }}
           onClear={() => {
-            builder.setNotice('');
             setModal({ kind: 'clear' });
           }}
           onTeams={() => {
-            builder.setNotice('');
             setModal({ kind: 'teams' });
           }}
         />
@@ -96,7 +172,6 @@ export function TeamBuilderPage() {
               team={team}
               formation={formation}
               onSlot={(slot) => {
-                builder.setNotice('');
                 setModal({ kind: team.slots[slot] ? 'editor' : 'picker', slot });
               }}
               onMove={move}
@@ -122,7 +197,6 @@ export function TeamBuilderPage() {
         )}
         {modal?.kind === 'editor' && team.slots[modal.slot] && formation && (
           <PlayerEditor
-            notice={builder.notice}
             team={team}
             slot={modal.slot}
             onClose={() => setModal(null)}
@@ -139,13 +213,23 @@ export function TeamBuilderPage() {
           <ClearTeamDialog
             onClose={() => setModal(null)}
             onConfirm={() => {
-              if (builder.change(clearTeam)) setModal(null);
+              if (builder.change(clearTeam)) {
+                setModal(null);
+                notify({ message: 'L’équipe a été vidée.', tone: 'success' });
+              }
             }}
           />
         )}
         {modal?.kind === 'teams' && (
           <SavedTeams
             teams={builder.teams}
+            busy={builder.busy || builder.blocked}
+            imports={builder.imports.length}
+            onImport={() => {
+              void builder.importLocal();
+            }}
+            localDraft={builder.recovery ?? builder.localDraft}
+            onResume={builder.resume}
             onClose={() => setModal(null)}
             onLoad={(saved) => {
               builder.change(saved);
@@ -154,8 +238,11 @@ export function TeamBuilderPage() {
             onNew={() => {
               builder.change(emptyTeam());
               setModal(null);
+              notify({ message: 'Nouvelle équipe créée.', tone: 'success' });
             }}
-            onDelete={builder.removeSaved}
+            onDelete={(id) => {
+              void builder.removeSaved(id);
+            }}
           />
         )}
       </main>

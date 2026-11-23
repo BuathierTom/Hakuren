@@ -1,3 +1,4 @@
+@use '@/styles/patterns/controls';
 .newTeam {
   min-height: 40px;
   padding: 10px 16px;
@@ -6,6 +7,7 @@
   border: 0;
   cursor: pointer;
   font-size: var(--font-size-body);
+  @include controls.label;
 }
 .empty {
   padding: 25px 0 10px;
@@ -82,5 +84,24 @@
   }
   .confirm > span {
     display: none;
+  }
+}
+
+.import {
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  background: var(--color-hover);
+  p {
+    margin: 0 0 12px;
+    font-size: var(--font-size-small);
+    line-height: 1.6;
+  }
+  button {
+    @include controls.label;
+    min-height: 36px;
+    padding: 8px 12px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
   }
 }

@@ -1,17 +1,16 @@
+import type { Assignment, Team, TeamPlayer, TeamRarity } from '@shared/teams';
+export type {
+  TeamRarity,
+  TeamPlayer,
+  PassiveAssignment,
+  Assignment,
+  Team,
+  SavedTeam,
+} from '@shared/teams';
 import { calculateTeamPower } from './team-power';
 import type { LoadoutOptions } from '@shared/catalogue';
 export { POWER_LABELS } from './power-stats';
-import type {
-  PlayerDetail,
-  PlayerStatProfile,
-  PlayerStats,
-  Position,
-  Element,
-  Gender,
-  PlayStyle,
-  StatKey,
-  EquipmentSlot,
-} from '@shared/catalogue';
+import type { PlayerDetail, PlayerStats, StatKey } from '@shared/catalogue';
 import type { Formation } from '@shared/formations';
 export const RARITIES = {
   common: { name: 'Commun', color: '#b3bdd3', shadow: '#8794b140', scale: 1 },
@@ -22,40 +21,6 @@ export const RARITIES = {
   hero: { name: 'Héro', color: '#f472b6', shadow: '#f472b657', scale: 1 },
   basara: { name: 'Basara', color: '#67e8f9', shadow: '#0d948859', scale: 1 },
 } as const;
-export type TeamRarity = keyof typeof RARITIES;
-export interface TeamPlayer {
-  id: number;
-  name: string;
-  portraitUrl: string | null;
-  position: Position | null;
-  element: Element | null;
-  gender: Gender | null;
-  playStyle: PlayStyle | null;
-  role: string | null;
-  rarities: TeamRarity[];
-  profiles: PlayerStatProfile[];
-}
-export interface PassiveAssignment {
-  id: number;
-  value: number;
-}
-export interface Assignment {
-  equipment?: Partial<Record<EquipmentSlot, number | null>>;
-  passives?: (PassiveAssignment | null)[];
-  playStyle?: PlayStyle;
-  player: TeamPlayer;
-  rarity: TeamRarity;
-}
-export interface Team {
-  id: string;
-  name: string;
-  formation: string;
-  slots: Record<string, Assignment>;
-}
-export interface SavedTeam {
-  team: Team;
-  updatedAt: string;
-}
 export const FIELD_SLOTS = Array.from({ length: 11 }, (_, i) => `field-${i + 1}`);
 export const BENCH_SLOTS = Array.from({ length: 5 }, (_, i) => `bench-${i + 1}`);
 export const STAFF_SLOTS = ['coach', 'manager-1', 'manager-2', 'manager-3'];

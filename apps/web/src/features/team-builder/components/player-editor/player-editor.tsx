@@ -29,17 +29,8 @@ interface Props {
   onRemove: () => void;
   onReplace: () => void;
   onClose: () => void;
-  notice: string;
 }
-export function PlayerEditor({
-  team,
-  slot,
-  onChange,
-  onRemove,
-  onReplace,
-  onClose,
-  notice,
-}: Props) {
+export function PlayerEditor({ team, slot, onChange, onRemove, onReplace, onClose }: Props) {
   const assignment = team.slots[slot]!;
   const request = useRequest<PlayerDetail>(`/api/players/${assignment.player.id}`);
   const titleId = useId();
@@ -157,11 +148,6 @@ export function PlayerEditor({
             Réessayer
           </button>
         </div>
-      )}
-      {notice && (
-        <p className={styles.error} role="alert">
-          {notice}
-        </p>
       )}
     </TeamDialog>
   );
