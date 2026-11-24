@@ -1,0 +1,72 @@
+name: Deploy Hakuren
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hakuren-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install, test and build
+        run: |
+          npm ci
+          npm run check
+      - name: Prepare production files
+        run: |
+          publish="$RUNNER_TEMP/hakuren"
+          mkdir -p "$publish/apps/api" "$publish/apps/web"
+          cp package.json package-lock.json .npmrc .nvmrc "$publish/"
+          cp apps/api/package.json "$publish/apps/api/"
+          cp apps/web/package.json "$publish/apps/web/"
+          cp -R apps/api/dist apps/api/database "$publish/apps/api/"
+          cp -R apps/web/dist "$publish/apps/web/"
+          cp -R deploy "$publish/"
+      - name: Deploy to VPS
+        env:
+          VPS_HOST: ${{ vars.VPS_HOST || '141.94.92.224' }}
+          VPS_USER: ${{ vars.VPS_USER || 'tom' }}
+          VPS_PORT: ${{ vars.VPS_PORT || '22' }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$VPS_HOST" =~ ^[a-zA-Z0-9][a-zA-Z0-9.-]*$ ]] || { echo 'Configurer VPS_HOST.'; exit 1; }
+          [[ "$VPS_USER" =~ ^[a-z_][a-z0-9_-]*$ ]] || { echo 'Configurer VPS_USER.'; exit 1; }
+          [[ "$VPS_PORT" =~ ^[1-9][0-9]{0,4}$ ]] && (( VPS_PORT <= 65535 )) || { echo 'VPS_PORT est invalide.'; exit 1; }
+          [[ -n "$VPS_SSH_KEY" && -n "$VPS_KNOWN_HOSTS" ]] || { echo 'Configurer VPS_SSH_KEY et VPS_KNOWN_HOSTS.'; exit 1; }
+          umask 077
+          printf '%s\n' "$VPS_SSH_KEY" > "$RUNNER_TEMP/hakuren-key"
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > "$RUNNER_TEMP/hakuren-known-hosts"
+          cat > "$RUNNER_TEMP/hakuren-ssh" <<EOF
+          Host hakuren-vps
+            HostName $VPS_HOST
+            User $VPS_USER
+            Port $VPS_PORT
+            IdentityFile $RUNNER_TEMP/hakuren-key
+            UserKnownHostsFile $RUNNER_TEMP/hakuren-known-hosts
+            StrictHostKeyChecking yes
+            BatchMode yes
+          EOF
+          rsync -az --no-owner --no-group --delay-updates -e "ssh -F $RUNNER_TEMP/hakuren-ssh" "$RUNNER_TEMP/hakuren/" hakuren-vps:/var/www/BuathierTom/Hakuren/
+          ssh -F "$RUNNER_TEMP/hakuren-ssh" hakuren-vps 'bash /var/www/BuathierTom/Hakuren/deploy/deploy.sh'
