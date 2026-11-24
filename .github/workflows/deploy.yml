@@ -17,6 +17,20 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: hakuren-test
+          MYSQL_ROOT_HOST: '%'
+          MYSQL_DATABASE: hakuren_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -28,6 +42,9 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - name: Install, test and build
+        env:
+          RUN_DATABASE_TESTS: '1'
+          DATABASE_URL: mysql://root:hakuren-test@127.0.0.1:3306/hakuren_test
         run: |
           npm ci
           npm run check
