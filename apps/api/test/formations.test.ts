@@ -7,6 +7,8 @@ import { randomBytes } from 'node:crypto';
 import { getConfig, loadEnvironment } from '../src/config.js';
 import { createPool } from '../src/db/client.js';
 import type { Pool } from 'mysql2/promise';
+import type { EntityManager } from '@mikro-orm/mysql';
+import { createOrm } from '../src/db/orm.js';
 test('formations endpoint returns database positions and refuses unsupported filters', async () => {
   const formation = {
     id: 1,
@@ -45,17 +47,20 @@ test('formations endpoint reports a missing or failed database without exposing 
 });
 test('formation repository converts SQL decimals and discards incomplete formations', async () => {
   const rows = Array.from({ length: 11 }, (_, i) => ({
-    id: 1,
-    code: 'test',
-    name: 'Test',
-    slot_number: i + 1,
+    formation: { $: { id: 1, code: 'test', name: 'Test' } },
+    slotNumber: i + 1,
     position: i === 0 ? 'GK' : 'DF',
     x: '50.00',
     y: '13.20',
   }));
-  rows.push({ ...rows[0]!, id: 2 });
-  const pool = { execute: async () => [rows] } as unknown as Pool;
-  const result = await createFormationRepository(pool).list();
+  rows.push({ ...rows[0]!, formation: { $: { id: 2, code: 'incomplete', name: 'Incomplete' } } });
+  const manager = {
+    fork() {
+      return this;
+    },
+    find: async () => rows,
+  } as unknown as EntityManager;
+  const result = await createFormationRepository(manager).list();
   assert.equal(result.length, 1);
   assert.equal(result[0]?.positions.length, 11);
   assert.equal(result[0]?.positions[0]?.y, 13.2);
@@ -84,6 +89,7 @@ test(
     const server = createPool(url.toString());
     const name = `hakuren_formations_${randomBytes(8).toString('hex')}`;
     let database: Pool | undefined;
+    let orm: Awaited<ReturnType<typeof createOrm>> | undefined;
     let created = false;
     try {
       await server.query(
@@ -99,6 +105,7 @@ test(
         .map((part) => part.trim())
         .filter(Boolean))
         await database.query(statement);
+      orm = await createOrm(url.href);
       const seed = await readFile(
         new URL('../database/changes/005-formations.sql', import.meta.url),
         'utf8',
@@ -110,7 +117,7 @@ test(
           .map((part) => part.trim())
           .filter(Boolean))
           await connection.query(statement);
-        const before = await createFormationRepository(database).list();
+        const before = await createFormationRepository(orm.em).list();
         assert.equal(before.length, 8);
         assert(before.every((formation) => formation.positions.length === 11));
         await connection.query(
@@ -125,13 +132,14 @@ test(
           .map((part) => part.trim())
           .filter(Boolean))
           await connection.query(statement);
-        assert.deepEqual(await createFormationRepository(database).list(), before);
+        assert.deepEqual(await createFormationRepository(orm.em).list(), before);
         const [squads] = await connection.query('SELECT formation_id FROM squads');
         assert.equal((squads as { formation_id: number }[])[0]?.formation_id, before[0]!.id);
       } finally {
         connection.release();
       }
     } finally {
+      await orm?.close(true);
       await database?.end();
       if (created) await server.query(`DROP DATABASE \`${name}\``);
       await server.end();

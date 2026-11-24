@@ -1,7 +1,8 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { loadEnvironment, getConfig } from '../config.js';
-import { createPool } from '../db/client.js';
+import { createOrm } from '../db/orm.js';
+import { migrate } from '../db/migrate.js';
 import { importCatalogue } from './import.js';
 import { prepareCatalogue } from './prepare.js';
 import { CACHE, collectSources, SNAPSHOT } from './sources.js';
@@ -39,11 +40,13 @@ async function main() {
     loadEnvironment();
     const { databaseUrl } = getConfig();
     if (!databaseUrl) throw new Error('Configurer DATABASE_URL avant l’import.');
-    const pool = createPool(databaseUrl);
+    const orm = await createOrm(databaseUrl);
     try {
+      await migrate(orm);
+      const pool = (await orm.em.getConnection().getNativeClient()).promise();
       await importCatalogue(pool, plan, console.log);
     } finally {
-      await pool.end();
+      await orm.close(true);
     }
     console.log('Catalogue importé.');
   }

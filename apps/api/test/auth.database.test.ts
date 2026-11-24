@@ -5,6 +5,8 @@ import test from 'node:test';
 import type { RowDataPacket } from 'mysql2/promise';
 import { loadEnvironment, getConfig } from '../src/config.js';
 import { createPool } from '../src/db/client.js';
+import { createOrm } from '../src/db/orm.js';
+import { migrate } from '../src/db/migrate.js';
 import { createAuthRepository } from '../src/auth/repository.js';
 import { hash, token } from '../src/auth/security.js';
 import { discordUser } from './helpers/auth.js';
@@ -25,6 +27,7 @@ test(
     );
     url.pathname = `/${name}`;
     const pool = createPool(url.toString());
+    let orm: Awaited<ReturnType<typeof createOrm>> | undefined;
     try {
       const schema = await readFile(new URL('../database/schema.sql', import.meta.url), 'utf8');
       for (const statement of schema
@@ -43,7 +46,9 @@ test(
           .map((s) => s.trim())
           .filter(Boolean))
           await pool.query(statement);
-      const store = createAuthRepository(pool);
+      orm = await createOrm(url.href);
+      await migrate(orm);
+      const store = createAuthRepository(orm.em);
       const state = token();
       const binding = token();
       const value = { verifier: token(), returnTo: '/equipes?page=2' };
@@ -94,6 +99,7 @@ test(
       await pool.execute('DELETE FROM users WHERE id=?', [first.id]);
       assert.equal(await store.session(hash(cascade)), null);
     } finally {
+      await orm?.close(true);
       await pool.end();
       await server.query(`DROP DATABASE \`${name}\``);
       await server.end();

@@ -5,6 +5,8 @@ import test from 'node:test';
 import type { RowDataPacket } from 'mysql2/promise';
 import { loadEnvironment, getConfig } from '../src/config.js';
 import { createPool } from '../src/db/client.js';
+import { createOrm } from '../src/db/orm.js';
+import { migrate } from '../src/db/migrate.js';
 import { createTeamRepository } from '../src/teams/repository.js';
 import { TeamError } from '../src/teams/errors.js';
 import { exampleTeam } from './helpers/teams.js';
@@ -24,6 +26,7 @@ test(
     );
     url.pathname = '/' + name;
     const pool = createPool(url.href);
+    let orm: Awaited<ReturnType<typeof createOrm>> | undefined;
     try {
       const schema = await readFile(new URL('../database/schema.sql', import.meta.url), 'utf8');
       for (const sql of schema
@@ -45,8 +48,9 @@ test(
       await pool.query(
         "INSERT INTO users (id,discord_id,display_name) VALUES (1,'111111111111111111','One'),(2,'222222222222222222','Two')",
       );
-      await pool.query("INSERT INTO formations (code,name) VALUES ('4-3-3-triangle','Triangle')");
-      const repository = createTeamRepository(pool);
+      orm = await createOrm(url.href);
+      await migrate(orm);
+      const repository = createTeamRepository(orm.em);
       const team = exampleTeam();
       const first = await repository.save(1, team, null);
       assert.deepEqual(first.team, team);
@@ -64,7 +68,7 @@ test(
           rejected.reason instanceof TeamError &&
           rejected.reason.code === 'TEAM_CONFLICT',
       );
-      const loaded = await createTeamRepository(pool).list(1);
+      const loaded = await createTeamRepository(orm.em).list(1);
       assert.equal(loaded[0]?.revision, 2);
       assert.deepEqual(loaded[0]?.team.slots, team.slots);
       await assert.rejects(
@@ -114,6 +118,7 @@ test(
       assert.equal(rows[0]?.drafts, 0);
       assert.equal((await repository.list(2)).length, 1);
     } finally {
+      await orm?.close(true);
       await pool.end();
       await server.query(`DROP DATABASE \`${name}\``);
       await server.end();

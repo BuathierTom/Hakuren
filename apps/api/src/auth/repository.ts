@@ -1,11 +1,17 @@
-import type { Pool, RowDataPacket, ResultSetHeader } from 'mysql2/promise';
+import { LockMode } from '@mikro-orm/core';
+import type { EntityManager } from '@mikro-orm/mysql';
 import type { AuthUser } from '../../../../shared/auth.js';
+import { AuthSession } from '../db/entities/auth-session.js';
+import { AuthState } from '../db/entities/auth-state.js';
+import { User } from '../db/entities/user.js';
 import type { DiscordProfile } from './discord.js';
 import { SESSION_SECONDS, STATE_SECONDS } from './security.js';
+
 export interface LoginState {
   verifier: string;
   returnTo: string;
 }
+
 export interface AuthRepository {
   createState(stateHash: string, browserHash: string, state: LoginState): Promise<void>;
   consumeState(stateHash: string, browserHash: string): Promise<LoginState | null>;
@@ -13,110 +19,99 @@ export interface AuthRepository {
   session(sessionHash: string): Promise<AuthUser | null>;
   signOut(sessionHash: string): Promise<void>;
 }
-const user = (row: RowDataPacket): AuthUser => ({
-  id: row.id,
-  discordId: row.discord_id,
-  displayName: row.display_name,
-  avatarUrl: row.avatar_url ?? null,
+
+const hashBuffer = (hash: string) => Buffer.from(hash, 'hex');
+const user = (account: User): AuthUser => ({
+  id: account.id,
+  discordId: account.discordId,
+  displayName: account.displayName,
+  avatarUrl: account.avatarUrl ?? null,
 });
-export function createAuthRepository(pool: Pool): AuthRepository {
+
+export function createAuthRepository(manager: EntityManager): AuthRepository {
   return {
     async createState(stateHash, browserHash, state) {
-      await pool.execute({
-        sql: 'DELETE FROM auth_states WHERE expires_at<=UTC_TIMESTAMP(3) LIMIT 1000',
-        timeout: 5000,
-      });
-      await pool.execute(
-        {
-          sql: 'INSERT INTO auth_states (state_hash,browser_hash,verifier,return_to,expires_at) VALUES (UNHEX(?),UNHEX(?),?,?,DATE_ADD(UTC_TIMESTAMP(3),INTERVAL ? SECOND))',
-          timeout: 5000,
-        },
-        [stateHash, browserHash, state.verifier, state.returnTo, STATE_SECONDS],
+      const em = manager.fork();
+      const expired = await em.find(
+        AuthState,
+        { expiresAt: { $lte: new Date() } },
+        { fields: ['stateHash'], limit: 1000 },
       );
+      if (expired.length)
+        await em.nativeDelete(AuthState, {
+          stateHash: { $in: expired.map((state) => state.stateHash) },
+        });
+      await em.insert(AuthState, {
+        stateHash: hashBuffer(stateHash),
+        browserHash: hashBuffer(browserHash),
+        verifier: state.verifier,
+        returnTo: state.returnTo,
+        expiresAt: new Date(Date.now() + STATE_SECONDS * 1000),
+      });
     },
-    async consumeState(stateHash, browserHash) {
-      const db = await pool.getConnection();
-      try {
-        await db.beginTransaction();
-        const [rows] = await db.execute<RowDataPacket[]>(
+    consumeState(stateHash, browserHash) {
+      return manager.fork().transactional(async (em) => {
+        const state = await em.findOne(
+          AuthState,
           {
-            sql: 'SELECT verifier,return_to FROM auth_states WHERE state_hash=UNHEX(?) AND browser_hash=UNHEX(?) AND expires_at>UTC_TIMESTAMP(3) FOR UPDATE',
-            timeout: 5000,
+            stateHash: hashBuffer(stateHash),
+            browserHash: hashBuffer(browserHash),
+            expiresAt: { $gt: new Date() },
           },
-          [stateHash, browserHash],
+          { lockMode: LockMode.PESSIMISTIC_WRITE },
         );
-        if (rows[0])
-          await db.execute(
-            { sql: 'DELETE FROM auth_states WHERE state_hash=UNHEX(?)', timeout: 5000 },
-            [stateHash],
-          );
-        await db.commit();
-        return rows[0] ? { verifier: rows[0].verifier, returnTo: rows[0].return_to } : null;
-      } catch (error) {
-        await db.rollback();
-        throw error;
-      } finally {
-        db.release();
-      }
+        if (!state) return null;
+        await em.nativeDelete(AuthState, { stateHash: state.stateHash });
+        return { verifier: state.verifier, returnTo: state.returnTo };
+      });
     },
-    async signIn(profile, sessionHash, previousHash) {
-      const db = await pool.getConnection();
-      try {
-        await db.beginTransaction();
-        const [result] = await db.execute<ResultSetHeader>(
+    signIn(profile, sessionHash, previousHash) {
+      return manager.fork().transactional(async (em) => {
+        const account = await em.upsert(
+          User,
           {
-            sql: 'INSERT INTO users (discord_id,display_name,avatar_url) VALUES (?,?,?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id),display_name=VALUES(display_name),avatar_url=VALUES(avatar_url)',
-            timeout: 5000,
+            discordId: profile.discordId,
+            displayName: profile.displayName,
+            avatarUrl: profile.avatarUrl,
+            updatedAt: new Date(),
           },
-          [profile.discordId, profile.displayName, profile.avatarUrl],
+          {
+            onConflictFields: ['discordId'],
+            onConflictMergeFields: ['displayName', 'avatarUrl', 'updatedAt'],
+          },
         );
         if (previousHash)
-          await db.execute(
-            { sql: 'DELETE FROM auth_sessions WHERE token_hash=UNHEX(?)', timeout: 5000 },
-            [previousHash],
-          );
-        await db.execute({
-          sql: 'DELETE FROM auth_sessions WHERE expires_at<=UTC_TIMESTAMP(3) LIMIT 1000',
-          timeout: 5000,
+          await em.nativeDelete(AuthSession, { tokenHash: hashBuffer(previousHash) });
+        const expired = await em.find(
+          AuthSession,
+          { expiresAt: { $lte: new Date() } },
+          { fields: ['tokenHash'], limit: 1000 },
+        );
+        if (expired.length)
+          await em.nativeDelete(AuthSession, {
+            tokenHash: { $in: expired.map((session) => session.tokenHash) },
+          });
+        await em.insert(AuthSession, {
+          tokenHash: hashBuffer(sessionHash),
+          user: account.id,
+          expiresAt: new Date(Date.now() + SESSION_SECONDS * 1000),
         });
-        await db.execute(
-          {
-            sql: 'INSERT INTO auth_sessions (token_hash,user_id,expires_at) VALUES (UNHEX(?),?,DATE_ADD(UTC_TIMESTAMP(3),INTERVAL ? SECOND))',
-            timeout: 5000,
-          },
-          [sessionHash, result.insertId, SESSION_SECONDS],
-        );
-        const [rows] = await db.execute<RowDataPacket[]>(
-          {
-            sql: 'SELECT id,discord_id,display_name,avatar_url FROM users WHERE id=?',
-            timeout: 5000,
-          },
-          [result.insertId],
-        );
-        await db.commit();
-        return user(rows[0]!);
-      } catch (error) {
-        await db.rollback();
-        throw error;
-      } finally {
-        db.release();
-      }
+        return user(account);
+      });
     },
     async session(sessionHash) {
-      const [rows] = await pool.execute<RowDataPacket[]>(
+      const session = await manager.fork().findOne(
+        AuthSession,
         {
-          sql: 'SELECT u.id,u.discord_id,u.display_name,u.avatar_url FROM auth_sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=UNHEX(?) AND s.expires_at>UTC_TIMESTAMP(3)',
-          timeout: 5000,
+          tokenHash: hashBuffer(sessionHash),
+          expiresAt: { $gt: new Date() },
         },
-        [sessionHash],
+        { populate: ['user'] },
       );
-      return rows[0] ? user(rows[0]) : null;
+      return session ? user(session.user.$) : null;
     },
     async signOut(sessionHash) {
-      await pool.execute(
-        { sql: 'DELETE FROM auth_sessions WHERE token_hash=UNHEX(?)', timeout: 5000 },
-        [sessionHash],
-      );
+      await manager.fork().nativeDelete(AuthSession, { tokenHash: hashBuffer(sessionHash) });
     },
   };
 }

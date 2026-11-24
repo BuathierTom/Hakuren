@@ -1,6 +1,6 @@
-import { readFile } from 'node:fs/promises';
 import { loadEnvironment, getConfig } from '../config.js';
-import { createPool } from '../db/client.js';
+import { createOrm } from '../db/orm.js';
+import { migrate } from '../db/migrate.js';
 import { collectSources } from './sources.js';
 import { importExtras, prepareExtras } from './extras.js';
 
@@ -15,33 +15,36 @@ const extras = prepareExtras(
 );
 console.log(`${extras.passives.length} passifs et ${extras.badges.length} écussons préparés.`);
 if (!args.has('--dry-run')) {
-  const pool = createPool(databaseUrl);
-  const db = await pool.getConnection();
+  const orm = await createOrm(databaseUrl);
   try {
-    const [locks] = await db.query<import('mysql2').RowDataPacket[]>(
-      "SELECT GET_LOCK('hakuren:catalogue-import',30) AS acquired",
-    );
-    if (locks[0]?.acquired !== 1) throw new Error('Un import est déjà en cours.');
-    const schema = await readFile(
-      new URL('../../database/changes/006-passives-team-badges.sql', import.meta.url),
-      'utf8',
-    );
-    for (const statement of schema
-      .split(';')
-      .map((part) => part.trim())
-      .filter(Boolean))
-      await db.query(statement);
-    await db.beginTransaction();
-    await importExtras(db, extras);
-    await db.commit();
-    console.log('Passifs et écussons importés.');
-  } catch {
-    await db.rollback();
-    console.error('L’import a échoué. Vérifier la disponibilité de MySQL et relancer la commande.');
-    process.exitCode = 1;
+    await migrate(orm);
+    const pool = (await orm.em.getConnection().getNativeClient()).promise();
+    const db = await pool.getConnection();
+    let locked = false;
+    try {
+      const [locks] = await db.query<import('mysql2').RowDataPacket[]>(
+        "SELECT GET_LOCK('hakuren:catalogue-import',30) AS acquired",
+      );
+      if (Number(locks[0]?.acquired) !== 1) throw new Error('Un import est déjà en cours.');
+      locked = true;
+      await db.beginTransaction();
+      await importExtras(db, extras);
+      await db.commit();
+      console.log('Passifs et écussons importés.');
+    } catch {
+      await db.rollback();
+      console.error(
+        'L’import a échoué. Vérifier la disponibilité de MySQL et relancer la commande.',
+      );
+      process.exitCode = 1;
+    } finally {
+      try {
+        if (locked) await db.query("SELECT RELEASE_LOCK('hakuren:catalogue-import')");
+      } finally {
+        db.release();
+      }
+    }
   } finally {
-    await db.query("SELECT RELEASE_LOCK('hakuren:catalogue-import')");
-    db.release();
-    await pool.end();
+    await orm.close(true);
   }
 }

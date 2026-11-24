@@ -3,6 +3,8 @@ import { createAuthRepository, type AuthRepository } from '../auth/repository.js
 import { createPool as createMysqlPool, type Pool } from 'mysql2/promise';
 import { createCatalogueRepository, type CatalogueRepository } from '../catalogue/repository.js';
 
+import { createOrm } from './orm.js';
+
 import { createFormationRepository, type FormationRepository } from '../formations/repository.js';
 
 export interface Database {
@@ -25,23 +27,26 @@ export function createPool(connectionString: string): Pool {
   });
 }
 
-export function createDatabase(connectionString: string): Database & {
-  catalogue: CatalogueRepository;
-  formations: FormationRepository;
-  auth: AuthRepository;
-  teams: TeamRepository;
-} {
-  const pool = createPool(connectionString);
+export async function createDatabase(connectionString: string): Promise<
+  Database & {
+    catalogue: CatalogueRepository;
+    formations: FormationRepository;
+    auth: AuthRepository;
+    teams: TeamRepository;
+  }
+> {
+  const orm = await createOrm(connectionString);
+  const pool = (await orm.em.getConnection().getNativeClient()).promise();
   return {
-    auth: createAuthRepository(pool),
-    teams: createTeamRepository(pool),
+    auth: createAuthRepository(orm.em),
+    teams: createTeamRepository(orm.em),
     catalogue: createCatalogueRepository(pool),
-    formations: createFormationRepository(pool),
+    formations: createFormationRepository(orm.em),
     async check() {
       await pool.execute({ sql: 'SELECT 1', timeout: 5_000 });
     },
     async close() {
-      await pool.end();
+      await orm.close(true);
     },
   };
 }

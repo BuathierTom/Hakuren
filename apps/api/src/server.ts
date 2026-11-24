@@ -4,7 +4,7 @@ import { createDatabase } from './db/client.js';
 
 loadEnvironment();
 const config = getConfig();
-const database = config.databaseUrl ? createDatabase(config.databaseUrl) : undefined;
+const database = config.databaseUrl ? await createDatabase(config.databaseUrl) : undefined;
 const app = buildApp({
   database,
   catalogue: database?.catalogue,

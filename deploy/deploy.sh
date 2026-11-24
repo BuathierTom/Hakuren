@@ -11,9 +11,7 @@ if [[ -s "$HOME/.nvm/nvm.sh" ]]; then
 fi
 
 npm ci --omit=dev
-node apps/api/dist/auth/migrate.js
-node apps/api/dist/teams/migrate.js
-node apps/api/dist/formations/cli.js
+node apps/api/dist/db/cli.js up
 pm2 startOrRestart deploy/ecosystem.config.cjs --only hakuren-api --update-env
 
 api_port="$(node --env-file=.env -p 'process.env.API_PORT || 3107')"
