@@ -1,22 +1,7 @@
 import passiveSpriteMap from '../../../../../assets/icons/passives/_passive_icons.csv?raw';
 import type { Category, Element, Gender, PlayStyle, Position } from '@shared/catalogue';
-import wind from '../../../../../assets/icons/elements/icon_element_wind.png';
-import forest from '../../../../../assets/icons/elements/icon_element_wood.png';
-import fire from '../../../../../assets/icons/elements/icon_element_fire.png';
-import mountain from '../../../../../assets/icons/elements/icon_element_mountain.png';
-import voidElement from '../../../../../assets/icons/elements/icon_element_void.png';
 import male from '../../../../../assets/icons/gender/icon_gender_male.png';
 import female from '../../../../../assets/icons/gender/icon_gender_female.png';
-import goalkeeper from '../../../../../assets/icons/positions/icon_position_gk.fr.png';
-import defender from '../../../../../assets/icons/positions/icon_position_def.fr.png';
-import midfielder from '../../../../../assets/icons/positions/icon_position_mid.fr.png';
-import forward from '../../../../../assets/icons/positions/icon_position_fwd.fr.png';
-import breach from '../../../../../assets/icons/styles/icon_style_breach.png';
-import tension from '../../../../../assets/icons/styles/icon_style_tension.png';
-import counter from '../../../../../assets/icons/styles/icon_style_counter.png';
-import bondStyle from '../../../../../assets/icons/styles/icon_style_bond.png';
-import roughPlay from '../../../../../assets/icons/styles/icon_style_rough_play.png';
-import justice from '../../../../../assets/icons/styles/icon_style_justice.png';
 import shoot from '../../../../../assets/icons/hissatsu/icon_hissatsu_shoot.png';
 import dribble from '../../../../../assets/icons/hissatsu/icon_hissatsu_dribble.png';
 import block from '../../../../../assets/icons/hissatsu/icon_hissatsu_block.png';
@@ -29,23 +14,9 @@ import bond from '../../../../../assets/icons/aura/icon_aura_bond_transform.png'
 import awakening from '../../../../../assets/icons/aura/icon_aura_awakening_power.png';
 import mode from '../../../../../assets/icons/aura/icon_aura_mode_change.png';
 import styles from './game-icon.module.scss';
+import { elementIcons, playStyleIcons, positionIcons } from '../../lib/game-icon-assets';
 
-const elements: Record<Element, string> = { wind, forest, fire, mountain, void: voidElement };
 const genders: Partial<Record<Gender, string>> = { male, female };
-const positions: Record<Position, string> = {
-  GK: goalkeeper,
-  DF: defender,
-  MF: midfielder,
-  FW: forward,
-};
-const playStyles: Record<PlayStyle, string> = {
-  breach,
-  tension,
-  counter,
-  bond: bondStyle,
-  rough_play: roughPlay,
-  justice,
-};
 const categories: Partial<Record<Category, string>> = {
   shoot,
   dribble,
@@ -65,7 +36,7 @@ const tactics = import.meta.glob('../../../../../assets/icons/tactics/*.png', {
   import: 'default',
 }) as Record<string, string>;
 export function ElementIcon({ element }: { element: Element | null }) {
-  const src = element ? elements[element] : null;
+  const src = element ? elementIcons[element] : null;
   return src ? (
     <img className={styles.element} src={src} width="20" height="20" alt="" aria-hidden="true" />
   ) : null;
@@ -80,7 +51,7 @@ export function PositionIcon({ position }: { position: Position }) {
   return (
     <img
       className={styles.position}
-      src={positions[position]}
+      src={positionIcons[position]}
       width="34"
       height="20"
       alt=""
@@ -92,7 +63,7 @@ export function PlayStyleIcon({ style }: { style: PlayStyle }) {
   return (
     <img
       className={styles.playStyle}
-      src={playStyles[style]}
+      src={playStyleIcons[style]}
       width="20"
       height="20"
       alt=""

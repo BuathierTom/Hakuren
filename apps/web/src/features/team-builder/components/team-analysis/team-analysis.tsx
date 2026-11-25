@@ -6,23 +6,14 @@ import { POWER_LABELS, teamCounts, teamPower, type Team } from '../../lib/team';
 import { teamAlerts } from '../../lib/team-alerts';
 import { Icon } from '@/components/ui/icon/icon';
 import styles from './team-analysis.module.scss';
+import { hasTeamLoadout } from '../../lib/loadouts';
 export function TeamAnalysis({ team, formation }: { team: Team; formation: Formation }) {
   const counts = teamCounts(team);
   const alerts = teamAlerts(team, formation);
   const offPosition = alerts.find((alert) => alert.code === 'off-position')?.slots ?? [];
-  const hasLoadout = Object.entries(team.slots).some(
-    ([slot, assignment]) =>
-      !slot.startsWith('bench-') &&
-      (Object.values(assignment.equipment ?? {}).some(Boolean) ||
-        assignment.passives?.some((passive) => passive && passive.value !== 0)),
-  );
+  const hasLoadout = hasTeamLoadout(team);
   const loadout = useRequest<LoadoutOptions>(hasLoadout ? '/api/catalogue/loadouts' : null);
   const power = useMemo(() => teamPower(team, loadout.data ?? undefined), [team, loadout.data]);
-  const showProjection = Object.keys(power.totals).some(
-    (key) =>
-      power.totals[key as keyof typeof power.totals] !==
-      power.potential[key as keyof typeof power.potential],
-  );
   return (
     <aside className={styles.analysis} aria-label="Analyse de l’équipe">
       <h2>Analyse</h2>
@@ -74,15 +65,6 @@ export function TeamAnalysis({ team, formation }: { team: Team; formation: Forma
                     ? '—'
                     : power.totals[key as keyof typeof power.totals].toLocaleString('fr-FR')}
                 </dd>
-                {!loadout.loading &&
-                  !loadout.error &&
-                  power.potential[key as keyof typeof power.potential] !==
-                    power.totals[key as keyof typeof power.totals] && (
-                    <span className={styles.projection}>
-                      Sous conditions :{' '}
-                      {power.potential[key as keyof typeof power.potential].toLocaleString('fr-FR')}
-                    </span>
-                  )}
               </div>
             ))}
           </dl>
@@ -101,22 +83,10 @@ export function TeamAnalysis({ team, formation }: { team: Team; formation: Forma
           )}
           {hasLoadout && !loadout.loading && !loadout.error && (
             <>
-              <p className={styles.note}>Équipements et bonus permanents inclus.</p>
-              {showProjection && (
-                <p className={styles.note}>
-                  Les valeurs sous conditions sont des projections de match.
-                </p>
-              )}
               {power.matchState > 0 && (
                 <p className={styles.note}>
                   {power.matchState} passif{power.matchState > 1 ? 's' : ''} en attente du rang de
                   build, de la puissance de lien ou d’un remplacement.
-                </p>
-              )}
-              {power.gauges > 0 && (
-                <p className={styles.note}>
-                  {power.gauges} passif{power.gauges > 1 ? 's' : ''} concerne
-                  {power.gauges > 1 ? 'nt' : ''} d’autres paramètres de jeu.
                 </p>
               )}
               {(power.unavailable > 0 || power.unresolved > 0) && (

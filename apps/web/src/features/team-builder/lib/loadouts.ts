@@ -1,5 +1,5 @@
 import type { Passive, PassiveSource, CatalogueItem, EquipmentSlot } from '@shared/catalogue';
-import type { Assignment, TeamRarity } from './team';
+import type { Assignment, TeamRarity, Team } from './team';
 export const EQUIPMENT_ORDER: EquipmentSlot[] = ['boots', 'pendant', 'bracelet', 'accessory'];
 export function passiveSource(slot: string, index: number): PassiveSource {
   if (slot === 'coach') return 'coach';
@@ -11,7 +11,9 @@ export function groupedPassives(passives: Passive[], source: PassiveSource, rari
     rarity
   ];
   const families = new Map<string, Passive[]>();
-  for (const passive of passives.filter((passive) => passive.source === source)) {
+  for (const passive of passives.filter(
+    (passive) => passive.source === source && (passive.tier ?? 0) <= tier,
+  )) {
     const key = passive.family == null ? `id:${passive.id}` : `family:${passive.family}`;
     families.set(key, [...(families.get(key) ?? []), passive]);
   }
@@ -74,4 +76,23 @@ export function fillPassives(
     }
   }
   return next;
+}
+
+export function hasTeamLoadout(team: Team): boolean {
+  return Object.entries(team.slots).some(
+    ([slot, assignment]) =>
+      !slot.startsWith('bench-') &&
+      (Object.values(assignment.equipment ?? {}).some(Boolean) ||
+        assignment.passives?.some((passive) => passive && passive.value !== 0)),
+  );
+}
+
+export function hasEmptyLoadouts(team: Team) {
+  return Object.values(team.slots).some(
+    (assignment) =>
+      EQUIPMENT_ORDER.some((slot) => !assignment.equipment?.[slot]) ||
+      Array.from({ length: 6 }, (_, index) => assignment.passives?.[index]).some(
+        (passive) => !passive,
+      ),
+  );
 }

@@ -79,123 +79,148 @@ export function calculateTeamPower(
   catalogue: LoadoutOptions,
   statsFor: (assignment: Assignment) => BaseStats | null,
 ) {
-  const totals = emptyPower();
-  const potential = emptyPower();
-  let missing = 0;
-  const sources = Object.entries(team.slots)
-    .filter(([slot]) => onPitch(slot) || slot === 'coach' || /^manager-[1-3]$/.test(slot))
-    .map(([slot, assignment]) => ({ slot, assignment }));
+  return createPowerCalculator(catalogue, statsFor)(team);
+}
+export function createPowerCalculator(
+  catalogue: LoadoutOptions,
+  statsFor: (assignment: Assignment) => BaseStats | null,
+) {
   const equipment = new Map(catalogue.equipment.map((item) => [item.id, item]));
-  const passives = new Map(catalogue.passives.map((passive) => [passive.id, passive]));
-  const starters: Target[] = [];
-  const unavailable = new Set<string>();
-  const unresolved = new Set<string>();
-  const matchState = new Set<string>();
-  const gauges = new Set<string>();
-  for (const source of sources.filter((source) => onPitch(source.slot))) {
-    const base = statsFor(source.assignment);
-    if (!base) {
-      missing++;
-      continue;
-    }
-    const stats = { ...base };
-    for (const [slot, id] of Object.entries(source.assignment.equipment ?? {})) {
-      if (!id) continue;
-      const item = equipment.get(id);
-      if (!item || item.section !== 'equipment' || item.slot !== slot) {
-        unavailable.add(`equipment:${source.slot}:${slot}`);
-        continue;
-      }
-      for (const [key, value] of Object.entries(item.stats))
-        if (Object.hasOwn(stats, key) && typeof value === 'number' && Number.isFinite(value))
-          stats[key as keyof BaseStats] += value;
-    }
-    starters.push({
-      ...source,
-      stats,
-      bonuses: {
-        shootAT: [],
-        focusAT: [],
-        focusDF: [],
-        wallDF: [],
-        scrambleAT: [],
-        scrambleDF: [],
-        kp: [],
+  const passives = new Map(
+    catalogue.passives.map((passive) => [
+      passive.id,
+      {
+        passive,
+        effect: passiveEffect(passive.name),
       },
-    });
-  }
-  for (const source of sources)
-    for (const [index, selected] of (source.assignment.passives ?? []).entries()) {
-      if (
-        !selected ||
-        !Number.isFinite(selected.value) ||
-        selected.value <= 0 ||
-        selected.value > 99999
-      )
-        continue;
-      const identity = `${source.slot}:${index}`;
-      const passive = passives.get(selected.id);
-      if (!passive) {
-        unavailable.add(`passive:${identity}`);
-        continue;
-      }
-      const effect = passiveEffect(passive.name);
-      if (!effect) {
-        unresolved.add(identity);
-        continue;
-      }
-      if (effect.kind === 'gauge') {
-        gauges.add(identity);
+    ]),
+  );
+  return (team: Team) => {
+    const bySlot: Record<
+      string,
+      { totals: ReturnType<typeof emptyPower>; potential: ReturnType<typeof emptyPower> }
+    > = {};
+    const totals = emptyPower();
+    const potential = emptyPower();
+    let missing = 0;
+    const sources = Object.entries(team.slots)
+      .filter(([slot]) => onPitch(slot) || slot === 'coach' || /^manager-[1-3]$/.test(slot))
+      .map(([slot, assignment]) => ({ slot, assignment }));
+    const starters: Target[] = [];
+    const unavailable = new Set<string>();
+    const unresolved = new Set<string>();
+    const matchState = new Set<string>();
+    const gauges = new Set<string>();
+    for (const source of sources.filter((source) => onPitch(source.slot))) {
+      const base = statsFor(source.assignment);
+      if (!base) {
+        missing++;
         continue;
       }
-      if (effect.kind === 'match-state') {
-        matchState.add(identity);
-        continue;
+      const stats = { ...base };
+      for (const [slot, id] of Object.entries(source.assignment.equipment ?? {})) {
+        if (!id) continue;
+        const item = equipment.get(id);
+        if (!item || item.section !== 'equipment' || item.slot !== slot) {
+          unavailable.add(`equipment:${source.slot}:${slot}`);
+          continue;
+        }
+        for (const [key, value] of Object.entries(item.stats))
+          if (Object.hasOwn(stats, key) && typeof value === 'number' && Number.isFinite(value))
+            stats[key as keyof BaseStats] += value;
       }
-      if (
-        effect.kind === 'power' &&
-        effect.neighbor &&
-        !sources.some(
-          (target) =>
-            onPitch(target.slot) &&
-            target.slot !== source.slot &&
-            source.assignment.player.element !== null &&
-            target.assignment.player.element !== null &&
-            (effect.neighbor === 'same-element'
-              ? target.assignment.player.element === source.assignment.player.element
-              : target.assignment.player.element !== source.assignment.player.element),
+      starters.push({
+        ...source,
+        stats,
+        bonuses: {
+          shootAT: [],
+          focusAT: [],
+          focusDF: [],
+          wallDF: [],
+          scrambleAT: [],
+          scrambleDF: [],
+          kp: [],
+        },
+      });
+    }
+    for (const source of sources)
+      for (const [index, selected] of (source.assignment.passives ?? []).entries()) {
+        if (
+          !selected ||
+          !Number.isFinite(selected.value) ||
+          selected.value <= 0 ||
+          selected.value > 99999
         )
-      )
-        continue;
-      for (const target of targetsFor(effect, source, starters)) {
-        if (effect.kind === 'flat') target.stats[effect.stat] += selected.value;
-        else
-          for (const key of effect.keys)
-            target.bonuses[key].push({ value: selected.value, effect });
+          continue;
+        const identity = `${source.slot}:${index}`;
+        const passive = passives.get(selected.id);
+        if (!passive) {
+          unavailable.add(`passive:${identity}`);
+          continue;
+        }
+        const effect = passive.effect;
+        if (!effect) {
+          unresolved.add(identity);
+          continue;
+        }
+        if (effect.kind === 'gauge') {
+          gauges.add(identity);
+          continue;
+        }
+        if (effect.kind === 'match-state') {
+          matchState.add(identity);
+          continue;
+        }
+        if (
+          effect.kind === 'power' &&
+          effect.neighbor &&
+          !sources.some(
+            (target) =>
+              onPitch(target.slot) &&
+              target.slot !== source.slot &&
+              source.assignment.player.element !== null &&
+              target.assignment.player.element !== null &&
+              (effect.neighbor === 'same-element'
+                ? target.assignment.player.element === source.assignment.player.element
+                : target.assignment.player.element !== source.assignment.player.element),
+          )
+        )
+          continue;
+        for (const target of targetsFor(effect, source, starters)) {
+          if (effect.kind === 'flat') target.stats[effect.stat] += selected.value;
+          else
+            for (const key of effect.keys)
+              target.bonuses[key].push({ value: selected.value, effect });
+        }
+      }
+    for (const target of starters) {
+      for (const key of Object.keys(target.stats) as (keyof BaseStats)[])
+        target.stats[key] = Math.max(0, target.stats[key]);
+      const base = computePower(target.stats);
+      const powers = { totals: emptyPower(), potential: emptyPower() };
+      bySlot[target.slot] = powers;
+      for (const key of POWER_KEYS) {
+        powers.totals[key] = Math.max(
+          0,
+          Math.round(base[key] * (1 + percent(target.bonuses[key], false) / 100)),
+        );
+        powers.potential[key] = Math.max(
+          0,
+          Math.round(base[key] * (1 + percent(target.bonuses[key], true) / 100)),
+        );
+        totals[key] += powers.totals[key];
+        potential[key] += powers.potential[key];
       }
     }
-  for (const target of starters) {
-    for (const key of Object.keys(target.stats) as (keyof BaseStats)[])
-      target.stats[key] = Math.max(0, target.stats[key]);
-    const base = computePower(target.stats);
-    for (const key of POWER_KEYS) {
-      totals[key] += Math.max(
-        0,
-        Math.round(base[key] * (1 + percent(target.bonuses[key], false) / 100)),
-      );
-      potential[key] += Math.max(
-        0,
-        Math.round(base[key] * (1 + percent(target.bonuses[key], true) / 100)),
-      );
-    }
-  }
-  return {
-    totals,
-    potential,
-    missing,
-    unavailable: unavailable.size,
-    unresolved: unresolved.size,
-    matchState: matchState.size,
-    gauges: gauges.size,
+    return {
+      bySlot,
+      totals,
+      potential,
+      missing,
+      unavailable: unavailable.size,
+      unresolved: unresolved.size,
+      matchState: matchState.size,
+      gauges: gauges.size,
+    };
   };
 }
