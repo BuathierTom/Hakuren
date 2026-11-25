@@ -1,3 +1,4 @@
+import { registerPortraitRoutes } from './portrait-routes.js';
 import type { FastifyInstance } from 'fastify';
 import type {
   PlayerQuery,
@@ -33,6 +34,7 @@ export function registerCatalogueRoutes(app: FastifyInstance, catalogue?: Catalo
       });
     }
   });
+  registerPortraitRoutes(app, catalogue);
   for (const section of ['equipment', 'tactics'] as ItemSection[]) {
     app.get<{ Querystring: ItemQuery }>(
       `/api/${section}`,

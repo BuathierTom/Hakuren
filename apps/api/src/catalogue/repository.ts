@@ -30,6 +30,7 @@ import type {
 
 export interface CatalogueRepository {
   filters(): Promise<CatalogueFilters>;
+  portrait?(id: number): Promise<string | null>;
   passives?(query: PassiveQuery): Promise<Page<Passive>>;
   passive?(id: number): Promise<Passive | null>;
   teams?(query: HistoricalTeamQuery): Promise<Page<HistoricalTeam>>;
@@ -361,6 +362,13 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
         [section, id],
       );
       return found[0] ? itemSummary(found[0]) : null;
+    },
+    async portrait(id) {
+      const found = await rows(
+        `SELECT v.portrait_url FROM player_variants v LEFT JOIN source_records vs ON vs.id=v.source_record_id WHERE v.id=? AND ${approved('v', 'vs')}`,
+        [id],
+      );
+      return url(found[0]?.portrait_url);
     },
     async filters() {
       const [works, rarities, counts] = await Promise.all([
