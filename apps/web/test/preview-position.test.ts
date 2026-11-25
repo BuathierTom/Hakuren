@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { popoverPosition } from '../src/components/ui/popover/popover-position.js';
 import { previewPosition } from '../src/features/catalogue/lib/preview-position.js';
 
 test('desktop previews sit beside the technique without covering the double-click target', () => {
@@ -51,5 +52,31 @@ test('previews stay inside the viewport at every edge and screen size', () => {
         }
       }
     }
+  }
+});
+
+test('saved team menus open below their button even when there is space at either side', () => {
+  const anchor = { left: 800, right: 940, top: 180, bottom: 220 };
+  const result = popoverPosition(
+    anchor,
+    { width: 420, height: 300 },
+    { width: 1440, height: 900 },
+    'bottom',
+  );
+  assert.equal(result.side, 'bottom');
+  assert.equal(result.top, 232);
+  assert.equal(result.left, 800);
+  assert(result.arrowOffset > 0 && result.arrowOffset < 420);
+});
+
+test('downward menus remain inside the viewport near the right edge and on mobile', () => {
+  for (const width of [320, 390, 1366, 1920]) {
+    const size = { width: Math.min(420, width - 24), height: 240 };
+    const anchor = { left: width - 160, right: width - 20, top: 200, bottom: 240 };
+    const result = popoverPosition(anchor, size, { width, height: 844 }, 'bottom');
+    assert.equal(result.side, 'bottom');
+    assert(result.top >= anchor.bottom);
+    assert(result.left >= 12);
+    assert(result.left + size.width <= width - 12);
   }
 });

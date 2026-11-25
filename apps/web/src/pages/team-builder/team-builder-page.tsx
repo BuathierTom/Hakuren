@@ -2,10 +2,13 @@ import { useNotifications } from '@/features/notifications/notification-context'
 import { useAuth } from '@/features/auth/auth-context';
 import { useAccountTeams } from '@/features/team-builder/hooks/use-account-teams';
 import type { TeamAccount, TeamAccountState } from '@/features/team-builder/lib/team-account';
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { Formation } from '@shared/formations';
 import { SiteHeader } from '@/components/layout/site-header/site-header';
 import { useRequest } from '@/features/catalogue/hooks/use-catalogue-request';
+import { useTeamLoadouts } from '@/features/team-builder/hooks/use-team-loadouts';
+import { hasEmptyLoadouts } from '@/features/team-builder/lib/loadouts';
+import { useTeamExport } from '@/features/team-builder/hooks/use-team-export';
 import { useTeamBuilder } from '@/features/team-builder/hooks/use-team-builder';
 import { TeamToolbar } from '@/features/team-builder/components/team-toolbar/team-toolbar';
 import { TeamPitch } from '@/features/team-builder/components/team-pitch/team-pitch';
@@ -78,12 +81,21 @@ function TeamBuilderWorkspace({
   const { notify, dismiss } = useNotifications();
   const builder = useTeamBuilder(account, remote);
   const { team } = builder;
+  const { exporting, exportTeam } = useTeamExport();
   const request = useRequest<{ items: Formation[] }>('/api/formations');
   const formations = request.data?.items ?? [];
   const formation = formations.find((entry) => entry.code === team.formation);
+  const { filling, fillLoadouts } = useTeamLoadouts(
+    team,
+    formation,
+    builder.change,
+    builder.blocked || builder.busy,
+  );
   const [modal, setModal] = useState<
     { kind: 'picker' | 'editor'; slot: string } | { kind: 'teams' | 'clear' } | null
   >(null);
+  const teamsButton = useRef<HTMLButtonElement>(null);
+  const teamsPopoverId = useId();
   const importId = `local-import-${account?.userId ?? 'guest'}`;
   useEffect(() => {
     if (account && builder.imports.length)
@@ -114,14 +126,16 @@ function TeamBuilderWorkspace({
       <main className={styles.main} id="composition">
         <div className={styles.title}>
           <h1>Composition d’équipe</h1>
-          <div className={styles.syncStatus}>
-            <span role="status">{builder.status}</span>
-            {builder.error && (
-              <button type="button" disabled={builder.busy} onClick={builder.retry}>
-                {builder.blocked ? 'Recharger' : 'Réessayer'}
-              </button>
-            )}
-          </div>
+          {builder.error && (
+            <button
+              className={styles.retrySave}
+              type="button"
+              disabled={builder.busy}
+              onClick={builder.retry}
+            >
+              {builder.blocked ? 'Recharger' : 'Réessayer'}
+            </button>
+          )}
         </div>
         <TeamToolbar
           team={team}
@@ -135,16 +149,29 @@ function TeamBuilderWorkspace({
           }}
           onUndo={builder.undo}
           onRedo={builder.redo}
-          saving={builder.busy}
-          saveDisabled={builder.blocked}
+          filling={filling}
+          fillDisabled={!formation || builder.blocked || builder.busy || !hasEmptyLoadouts(team)}
+          onFill={() => {
+            void fillLoadouts();
+          }}
+          exporting={exporting}
+          exportDisabled={!formation || request.loading || !!request.error}
+          onExport={() => {
+            if (formation) void exportTeam(team, formation);
+          }}
+          saving={builder.saving}
+          saveDisabled={builder.blocked || builder.busy}
           onSave={() => {
             void builder.save();
           }}
           onClear={() => {
             setModal({ kind: 'clear' });
           }}
-          onTeams={() => {
-            setModal({ kind: 'teams' });
+          teamsButtonRef={teamsButton}
+          teamsPopoverId={teamsPopoverId}
+          teamsOpen={modal?.kind === 'teams'}
+          onTeams={(open) => {
+            setModal(open ? { kind: 'teams' } : null);
           }}
         />
         {request.loading ? (
@@ -222,6 +249,8 @@ function TeamBuilderWorkspace({
         )}
         {modal?.kind === 'teams' && (
           <SavedTeams
+            id={teamsPopoverId}
+            anchor={teamsButton.current}
             teams={builder.teams}
             busy={builder.busy || builder.blocked}
             imports={builder.imports.length}

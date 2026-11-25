@@ -14,7 +14,7 @@ import {
   passiveSource,
   setPassive,
 } from '../../lib/loadouts';
-import { EquipmentIcon } from './equipment-icon';
+import { EquipmentPreview } from './equipment-preview';
 import styles from './player-loadout.module.scss';
 export function PlayerLoadout({
   assignment,
@@ -124,13 +124,11 @@ export function PlayerLoadout({
               );
               return (
                 <div className={styles.equipmentRow} key={type}>
-                  <span className={styles.equipmentIcon}>
-                    <EquipmentIcon
-                      key={selected?.id ?? type}
-                      src={selected?.imageUrl ?? null}
-                      name={selected?.name ?? EQUIPMENT_SLOTS[type]}
-                    />
-                  </span>
+                  <EquipmentPreview
+                    key={selected?.id ?? type}
+                    item={selected}
+                    label={EQUIPMENT_SLOTS[type]}
+                  />
                   <span className={styles.label}>{EQUIPMENT_SLOTS[type]}</span>
                   <Select
                     label={`Équipement - ${EQUIPMENT_SLOTS[type]}`}

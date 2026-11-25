@@ -1,6 +1,7 @@
+import { useRef, type Ref } from 'react';
 import type { Formation } from '@shared/formations';
 import { Select } from '@/components/ui/select/select';
-import { Icon } from '@/components/ui/icon/icon';
+import { FolderOpen, ImageDown, Redo2, Save, Trash2, Undo2, WandSparkles } from 'lucide-react';
 import type { Team } from '../../lib/team';
 import styles from './team-toolbar.module.scss';
 interface Props {
@@ -9,16 +10,26 @@ interface Props {
   canUndo: boolean;
   canRedo: boolean;
   saving?: boolean;
+  filling?: boolean;
+  fillDisabled?: boolean;
+  onFill: () => void;
+  exporting?: boolean;
+  exportDisabled?: boolean;
+  onExport: () => void;
   saveDisabled?: boolean;
   onName: (name: string) => void;
   onFormation: (code: string) => void;
   onUndo: () => void;
   onRedo: () => void;
   onSave: () => void;
-  onTeams: () => void;
+  onTeams: (open: boolean) => void;
+  teamsOpen: boolean;
+  teamsPopoverId: string;
+  teamsButtonRef: Ref<HTMLButtonElement>;
   onClear: () => void;
 }
 export function TeamToolbar(p: Props) {
+  const teamsOpenAtPointerDown = useRef<boolean | null>(null);
   return (
     <section className={styles.toolbar} aria-label="Édition de l’équipe">
       <label className={styles.name}>
@@ -46,33 +57,63 @@ export function TeamToolbar(p: Props) {
           type="button"
           disabled={!p.canUndo}
           onClick={p.onUndo}
+          aria-label="Annuler la dernière modification"
           title="Annuler la dernière modification"
         >
-          <Icon name="reset" size={17} />
-          <span>Annuler</span>
+          <Undo2 size={17} />
         </button>
         <button
           type="button"
           disabled={!p.canRedo}
           onClick={p.onRedo}
+          aria-label="Rétablir la modification"
           title="Rétablir la modification"
         >
-          <span className={styles.redo}>
-            <Icon name="reset" size={17} />
-          </span>
-          <span>Rétablir</span>
+          <Redo2 size={17} />
         </button>
       </div>
       <div className={styles.actions}>
+        <button
+          type="button"
+          onClick={p.onFill}
+          disabled={p.filling || p.fillDisabled}
+          aria-busy={p.filling}
+          title="Remplir les équipements et les passifs vides selon le poste, la rareté et l’archétype"
+        >
+          <WandSparkles size={17} />
+          <span className={styles.actionLabel} data-pending-label="Équipement…">
+            <span>{p.filling ? 'Équipement…' : 'Équiper l’équipe'}</span>
+          </span>
+        </button>
         <button
           type="button"
           className={styles.clear}
           disabled={!Object.keys(p.team.slots).length}
           onClick={p.onClear}
         >
+          <Trash2 size={17} />
           Vider l’équipe
         </button>
-        <button type="button" onClick={p.onTeams}>
+        <button
+          ref={p.teamsButtonRef}
+          type="button"
+          popoverTarget={p.teamsPopoverId}
+          onPointerDownCapture={() => {
+            teamsOpenAtPointerDown.current = p.teamsOpen;
+          }}
+          onClick={(event) => {
+            event.preventDefault();
+            const wasOpen = event.detail
+              ? (teamsOpenAtPointerDown.current ?? p.teamsOpen)
+              : p.teamsOpen;
+            teamsOpenAtPointerDown.current = null;
+            p.onTeams(!wasOpen);
+          }}
+          aria-haspopup="dialog"
+          aria-expanded={p.teamsOpen}
+          aria-controls={p.teamsPopoverId}
+        >
+          <FolderOpen size={17} />
           Mes équipes
         </button>
         <button
@@ -82,7 +123,21 @@ export function TeamToolbar(p: Props) {
           disabled={p.saving || p.saveDisabled}
           aria-busy={p.saving}
         >
-          <span>{p.saving ? 'Enregistrement…' : 'Enregistrer'}</span>
+          <Save size={17} />
+          <span>Enregistrer</span>
+        </button>
+        <button
+          type="button"
+          className={styles.export}
+          onClick={p.onExport}
+          disabled={p.exporting || p.exportDisabled}
+          aria-busy={p.exporting}
+          title="Exporter la composition en image PNG"
+        >
+          <ImageDown size={17} />
+          <span className={styles.actionLabel} data-pending-label="Exportation…">
+            <span>{p.exporting ? 'Exportation…' : 'Exporter'}</span>
+          </span>
         </button>
       </div>
     </section>

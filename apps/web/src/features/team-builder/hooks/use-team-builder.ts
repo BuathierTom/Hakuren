@@ -45,6 +45,8 @@ export function useTeamBuilder(
     present: initial.team ?? emptyTeam(),
     future: [],
   });
+  const [saving, setSaving] = useState(false);
+  const savingNow = useRef(false);
   const present = useRef(history.present);
   present.current = history.present;
   const errorId = `team-sync-${account?.userId ?? 'guest'}`;
@@ -133,12 +135,21 @@ export function useTeamBuilder(
     }
   }, [account, history.present, remote?.draft?.revision, notify]);
   useEffect(() => {
-    if (!account || !remote?.ready || remote.blocked || same(history.present, remote.draft?.team))
-      return;
-    const timeout = window.setTimeout(() => {
-      void account.saveDraft(history.present);
-    }, 700);
-    return () => window.clearTimeout(timeout);
+    if (!account || !remote?.ready || remote.blocked) return;
+    const team = history.present;
+    const sync = () => {
+      const state = account.getSnapshot();
+      if (!state.ready || state.blocked) return;
+      if (!same(team, state.draft?.team)) void account.saveDraft(team);
+      const saved = state.items.find((entry) => entry.team.id === team.id);
+      if (team.name.trim() && !same(team, saved?.team) && (history.past.length > 0 || saved))
+        void account.save(team);
+    };
+    const timeout = window.setTimeout(sync, 700);
+    return () => {
+      window.clearTimeout(timeout);
+      if (present.current.id !== team.id) sync();
+    };
   }, [account, history.present, remote?.ready, remote?.blocked, retryVersion]);
   useEffect(() => {
     if (!account) return;
@@ -167,18 +178,21 @@ export function useTeamBuilder(
     }
   };
   const save = async () => {
+    if (savingNow.current) return;
     if (!history.present.name.trim()) {
       notify({ message: 'Donne un nom à ton équipe avant de l’enregistrer.', tone: 'error' });
       return;
     }
-    if (account) {
-      const saved = account.save(history.present);
-      void account.saveDraft(history.present);
-      if (await saved)
-        notify({ message: 'Équipe enregistrée sur ton compte Hakuren.', tone: 'success' });
-      return;
-    }
+    savingNow.current = true;
+    setSaving(true);
     try {
+      if (account) {
+        const saved = account.save(history.present);
+        void account.saveDraft(history.present);
+        if (await saved)
+          notify({ message: 'Équipe enregistrée sur ton compte Hakuren.', tone: 'success' });
+        return;
+      }
       setLocalTeams(saveTeam(window.localStorage, history.present));
       notify({
         message:
@@ -193,6 +207,9 @@ export function useTeamBuilder(
             : 'Le stockage local est plein ou indisponible.',
         tone: 'error',
       });
+    } finally {
+      savingNow.current = false;
+      setSaving(false);
     }
   };
   const removeSaved = async (id: string) => {
@@ -246,13 +263,12 @@ export function useTeamBuilder(
     }
   };
   const teams = remote?.items ?? localTeams;
-  const draftSaved = !!account && same(history.present, remote?.draft?.team);
-  const dirty = !teams.some((saved) => same(saved.team, history.present));
   return {
     team: history.present,
     teams,
     change,
     save,
+    saving,
     removeSaved,
     imports,
     importLocal,
@@ -266,21 +282,9 @@ export function useTeamBuilder(
     reload: () => {
       if (account) void account.load();
     },
-    status: account
-      ? remote?.error
-        ? 'Sauvegarde sur le compte interrompue'
-        : !draftSaved
-          ? 'Sauvegarde du brouillon…'
-          : dirty
-            ? 'Brouillon enregistré sur ton compte'
-            : 'Équipe enregistrée sur ton compte'
-      : dirty
-        ? 'Brouillon local'
-        : 'Équipe enregistrée dans ce navigateur',
     canUndo: history.past.length > 0,
     canRedo: history.future.length > 0,
     undo: () => dispatch({ type: 'undo' }),
     redo: () => dispatch({ type: 'redo' }),
-    dirty,
   };
 }

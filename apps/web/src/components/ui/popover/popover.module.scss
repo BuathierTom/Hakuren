@@ -1,0 +1,70 @@
+.popover {
+  position: fixed;
+  inset: auto;
+  width: min(280px, calc(100% - 24px));
+  max-width: none;
+  max-height: min(
+    var(--popover-max-height, calc(100dvh - 24px)),
+    var(--popover-height-limit, 100dvh)
+  );
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  &::before {
+    content: '';
+    position: absolute;
+    z-index: 2;
+    width: 10px;
+    height: 10px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    pointer-events: none;
+  }
+  &[data-side='left']::before {
+    right: -5px;
+    top: var(--arrow-offset);
+    transform: translateY(-50%) rotate(45deg);
+    border-left: 0;
+    border-bottom: 0;
+  }
+  &[data-side='right']::before {
+    left: -5px;
+    top: var(--arrow-offset);
+    transform: translateY(-50%) rotate(45deg);
+    border-right: 0;
+    border-top: 0;
+  }
+  &[data-side='bottom']::before {
+    top: -5px;
+    left: var(--arrow-offset);
+    transform: translateX(-50%) rotate(45deg);
+    border-right: 0;
+    border-bottom: 0;
+  }
+  &[data-side='top']::before {
+    bottom: -5px;
+    left: var(--arrow-offset);
+    transform: translateX(-50%) rotate(45deg);
+    border-left: 0;
+    border-top: 0;
+  }
+}
+.surface {
+  position: relative;
+  max-height: min(
+    var(--popover-max-height, calc(100dvh - 24px)),
+    var(--popover-height-limit, 100dvh)
+  );
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: 0 4px 16px #1b304024;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

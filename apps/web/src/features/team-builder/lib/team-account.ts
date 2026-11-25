@@ -128,8 +128,9 @@ export class TeamAccount {
   }
   save(team: Team) {
     return this.run('save', async (signal) => {
-      const revision =
-        this.state.items.find((entry) => entry.team.id === team.id)?.revision ?? null;
+      const current = this.state.items.find((entry) => entry.team.id === team.id);
+      if (current && teamIdentity(current.team) === teamIdentity(team)) return;
+      const revision = current?.revision ?? null;
       const saved = await this.api.save(team, revision, false, signal);
       if (!signal.aborted)
         this.update({

@@ -72,6 +72,48 @@ test('account teams save, update and delete using server revisions and persist a
   assert.equal(await second.remove(team.id), true);
   assert.equal(second.getSnapshot().items.length, 0);
 });
+test('automatic and manual saves of the same composition share one persisted revision', async () => {
+  const f = fixture();
+  const gate = deferred<void>();
+  const entered = deferred<void>();
+  const original = f.api.save;
+  f.api.save = async (...args) => {
+    entered.resolve();
+    await gate.promise;
+    return original(...args);
+  };
+  const account = new TeamAccount(1, f.api);
+  await account.load();
+  const team = exampleTeam();
+  const automatic = account.save(team);
+  await entered.promise;
+  const manual = account.save(structuredClone(team));
+  gate.resolve();
+  assert.equal(await automatic, true);
+  assert.equal(await manual, true);
+  assert.equal(f.calls.length, 1);
+  assert.equal(account.getSnapshot().items[0]?.revision, 1);
+  assert.deepEqual(account.getSnapshot().items[0]?.team, team);
+});
+test('saved team deduplication tolerates JSON key order and still persists later changes', async () => {
+  const f = fixture();
+  const account = new TeamAccount(1, f.api);
+  await account.load();
+  const team = exampleTeam();
+  await account.save(team);
+  const reversed = JSON.parse(
+    JSON.stringify(team, (_key, value) =>
+      value && typeof value === 'object' && !Array.isArray(value)
+        ? Object.fromEntries(Object.entries(value).reverse())
+        : value,
+    ),
+  );
+  assert.equal(await account.save(reversed), true);
+  assert.equal(f.calls.length, 1);
+  await account.save({ ...team, name: 'Automatically updated' });
+  assert.equal(f.calls.length, 2);
+  assert.equal(account.getSnapshot().items[0]?.revision, 2);
+});
 test('rapid draft edits serialize revisions and coalesce changes made during an in-flight save', async () => {
   const f = fixture();
   const gate = deferred<void>();
