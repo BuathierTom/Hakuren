@@ -51,7 +51,7 @@ test(
       orm = await createOrm(url.href);
       await migrate(orm);
       const repository = createTeamRepository(orm.em);
-      const team = exampleTeam();
+      const team = { ...exampleTeam(), playStyle: 'counter' as const, tactics: [101, null, 103] };
       const first = await repository.save(1, team, null);
       assert.deepEqual(first.team, team);
       assert.equal(first.revision, 1);

@@ -15,63 +15,70 @@ const rarities = ['common', 'rising', 'advanced', 'top', 'legendary', 'hero', 'b
 const stats = ['power', 'control', 'technique', 'pressure', 'physical', 'agility', 'intelligence'];
 export const revisionSchema = nullable({ type: 'integer', minimum: 1, maximum: 4294967294 });
 export const teamIdSchema = { type: 'string', pattern: '^[A-Za-z0-9_-]{1,80}$' };
-export const teamSchema = object({
-  id: teamIdSchema,
-  name: string(120),
-  formation: { type: 'string', pattern: '^[a-z0-9-]{1,32}$' },
-  slots: {
-    type: 'object',
-    maxProperties: 20,
-    additionalProperties: false,
-    patternProperties: {
-      '^(field-(?:[1-9]|10|11)|bench-[1-5]|coach|manager-[1-3])$': object(
-        {
-          player: object({
-            id,
-            name: string(200),
-            portraitUrl: nullable({ type: 'string', maxLength: 2000, pattern: '^https?://' }),
-            position: nullable(choice(['GK', 'DF', 'MF', 'FW'])),
-            element: nullable(choice(['wind', 'forest', 'fire', 'mountain', 'void'])),
-            gender: nullable(choice(['male', 'female', 'neutral'])),
-            playStyle: nullable(choice(styles)),
-            role: nullable(string(80)),
-            rarities: { type: 'array', maxItems: 7, uniqueItems: true, items: choice(rarities) },
-            profiles: {
+export const teamSchema = object(
+  {
+    playStyle: { type: ['string', 'null'], enum: [...styles, null] },
+    tactics: { type: 'array', maxItems: 3, items: { ...id, type: ['integer', 'null'] } },
+    id: teamIdSchema,
+    name: string(120),
+    formation: { type: 'string', pattern: '^[a-z0-9-]{1,32}$' },
+    slots: {
+      type: 'object',
+      maxProperties: 20,
+      additionalProperties: false,
+      patternProperties: {
+        '^(field-(?:[1-9]|10|11)|bench-[1-5]|coach|manager-[1-3])$': object(
+          {
+            player: object({
+              id,
+              name: string(200),
+              portraitUrl: nullable({ type: 'string', maxLength: 2000, pattern: '^https?://' }),
+              position: nullable(choice(['GK', 'DF', 'MF', 'FW'])),
+              element: nullable(choice(['wind', 'forest', 'fire', 'mountain', 'void'])),
+              gender: nullable(choice(['male', 'female', 'neutral'])),
+              playStyle: nullable(choice(styles)),
+              role: nullable(string(80)),
+              rarities: { type: 'array', maxItems: 7, uniqueItems: true, items: choice(rarities) },
+              profiles: {
+                type: 'array',
+                maxItems: 6,
+                items: object({
+                  rarity: choice(['common', 'hero', 'basara']),
+                  level: { type: 'integer', enum: [50, 99] },
+                  values: object(
+                    Object.fromEntries(
+                      stats.map((key) => [
+                        key,
+                        nullable({ type: 'number', minimum: 0, maximum: 10000 }),
+                      ]),
+                    ),
+                  ),
+                }),
+              },
+            }),
+            rarity: choice(rarities),
+            playStyle: choice(styles),
+            equipment: object(
+              Object.fromEntries(
+                ['boots', 'pendant', 'bracelet', 'accessory'].map((key) => [key, nullable(id)]),
+              ),
+              [],
+            ),
+            passives: {
               type: 'array',
               maxItems: 6,
-              items: object({
-                rarity: choice(['common', 'hero', 'basara']),
-                level: { type: 'integer', enum: [50, 99] },
-                values: object(
-                  Object.fromEntries(
-                    stats.map((key) => [
-                      key,
-                      nullable({ type: 'number', minimum: 0, maximum: 10000 }),
-                    ]),
-                  ),
-                ),
-              }),
+              items: nullable(
+                object({ id, value: { type: 'number', minimum: 0, maximum: 99999 } }),
+              ),
             },
-          }),
-          rarity: choice(rarities),
-          playStyle: choice(styles),
-          equipment: object(
-            Object.fromEntries(
-              ['boots', 'pendant', 'bracelet', 'accessory'].map((key) => [key, nullable(id)]),
-            ),
-            [],
-          ),
-          passives: {
-            type: 'array',
-            maxItems: 6,
-            items: nullable(object({ id, value: { type: 'number', minimum: 0, maximum: 99999 } })),
           },
-        },
-        ['player', 'rarity'],
-      ),
+          ['player', 'rarity'],
+        ),
+      },
     },
   },
-});
+  ['id', 'name', 'formation', 'slots'],
+);
 export const writeSchema = object({ team: teamSchema, revision: revisionSchema });
 export const paramsSchema = object({ id: teamIdSchema });
 export const deleteSchema = object({
@@ -82,6 +89,16 @@ export function validateTeam(team: Team, draft = false) {
     throw new TeamError(400, 'INVALID_TEAM', 'La composition de cette équipe est invalide.');
   };
   if (!draft && !team.name.trim()) invalid();
+  if (team.playStyle != null && !styles.includes(team.playStyle)) invalid();
+  if (team.tactics !== undefined) {
+    if (!Array.isArray(team.tactics) || team.tactics.length > 3) invalid();
+    const selected = team.tactics.filter((id) => id !== null);
+    if (
+      selected.some((id) => !Number.isSafeInteger(id) || id <= 0 || id > 4294967295) ||
+      new Set(selected).size !== selected.length
+    )
+      invalid();
+  }
   const ids = new Set<number>();
   let heroes = 0;
   let basaras = 0;

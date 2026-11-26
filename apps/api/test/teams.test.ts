@@ -337,3 +337,57 @@ test('unavailable team storage returns a recoverable error without database deta
   t.after(() => empty.close());
   assert.equal((await empty.inject('/api/me/teams')).statusCode, 503);
 });
+
+test('team tactics and manually selected build persist in saved teams and drafts', async (t) => {
+  const { app, headers } = await setup();
+  t.after(() => app.close());
+  const team = { ...exampleTeam(), playStyle: 'justice', tactics: [101, null, 103] };
+  for (const url of ['/api/me/teams/' + team.id, '/api/me/team-draft']) {
+    const response = await app.inject({
+      method: 'PUT',
+      url,
+      headers,
+      payload: { team, revision: null },
+    });
+    assert([200, 201].includes(response.statusCode), response.body);
+    assert.deepEqual(response.json().team, team);
+  }
+  assert.deepEqual(
+    (await app.inject({ url: '/api/me/teams', headers })).json().items[0].team.tactics,
+    [101, null, 103],
+  );
+  assert.equal(
+    (await app.inject({ url: '/api/me/team-draft', headers })).json().draft.team.playStyle,
+    'justice',
+  );
+  const cleared = { ...team, playStyle: null, tactics: [null, null, null] };
+  const response = await app.inject({
+    method: 'PUT',
+    url: '/api/me/teams/' + team.id,
+    headers,
+    payload: { team: cleared, revision: 1 },
+  });
+  assert.equal(response.statusCode, 200, response.body);
+  assert.deepEqual(response.json().team, cleared);
+});
+test('team strategy rejects a fourth tactic, duplicate tactics, invalid IDs and unknown builds', async (t) => {
+  const { app, headers } = await setup();
+  t.after(() => app.close());
+  for (const extra of [
+    { tactics: [1, 2, 3, 4] },
+    { tactics: [1, null, 1] },
+    { tactics: [0] },
+    { tactics: [-1] },
+    { tactics: [4294967296] },
+    { tactics: [1.5] },
+    { playStyle: 'unknown' },
+  ]) {
+    const response = await app.inject({
+      method: 'PUT',
+      url: '/api/me/teams/hakuren-team',
+      headers,
+      payload: { team: { ...exampleTeam(), ...extra }, revision: null },
+    });
+    assert.equal(response.statusCode, 400, JSON.stringify(extra) + response.body);
+  }
+});
