@@ -1,3 +1,4 @@
+import { t } from '../../preferences/lib/i18n';
 import { useRef, useState } from 'react';
 import type { Formation } from '@shared/formations';
 import type { Team } from '../lib/team';
@@ -17,8 +18,13 @@ export function useTeamExport() {
       const result = await downloadTeamImage(snapshot, formation);
       notify({
         message: result.missingPortraits
-          ? `Image exportée. ${result.missingPortraits} portrait${result.missingPortraits > 1 ? 's' : ''} indisponible${result.missingPortraits > 1 ? 's' : ''}.`
-          : 'La composition a été exportée en image.',
+          ? t(
+              'Image exportée. {0} portrait{1} indisponible{2}.',
+              result.missingPortraits,
+              result.missingPortraits > 1 ? 's' : '',
+              result.missingPortraits > 1 ? 's' : '',
+            )
+          : t('La composition a été exportée en image.'),
         tone: result.missingPortraits ? 'info' : 'success',
       });
     } catch (error) {
@@ -26,7 +32,7 @@ export function useTeamExport() {
         message:
           error instanceof Error
             ? error.message
-            : 'Impossible d’exporter la composition. Réessaie dans un instant.',
+            : t('Impossible d’exporter la composition. Réessaie dans un instant.'),
         tone: 'error',
       });
     } finally {

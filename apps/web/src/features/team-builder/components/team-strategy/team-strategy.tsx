@@ -1,3 +1,5 @@
+import { catalogueName } from '@/features/catalogue/lib/catalogue-text';
+import { t } from '@/features/preferences/lib/i18n';
 import type { PlayStyle } from '@shared/catalogue';
 import { Select } from '@/components/ui/select/select';
 import { PlayStyleIcon, TacticIcon } from '@/features/catalogue/components/game-icon/game-icon';
@@ -21,13 +23,13 @@ export function TeamStrategy({
         <h3>Build Team</h3>
         <div className={styles.content}>
           <Select
-            label="Archétype de l’équipe"
+            label={t('Archétype de l’équipe')}
             value={team.playStyle ?? ''}
             options={[
-              { value: '', label: 'Aucun archétype' },
+              { value: '', label: t('Aucun archétype') },
               ...Object.entries(PLAY_STYLES).map(([value, label]) => ({
                 value,
-                label,
+                label: t(label),
                 icon: <PlayStyleIcon style={value as PlayStyle} />,
               })),
             ]}
@@ -40,9 +42,9 @@ export function TeamStrategy({
           />
         </div>
       </section>
-      <section className={styles.section} aria-label="Tactiques de l’équipe">
+      <section className={styles.section} aria-label={t('Tactiques de l’équipe')}>
         <h3>
-          Tactiques <span>{team.tactics?.filter(Boolean).length ?? 0}/3</span>
+          {t('Tactiques')} <span>{team.tactics?.filter(Boolean).length ?? 0}/3</span>
         </h3>
         <div className={styles.content} aria-busy={tactics.loading}>
           {Array.from({ length: 3 }, (_, index) => {
@@ -51,17 +53,19 @@ export function TeamStrategy({
             return (
               <Select
                 key={index}
-                label={`Tactique ${index + 1}`}
+                label={t('Tactique {0}', index + 1)}
                 value={String(selected ?? '')}
                 searchable
                 disabled={tactics.loading || tactics.error}
-                placeholder={tactics.loading ? 'Chargement…' : 'Aucune tactique'}
+                placeholder={tactics.loading ? t('Chargement…') : t('Aucune tactique')}
                 options={[
-                  { value: '', label: 'Aucune tactique' },
-                  ...(missing ? [{ value: String(selected), label: 'Tactique indisponible' }] : []),
+                  { value: '', label: t('Aucune tactique') },
+                  ...(missing
+                    ? [{ value: String(selected), label: t('Tactique indisponible') }]
+                    : []),
                   ...tactics.items.map((item) => ({
                     value: String(item.id),
-                    label: item.name,
+                    label: catalogueName(item),
                     icon: <TacticIcon stringId={item.stringId} />,
                     disabled: (team.tactics ?? []).some(
                       (id, slot) => slot !== index && id === item.id,
@@ -76,9 +80,9 @@ export function TeamStrategy({
           })}
           {tactics.error && (
             <div className={styles.error} role="alert">
-              Les tactiques sont indisponibles.{' '}
+              {t('Les tactiques sont indisponibles.')}{' '}
               <button type="button" onClick={tactics.retry}>
-                Réessayer
+                {t('Réessayer')}
               </button>
             </div>
           )}

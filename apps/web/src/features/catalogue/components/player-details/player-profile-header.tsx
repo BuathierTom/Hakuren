@@ -1,3 +1,5 @@
+import { catalogueName, catalogueDescription } from '@/features/catalogue/lib/catalogue-text';
+import { t } from '@/features/preferences/lib/i18n';
 import type { ReactNode } from 'react';
 import type { PlayerDetail, PlayStyle } from '@shared/catalogue';
 import { ElementBadge, PositionBadge, RarityBadge } from '../catalogue-badges/catalogue-badges';
@@ -24,13 +26,15 @@ export function PlayerProfileHeader({
         <Portrait src={player.portraitUrl} />
       </div>
       <div className={styles.identity}>
-        <span className={styles.eyebrow}>JOUEUR N° {player.number?.padStart(4, '0') ?? '—'}</span>
+        <span className={styles.eyebrow}>
+          {t('JOUEUR N°')} {player.number?.padStart(4, '0') ?? '—'}
+        </span>
         <div className={styles.name}>
-          <h2 id={titleId}>{player.name}</h2>
+          <h2 id={titleId}>{catalogueName(player)}</h2>
           {specialForms.length > 0 && (
-            <div className={styles.rarities} aria-label="Raretés disponibles">
+            <div className={styles.rarities} aria-label={t('Raretés disponibles')}>
               {specialForms.map((form) => (
-                <RarityBadge key={form} name={PLAYER_FORMS[form]} />
+                <RarityBadge key={form} name={t(PLAYER_FORMS[form])} />
               ))}
             </div>
           )}
@@ -42,11 +46,11 @@ export function PlayerProfileHeader({
             <span
               className={styles.attribute}
               role="img"
-              aria-label={GENDERS[player.gender]}
-              title={GENDERS[player.gender]}
+              aria-label={t(GENDERS[player.gender])}
+              title={t(GENDERS[player.gender])}
             >
               {player.gender === 'neutral' ? (
-                GENDERS[player.gender]
+                t(GENDERS[player.gender])
               ) : (
                 <GenderIcon gender={player.gender} />
               )}
@@ -56,8 +60,8 @@ export function PlayerProfileHeader({
             <span
               className={styles.attribute}
               role="img"
-              aria-label={PLAY_STYLES[playStyle]}
-              title={PLAY_STYLES[playStyle]}
+              aria-label={t(PLAY_STYLES[playStyle])}
+              title={t(PLAY_STYLES[playStyle])}
             >
               <PlayStyleIcon style={playStyle} />
             </span>
@@ -67,7 +71,9 @@ export function PlayerProfileHeader({
           {age(player.ageGroup)} - {role(player.role)}
         </p>
       </div>
-      {player.description && <p className={styles.description}>{player.description}</p>}
+      {catalogueDescription(player) && (
+        <p className={styles.description}>{catalogueDescription(player)}</p>
+      )}
       <div className={styles.sidebar}>{aside}</div>
     </div>
   );

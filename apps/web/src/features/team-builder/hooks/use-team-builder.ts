@@ -1,3 +1,4 @@
+import { t } from '../../preferences/lib/i18n';
 import { useNotifications } from '@/features/notifications/notification-context';
 import { teamIdentity } from '../lib/team-identity';
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
@@ -35,7 +36,9 @@ export function useTeamBuilder(
     } catch {
       return {
         team: remote?.draft?.team ?? null,
-        error: 'Le stockage local est indisponible. La sauvegarde sur le compte reste accessible.',
+        error: t(
+          'Le stockage local est indisponible. La sauvegarde sur le compte reste accessible.',
+        ),
         recovery: null as Team | null,
       };
     }
@@ -72,7 +75,7 @@ export function useTeamBuilder(
       message: remote.error,
       tone: 'error',
       action: {
-        label: remote.blocked ? 'Recharger depuis le compte' : 'Réessayer',
+        label: remote.blocked ? t('Recharger depuis le compte') : t('Réessayer'),
         onClick: retrySave,
       },
     });
@@ -105,8 +108,9 @@ export function useTeamBuilder(
       } catch {
         notify({
           id: 'team-local-read',
-          message:
+          message: t(
             'Impossible de lire les équipes locales. Les données existantes sont conservées.',
+          ),
           tone: 'error',
         });
       }
@@ -129,7 +133,7 @@ export function useTeamBuilder(
     } catch {
       notify({
         id: 'team-local-backup',
-        message: 'La copie locale du brouillon ne peut pas être enregistrée dans ce navigateur.',
+        message: t('La copie locale du brouillon ne peut pas être enregistrée dans ce navigateur.'),
         tone: 'error',
       });
     }
@@ -171,7 +175,7 @@ export function useTeamBuilder(
       return true;
     } catch (error) {
       notify({
-        message: error instanceof Error ? error.message : 'Cette modification est impossible.',
+        message: error instanceof Error ? error.message : t('Cette modification est impossible.'),
         tone: 'error',
       });
       return false;
@@ -180,7 +184,7 @@ export function useTeamBuilder(
   const save = async () => {
     if (savingNow.current) return;
     if (!history.present.name.trim()) {
-      notify({ message: 'Donne un nom à ton équipe avant de l’enregistrer.', tone: 'error' });
+      notify({ message: t('Donne un nom à ton équipe avant de l’enregistrer.'), tone: 'error' });
       return;
     }
     savingNow.current = true;
@@ -190,13 +194,14 @@ export function useTeamBuilder(
         const saved = account.save(history.present);
         void account.saveDraft(history.present);
         if (await saved)
-          notify({ message: 'Équipe enregistrée sur ton compte Hakuren.', tone: 'success' });
+          notify({ message: t('Équipe enregistrée sur ton compte Hakuren.'), tone: 'success' });
         return;
       }
       setLocalTeams(saveTeam(window.localStorage, history.present));
       notify({
-        message:
+        message: t(
           'Équipe enregistrée dans ce navigateur. Connecte-toi avec Discord pour la sauvegarder sur ton compte.',
+        ),
         tone: 'success',
       });
     } catch (error) {
@@ -204,7 +209,7 @@ export function useTeamBuilder(
         message:
           error instanceof Error && error.name !== 'QuotaExceededError'
             ? error.message
-            : 'Le stockage local est plein ou indisponible.',
+            : t('Le stockage local est plein ou indisponible.'),
         tone: 'error',
       });
     } finally {
@@ -214,16 +219,19 @@ export function useTeamBuilder(
   };
   const removeSaved = async (id: string) => {
     if (account) {
-      if (await account.remove(id)) notify({ message: 'Équipe supprimée.', tone: 'success' });
+      if (await account.remove(id)) notify({ message: t('Équipe supprimée.'), tone: 'success' });
       return;
     }
     try {
       const next = readTeams(window.localStorage).filter((entry) => entry.team.id !== id);
       writeTeams(window.localStorage, next);
       setLocalTeams(next);
-      notify({ message: 'Équipe supprimée.', tone: 'success' });
+      notify({ message: t('Équipe supprimée.'), tone: 'success' });
     } catch {
-      notify({ message: 'Impossible de supprimer cette équipe du stockage local.', tone: 'error' });
+      notify({
+        message: t('Impossible de supprimer cette équipe du stockage local.'),
+        tone: 'error',
+      });
     }
   };
   const importLocal = async () => {
@@ -242,11 +250,11 @@ export function useTeamBuilder(
     } catch {
       setImports([]);
     }
-    notify({ message: 'Les équipes locales ont été ajoutées à ton compte.', tone: 'success' });
+    notify({ message: t('Les équipes locales ont été ajoutées à ton compte.'), tone: 'success' });
   };
   const resume = (team: Team) => {
     change({ ...team, id: crypto.randomUUID() });
-    notify({ message: 'Le brouillon a été repris dans une nouvelle équipe.', tone: 'success' });
+    notify({ message: t('Le brouillon a été repris dans une nouvelle équipe.'), tone: 'success' });
     setRecovery(null);
     setLocalDraft(null);
     if (account) {

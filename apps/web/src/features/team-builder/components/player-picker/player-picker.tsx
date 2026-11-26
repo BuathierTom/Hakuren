@@ -1,3 +1,5 @@
+import { catalogueName } from '@/features/catalogue/lib/catalogue-text';
+import { locale, t } from '@/features/preferences/lib/i18n';
 import { useEffect, useState } from 'react';
 import type { Page, PlayerSummary, PlayerDetail, Position } from '@shared/catalogue';
 import { CatalogueFilters } from '@/features/catalogue/components/catalogue-filters/catalogue-filters';
@@ -65,7 +67,7 @@ export function PlayerPicker({ slot, position, label, selectedIds, onSelect, onC
   }, [detail.data, selectedId, onSelect]);
   const filters = [...params.keys()].filter((key) => !['page', 'q'].includes(key)).length;
   return (
-    <TeamDialog title={`Ajouter un personnage - ${label}`} onClose={onClose} wide>
+    <TeamDialog title={t('Ajouter un personnage - {0}', label)} onClose={onClose} wide>
       <CatalogueToolbar
         view="players"
         isPlayers
@@ -89,22 +91,22 @@ export function PlayerPicker({ slot, position, label, selectedIds, onSelect, onC
       {eligibility !== 'player' && (
         <p className={styles.hint}>
           {eligibility === 'coach'
-            ? 'Entraîneurs disponibles pour le staff.'
-            : 'Managers disponibles pour le staff.'}
+            ? t('Entraîneurs disponibles pour le staff.')
+            : t('Managers disponibles pour le staff.')}
         </p>
       )}
       <div className={styles.heading}>
         <p aria-live="polite">
           {request.data
-            ? `${request.data.total.toLocaleString('fr-FR')} personnages`
-            : 'Recherche en cours…'}
+            ? t('{0} personnages', request.data.total.toLocaleString(locale()))
+            : t('Recherche en cours…')}
         </p>
         {request.data && (
           <CataloguePagination
             page={request.data.page}
             pages={request.data.pages}
             loading={request.loading || !!selectedId}
-            label="Pages des personnages"
+            label={t('Pages des personnages')}
             onChange={(page) =>
               setParams((previous) => {
                 const next = new URLSearchParams(previous);
@@ -119,19 +121,19 @@ export function PlayerPicker({ slot, position, label, selectedIds, onSelect, onC
         <div className={styles.error} role="alert">
           {detail.error.message}{' '}
           <button type="button" onClick={detail.retry}>
-            Réessayer
+            {t('Réessayer')}
           </button>
           <button type="button" onClick={() => setSelectedId(null)}>
-            Revenir à la sélection
+            {t('Revenir à la sélection')}
           </button>
         </div>
       )}
-      {selectedId && detail.loading && <p role="status">Ajout du personnage…</p>}
+      {selectedId && detail.loading && <p role="status">{t('Ajout du personnage…')}</p>}
       {request.error ? (
         <p role="alert">
           {request.error.message}{' '}
           <button type="button" onClick={request.retry}>
-            Réessayer
+            {t('Réessayer')}
           </button>
         </p>
       ) : (
@@ -145,14 +147,18 @@ export function PlayerPicker({ slot, position, label, selectedIds, onSelect, onC
                 key={player.id}
                 disabled={exists || !!selectedId || request.loading}
                 onClick={() => setSelectedId(player.id)}
-                aria-label={`Ajouter ${player.name}${exists ? ' - déjà dans l’équipe' : ''}`}
+                aria-label={t(
+                  'Ajouter {0}{1}',
+                  catalogueName(player),
+                  exists ? t(' - déjà dans l’équipe') : '',
+                )}
               >
                 <Portrait small src={player.portraitUrl} />
                 <span className={styles.identity}>
-                  <strong>{player.name}</strong>
+                  <strong>{catalogueName(player)}</strong>
                   <span>
                     {exists
-                      ? 'Déjà dans l’équipe'
+                      ? t('Déjà dans l’équipe')
                       : [player.teams[0], player.origin?.name].filter(Boolean).join(' - ') ||
                         player.variantLabel ||
                         'Victory Road'}
@@ -168,9 +174,9 @@ export function PlayerPicker({ slot, position, label, selectedIds, onSelect, onC
             );
           })}
           {!request.loading && request.data?.total === 0 && (
-            <p>Aucun personnage ne correspond aux filtres.</p>
+            <p>{t('Aucun personnage ne correspond aux filtres.')}</p>
           )}
-          {request.loading && !request.data && <p>Chargement des personnages…</p>}
+          {request.loading && !request.data && <p>{t('Chargement des personnages…')}</p>}
         </div>
       )}
     </TeamDialog>

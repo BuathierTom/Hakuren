@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import { useState } from 'react';
 import { useFavorites } from '../../favorites-context';
 import styles from './playlist-create.module.scss';
@@ -20,15 +21,15 @@ export function PlaylistCreate({ onCreate }: { onCreate?: (id: string) => void }
       }}
     >
       <input
-        aria-label="Nom de la nouvelle playlist"
-        placeholder="Nouvelle playlist…"
+        aria-label={t('Nom de la nouvelle playlist')}
+        placeholder={t('Nouvelle playlist…')}
         maxLength={80}
         value={name}
         onChange={(event) => setName(event.target.value)}
         disabled={favorites.busy}
       />
       <button type="submit" disabled={favorites.busy || !name.trim()}>
-        Créer
+        {t('Créer')}
       </button>
     </form>
   );

@@ -60,16 +60,16 @@
   .actions button.export {
     background: var(--color-accent);
     border-color: var(--color-accent);
-    color: white;
+    color: var(--color-on-accent);
     &:hover:not(:disabled) {
       background: var(--color-accent-strong);
       border-color: var(--color-accent-strong);
-      color: white;
+      color: var(--color-on-accent);
     }
   }
   .actions button.clear {
     background: #b33d32;
-    border-color: #b33d32;
+    border-color: var(--color-danger-text);
     color: white;
     &:hover:not(:disabled) {
       background: #942f26;

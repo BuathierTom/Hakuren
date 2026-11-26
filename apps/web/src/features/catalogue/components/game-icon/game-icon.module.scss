@@ -18,7 +18,7 @@
   height: 20px;
 }
 .playStyle {
-  filter: brightness(0);
+  filter: var(--color-icon-filter);
 }
 .type {
   width: 24px;
@@ -29,5 +29,5 @@
   width: 24px;
   height: 24px;
   object-fit: contain;
-  filter: brightness(0);
+  filter: var(--color-icon-filter);
 }

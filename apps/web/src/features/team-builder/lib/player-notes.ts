@@ -1,3 +1,4 @@
+import { t } from '../../preferences/lib/i18n';
 import type { Team } from './team';
 
 export const PLAYER_NOTE_LIMIT = 10_000;
@@ -26,16 +27,16 @@ export function playerNote(team: Team, playerId: number): string {
 
 export function setPlayerNote(team: Team, playerId: number, note: string): Team {
   if (!Object.values(team.slots).some((assignment) => assignment.player.id === playerId))
-    throw new Error('Ce joueur ne fait pas partie de cette équipe.');
+    throw new Error(t('Ce joueur ne fait pas partie de cette équipe.'));
   if (typeof note !== 'string' || note.length > PLAYER_NOTE_LIMIT)
-    throw new Error('La note ne peut pas dépasser 10 000 caractères.');
+    throw new Error(t('La note ne peut pas dépasser 10 000 caractères.'));
   if (playerNote(team, playerId) === note) return team;
   const playerNotes = { ...team.playerNotes };
   if (note === '') delete playerNotes[String(playerId)];
   else playerNotes[String(playerId)] = note;
   if (!validPlayerNotes(playerNotes))
     throw new Error(
-      'La limite de notes de cette équipe est atteinte. Raccourcis ou efface une note.',
+      t('La limite de notes de cette équipe est atteinte. Raccourcis ou efface une note.'),
     );
   const next: Team = { ...team, playerNotes };
   if (!Object.keys(playerNotes).length) delete next.playerNotes;

@@ -7,7 +7,7 @@
   width: 15px;
   height: 15px;
   display: block;
-  border: 1px solid #1b304024;
+  border: 1px solid var(--color-shadow);
 }
 .separator {
   border: 0;
@@ -55,7 +55,7 @@
 .remove {
   width: 36px;
   padding: 0;
-  color: #a13c32;
+  color: var(--color-danger-text);
 }
 @media (max-width: 900px) {
   .controls {

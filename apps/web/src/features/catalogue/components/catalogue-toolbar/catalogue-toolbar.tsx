@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import type { View } from '@/app/navigation';
 import { VIEWS, WORK_LABELS } from '../../lib/labels';
 import { Select } from '@/components/ui/select/select';
@@ -35,8 +36,8 @@ export function CatalogueToolbar({
       >
         <label htmlFor="catalogue-search" className="sr-only">
           {isPlayers
-            ? 'Rechercher un joueur ou une équipe'
-            : `Rechercher dans les ${VIEWS[view].toLowerCase()}`}
+            ? t('Rechercher un joueur ou une équipe')
+            : t('Rechercher dans les {0}', t(VIEWS[view]).toLowerCase())}
         </label>
         <Icon name="search" size={19} />
         <input
@@ -46,8 +47,8 @@ export function CatalogueToolbar({
           maxLength={100}
           placeholder={
             isPlayers
-              ? 'Un joueur, une équipe…'
-              : `Rechercher dans les ${VIEWS[view].toLowerCase()}…`
+              ? t('Un joueur, une équipe…')
+              : t('Rechercher dans les {0}…', t(VIEWS[view]).toLowerCase())
           }
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
@@ -58,7 +59,7 @@ export function CatalogueToolbar({
             onClick={() => {
               onSearchClear();
             }}
-            aria-label="Effacer la recherche"
+            aria-label={t('Effacer la recherche')}
           >
             <Icon name="close" size={16} />
           </button>
@@ -68,12 +69,12 @@ export function CatalogueToolbar({
       {(isPlayers || view === 'teams') && (
         <Select
           className={styles.workSelect}
-          label="Jeu"
+          label={t('Jeu')}
           value={work}
           onChange={onWorkChange}
           size="large"
           options={[
-            { value: '', label: 'Tous les jeux' },
+            { value: '', label: t('Tous les jeux') },
             ...Object.entries(WORK_LABELS).map(([value, label]) => ({ value, label })),
           ]}
         />

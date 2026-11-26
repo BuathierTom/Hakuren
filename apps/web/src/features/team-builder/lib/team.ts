@@ -1,3 +1,4 @@
+import { t } from '../../preferences/lib/i18n';
 import type { Assignment, Team, TeamPlayer, TeamRarity } from '@shared/teams';
 export type {
   TeamRarity,
@@ -36,13 +37,19 @@ export const STAT_KEYS: StatKey[] = [
 ];
 export const isField = (slot: string) => FIELD_SLOTS.includes(slot);
 export function emptyTeam(): Team {
-  return { id: crypto.randomUUID(), name: 'Mon équipe', formation: '4-3-3-triangle', slots: {} };
+  return { id: crypto.randomUUID(), name: t('Mon équipe'), formation: '4-3-3-triangle', slots: {} };
 }
 export function clearTeam(team: Team): Team {
   return Object.keys(team.slots).length ? { ...team, slots: {} } : team;
 }
 export function snapshotPlayer(player: PlayerDetail): TeamPlayer {
+  const names = Object.fromEntries(
+    Object.entries(player.translations ?? {}).flatMap(([language, text]) =>
+      text?.name ? [[language, text.name]] : [],
+    ),
+  );
   return {
+    ...(Object.keys(names).length ? { names } : {}),
     id: player.id,
     name: player.name,
     portraitUrl: player.portraitUrl,
@@ -59,14 +66,15 @@ export function snapshotPlayer(player: PlayerDetail): TeamPlayer {
   };
 }
 export function slotLabel(slot: string, formation?: Formation): string {
-  if (slot === 'coach') return 'Entraîneur';
+  if (slot === 'coach') return t('Entraîneur');
   if (slot.startsWith('manager-')) return `Manager ${slot.split('-')[1]}`;
-  if (slot.startsWith('bench-')) return `Banc ${slot.split('-')[1]}`;
+  if (slot.startsWith('bench-')) return t('Banc {0}', slot.split('-')[1]);
   const position = formation?.positions.find((p) => `field-${p.slot}` === slot)?.position;
-  return `${position ? { GK: 'Gardien', DF: 'Défenseur', MF: 'Milieu', FW: 'Attaquant' }[position] : 'Titulaire'} ${slot.split('-')[1]}`;
+  return `${position ? { GK: t('Gardien'), DF: t('Défenseur'), MF: t('Milieu'), FW: t('Attaquant') }[position] : t('Titulaire')} ${slot.split('-')[1]}`;
 }
 export function eligible(player: TeamPlayer, slot: string) {
-  if (slot === 'coach') return ['Manager', 'Coach', 'Player Manager'].includes(player.role ?? '');
+  if (slot === 'coach')
+    return [t('Manager'), 'Coach', 'Player Manager'].includes(player.role ?? '');
   if (slot.startsWith('manager-'))
     return ['Coordinator', 'Player Coordinator'].includes(player.role ?? '');
   return ['Player', 'Player Manager', 'Player Coordinator'].includes(player.role ?? '');
@@ -81,22 +89,22 @@ export function teamCounts(team: Team) {
 }
 export function ruleError(team: Team): string | null {
   const { heroes, basaras } = teamCounts(team);
-  if (heroes > 2) return 'Deux joueurs Héro maximum sont autorisés sur le terrain.';
-  if (basaras > 1) return 'Un seul Basara est autorisé sur le terrain.';
+  if (heroes > 2) return t('Deux joueurs Héro maximum sont autorisés sur le terrain.');
+  if (basaras > 1) return t('Un seul Basara est autorisé sur le terrain.');
   return null;
 }
 export function putPlayer(team: Team, slot: string, assignment?: Assignment): Team {
-  if (!ALL_SLOTS.includes(slot)) throw new Error('Cet emplacement est introuvable.');
+  if (!ALL_SLOTS.includes(slot)) throw new Error(t('Cet emplacement est introuvable.'));
   const slots = { ...team.slots };
   if (assignment) {
     if (!eligible(assignment.player, slot))
-      throw new Error('Ce personnage ne peut pas occuper cet emplacement.');
+      throw new Error(t('Ce personnage ne peut pas occuper cet emplacement.'));
     if (!assignment.player.rarities.includes(assignment.rarity))
-      throw new Error('Cette rareté est indisponible pour ce joueur.');
+      throw new Error(t('Cette rareté est indisponible pour ce joueur.'));
     if (
       Object.entries(slots).some(([key, a]) => key !== slot && a.player.id === assignment.player.id)
     )
-      throw new Error('Ce personnage est déjà dans l’équipe.');
+      throw new Error(t('Ce personnage est déjà dans l’équipe.'));
     slots[slot] = assignment;
   } else delete slots[slot];
   const next = { ...team, slots };
@@ -107,12 +115,12 @@ export function putPlayer(team: Team, slot: string, assignment?: Assignment): Te
 export function movePlayer(team: Team, from: string, to: string): Team {
   if (from === to) return team;
   if (!ALL_SLOTS.includes(from) || !ALL_SLOTS.includes(to))
-    throw new Error('Cet emplacement est introuvable.');
+    throw new Error(t('Cet emplacement est introuvable.'));
   const source = team.slots[from];
   const target = team.slots[to];
   if (!source) return team;
   if (!eligible(source.player, to) || (target && !eligible(target.player, from)))
-    throw new Error('Les joueurs et le staff ont des emplacements distincts.');
+    throw new Error(t('Les joueurs et le staff ont des emplacements distincts.'));
   const slots = { ...team.slots, [to]: source };
   if (target) slots[from] = target;
   else delete slots[from];

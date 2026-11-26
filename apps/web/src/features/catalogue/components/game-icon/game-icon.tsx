@@ -51,7 +51,7 @@ export function PositionIcon({ position }: { position: Position }) {
   return (
     <img
       className={styles.position}
-      src={positionIcons[position]}
+      src={positionIcons()[position]}
       width="34"
       height="20"
       alt=""

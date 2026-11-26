@@ -1,3 +1,4 @@
+import { locale, t } from '@/features/preferences/lib/i18n';
 import { TeamStrategy } from '../team-strategy/team-strategy';
 import { useMemo } from 'react';
 import type { LoadoutOptions } from '@shared/catalogue';
@@ -24,33 +25,35 @@ export function TeamAnalysis({
   const loadout = useRequest<LoadoutOptions>(hasLoadout ? '/api/catalogue/loadouts' : null);
   const power = useMemo(() => teamPower(team, loadout.data ?? undefined), [team, loadout.data]);
   return (
-    <aside className={styles.analysis} aria-label="Analyse de l’équipe">
-      <h2>Analyse</h2>
+    <aside className={styles.analysis} aria-label={t('Analyse de l’équipe')}>
+      <h2>{t('Analyse')}</h2>
       <div className={styles.body}>
-        <h3>Composition</h3>
+        <h3>{t('Composition')}</h3>
         <div className={styles.metrics}>
           <div>
             <strong>
               {counts.starters}
               <small>/11</small>
             </strong>
-            <span>Titulaires</span>
+            <span>{t('Titulaires')}</span>
           </div>
           <div data-warning={offPosition.length > 0}>
             <strong>{offPosition.length}</strong>
-            <span>Hors poste</span>
+            <span>{t('Hors poste')}</span>
           </div>
           <div data-warning={alerts.length > 0}>
             <strong>{alerts.length}</strong>
-            <span>Alertes</span>
+            <span>{t('Alertes')}</span>
           </div>
         </div>
-        <div className={styles.limits} aria-label="Limites sur le terrain">
-          <span data-full={counts.heroes === 2}>Héro {counts.heroes}/2</span>
+        <div className={styles.limits} aria-label={t('Limites sur le terrain')}>
+          <span data-full={counts.heroes === 2}>
+            {t('Héro')} {counts.heroes}/2
+          </span>
           <span data-full={counts.basaras === 1}>Basara {counts.basaras}/1</span>
         </div>
         {alerts.length > 0 && (
-          <ul className={styles.alerts} aria-label="Alertes de composition" aria-live="polite">
+          <ul className={styles.alerts} aria-label={t('Alertes de composition')} aria-live="polite">
             {alerts.map((alert) => (
               <li key={alert.code}>
                 <Icon name="warning" size={15} />
@@ -61,10 +64,10 @@ export function TeamAnalysis({
         )}
         <section
           className={styles.power}
-          aria-label="Puissance cumulée"
+          aria-label={t('Puissance cumulée')}
           aria-busy={loadout.loading}
         >
-          <h3>Puissance cumulée</h3>
+          <h3>{t('Puissance cumulée')}</h3>
           <dl aria-live="polite">
             {Object.entries(POWER_LABELS).map(([key, label]) => (
               <div key={key}>
@@ -72,21 +75,21 @@ export function TeamAnalysis({
                 <dd>
                   {loadout.loading || loadout.error
                     ? '—'
-                    : power.totals[key as keyof typeof power.totals].toLocaleString('fr-FR')}
+                    : power.totals[key as keyof typeof power.totals].toLocaleString(locale())}
                 </dd>
               </div>
             ))}
           </dl>
           {loadout.loading && (
             <p className={styles.note} role="status">
-              Chargement des bonus…
+              {t('Chargement des bonus…')}
             </p>
           )}
           {loadout.error && (
             <div className={styles.note} role="alert">
-              <p>Impossible de calculer les bonus pour le moment.</p>
+              <p>{t('Impossible de calculer les bonus pour le moment.')}</p>
               <button type="button" onClick={loadout.retry}>
-                Réessayer
+                {t('Réessayer')}
               </button>
             </div>
           )}
@@ -94,15 +97,22 @@ export function TeamAnalysis({
             <>
               {power.matchState > 0 && (
                 <p className={styles.note}>
-                  {power.matchState} passif{power.matchState > 1 ? 's' : ''} en attente du rang de
-                  build, de la puissance de lien ou d’un remplacement.
+                  {t(
+                    power.matchState > 1
+                      ? '{0} passifs en attente du rang de build, de la puissance de lien ou d’un remplacement.'
+                      : '{0} passif en attente du rang de build, de la puissance de lien ou d’un remplacement.',
+                    power.matchState,
+                  )}
                 </p>
               )}
               {(power.unavailable > 0 || power.unresolved > 0) && (
                 <p className={styles.note}>
-                  {power.unavailable + power.unresolved} bonus indisponible
-                  {power.unavailable + power.unresolved > 1 ? 's' : ''} ou non reconnu
-                  {power.unavailable + power.unresolved > 1 ? 's' : ''}.
+                  {t(
+                    power.unavailable + power.unresolved > 1
+                      ? '{0} bonus indisponibles ou non reconnus.'
+                      : '{0} bonus indisponible ou non reconnu.',
+                    power.unavailable + power.unresolved,
+                  )}
                 </p>
               )}
             </>

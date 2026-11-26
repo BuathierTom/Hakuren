@@ -1,3 +1,4 @@
+import { t } from '../../preferences/lib/i18n';
 import type { CatalogueItem, Page } from '@shared/catalogue';
 
 let cached: { items: CatalogueItem[]; at: number } | null = null;
@@ -8,7 +9,7 @@ export async function loadTactics(signal?: AbortSignal): Promise<CatalogueItem[]
       signal: signal ?? AbortSignal.timeout(15_000),
       headers: { Accept: 'application/json' },
     });
-    if (!response.ok) throw new Error('Les tactiques sont momentanément indisponibles.');
+    if (!response.ok) throw new Error(t('Les tactiques sont momentanément indisponibles.'));
     return response.json();
   };
   const first = await page(1);

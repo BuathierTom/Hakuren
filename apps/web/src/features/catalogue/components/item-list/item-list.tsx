@@ -1,3 +1,5 @@
+import { catalogueName } from '@/features/catalogue/lib/catalogue-text';
+import { t } from '@/features/preferences/lib/i18n';
 import { FavoriteButton } from '@/features/favorites/components/favorite-button/favorite-button';
 import type { CatalogueItem } from '@shared/catalogue';
 import { href, intercept } from '@/app/navigation';
@@ -29,13 +31,14 @@ export function ItemList({ items }: { items: CatalogueItem[] }) {
                 )}
               </span>
               <span className={styles.name}>
-                <strong>{item.name}</strong>
-                <small>{item.slot ? EQUIPMENT_SLOTS[item.slot] : 'Tactique'}</small>
+                <strong>{catalogueName(item)}</strong>
+                <small>{item.slot ? t(EQUIPMENT_SLOTS[item.slot]) : t('Tactique')}</small>
               </span>
               <span className={styles.bonus}>
                 {Object.entries(item.stats)
                   .map(
-                    ([stat, value]) => `${STAT_NAMES[stat as keyof typeof STAT_NAMES]} +${value}`,
+                    ([stat, value]) =>
+                      `${t(STAT_NAMES[stat as keyof typeof STAT_NAMES])} +${value}`,
                   )
                   .join(' - ')}
               </span>
@@ -43,7 +46,7 @@ export function ItemList({ items }: { items: CatalogueItem[] }) {
                 <span className={styles.tension}>{tensionLabel(item.tension)}</span>
               )}
             </a>
-            <FavoriteButton kind={item.section} targetId={item.id} name={item.name} />
+            <FavoriteButton kind={item.section} targetId={item.id} name={catalogueName(item)} />
           </li>
         );
       })}

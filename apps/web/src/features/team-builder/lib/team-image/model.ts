@@ -1,3 +1,4 @@
+import { t } from '../../../preferences/lib/i18n';
 import type { CatalogueItem, LoadoutOptions } from '@shared/catalogue';
 import type { Formation } from '@shared/formations';
 import { teamAlerts } from '../team-alerts';
@@ -38,13 +39,18 @@ export function teamImageModel(
   const power = teamPower(team, catalogue);
   const offPosition = alerts.find((alert) => alert.code === 'off-position')?.slots.length ?? 0;
   const notes: string[] = [];
-  if (hasTeamLoadout(team)) notes.push('Équipements et bonus permanents inclus.');
+  if (hasTeamLoadout(team)) notes.push(t('Équipements et bonus permanents inclus.'));
   if (power.matchState)
     notes.push(
-      `${power.matchState} passif(s) en attente du rang de build, de la puissance de lien ou d’un remplacement.`,
+      t(
+        '{0} passif(s) en attente du rang de build, de la puissance de lien ou d’un remplacement.',
+        power.matchState,
+      ),
     );
   if (power.unavailable || power.unresolved)
-    notes.push(`${power.unavailable + power.unresolved} bonus indisponible(s) ou non reconnu(s).`);
+    notes.push(
+      t('{0} bonus indisponible(s) ou non reconnu(s).', power.unavailable + power.unresolved),
+    );
   const selectedTactics = Array.from({ length: 3 }, (_, index) => {
     const id = team.tactics?.[index] ?? null;
     return { id, item: tactics.find((item) => item.id === id) ?? null };

@@ -13,7 +13,7 @@
   overflow-y: auto;
   scrollbar-width: none;
   &::backdrop {
-    background: #15273466;
+    background: var(--color-backdrop);
   }
   &::-webkit-scrollbar {
     display: none;
@@ -47,7 +47,7 @@
     line-height: 0;
     flex-shrink: 0;
     border: 1px solid var(--color-border);
-    background: #fff;
+    background: var(--color-surface);
     color: var(--color-muted);
     svg {
       display: block;
@@ -87,7 +87,7 @@
   padding: 11px 19px;
   border: 0;
   background: var(--color-accent);
-  color: white;
+  color: var(--color-on-accent);
   font-size: var(--font-size-small);
 }
 

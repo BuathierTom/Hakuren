@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import { href, navigate, useLocation } from '@/app/navigation';
 import { useEffect } from 'react';
 import { useNotifications } from '@/features/notifications/notification-context';
@@ -22,7 +23,7 @@ export function AuthNotice() {
     if (code && messages[code]) {
       notify({
         id: `auth-callback-${code}`,
-        message: messages[code],
+        message: t(messages[code]!),
         tone: code === 'cancelled' ? 'info' : 'error',
       });
       navigate(href(view, { auth_error: null }), { replace: true });

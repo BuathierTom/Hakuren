@@ -40,7 +40,7 @@ async function loadImage(source: string): Promise<HTMLImageElement | null> {
 export async function teamImageAssets(team: Team, tactics: CatalogueItem[] = []) {
   const sources = {
     ...elementIcons,
-    ...positionIcons,
+    ...positionIcons(),
     ...playStyleIcons,
     coach,
     manager,

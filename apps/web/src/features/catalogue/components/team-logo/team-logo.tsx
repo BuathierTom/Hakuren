@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import { useState } from 'react';
 import styles from './team-logo.module.scss';
 export function TeamLogo({ name, src }: { name: string; src: string | null }) {
@@ -7,14 +8,14 @@ export function TeamLogo({ name, src }: { name: string; src: string | null }) {
       {src && !failed ? (
         <img
           src={src}
-          alt={`Écusson de ${name}`}
+          alt={t('Écusson de {0}', name)}
           width="64"
           height="64"
           loading="lazy"
           onError={() => setFailed(true)}
         />
       ) : (
-        <span aria-label={`Écusson indisponible pour ${name}`}>
+        <span aria-label={t('Écusson indisponible pour {0}', name)}>
           {name
             .split(/\s+/)
             .map((word) => word[0])

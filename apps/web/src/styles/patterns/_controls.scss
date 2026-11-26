@@ -38,7 +38,7 @@
   padding: 12px 18px;
   border: 0;
   background: var(--color-accent);
-  color: white;
+  color: var(--color-on-accent);
   font-size: var(--font-size-small);
   @include label;
   &:hover {

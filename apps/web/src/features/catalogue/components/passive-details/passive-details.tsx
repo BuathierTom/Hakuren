@@ -1,3 +1,5 @@
+import { catalogueDescription } from '@/features/catalogue/lib/catalogue-text';
+import { locale, t } from '@/features/preferences/lib/i18n';
 import type { Passive } from '@shared/catalogue';
 import { PassiveIcon, PlayStyleIcon } from '../game-icon/game-icon';
 import { EntryStatistics } from '../entry-statistics/entry-statistics';
@@ -8,23 +10,23 @@ export function PassivePanel({ passive, titleId }: { passive: Passive; titleId: 
     <>
       <div className={styles.heading}>
         <PassiveIcon icon={passive.icon} />
-        <h2 id={titleId}>Passif</h2>
+        <h2 id={titleId}>{t('Passif')}</h2>
       </div>
-      <p className={styles.description}>{passive.description}</p>
+      <p className={styles.description}>{catalogueDescription(passive)}</p>
       <EntryStatistics
         fields={[
           { label: 'ID', value: passive.gameId },
-          { label: 'Type', value: PASSIVE_SOURCES[passive.source] },
+          { label: t('Type'), value: t(PASSIVE_SOURCES[passive.source]) },
           {
-            label: 'Valeur',
-            value: `${passive.value.toLocaleString('fr-FR', { maximumFractionDigits: 4 })}${passive.unit === 'percent' ? ' %' : ''}`,
+            label: t('Valeur'),
+            value: `${passive.value.toLocaleString(locale(), { maximumFractionDigits: 4 })}${passive.unit === 'percent' ? ' %' : ''}`,
           },
         ]}
       />
       {passive.playStyle && (
         <p className={styles.style}>
           <PlayStyleIcon style={passive.playStyle} />
-          {PLAY_STYLES[passive.playStyle]}
+          {t(PLAY_STYLES[passive.playStyle])}
         </p>
       )}
     </>

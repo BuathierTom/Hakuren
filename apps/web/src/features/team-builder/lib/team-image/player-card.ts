@@ -1,3 +1,5 @@
+import { t } from '../../../preferences/lib/i18n';
+import { catalogueName } from '../../../catalogue/lib/catalogue-text';
 import type { Position } from '@shared/catalogue';
 import { playerSurname } from '../player-name';
 import { assignmentAppearance } from '../rarity-appearance';
@@ -60,18 +62,19 @@ export function drawPlayerCard(
     if (styleIcon) drawStyleIcon(ctx, styleIcon, x + 8 + (badge ? badgeWidth + 4 : 0), y + 20, 13);
     font(ctx, theme, 9);
     ctx.fillStyle = theme.muted;
-    ctx.fillText(RARITIES[assignment.rarity].name, x + 8, y + 42);
+    ctx.fillText(t(RARITIES[assignment.rarity].name), x + 8, y + 42);
     font(ctx, theme, 11, true, true);
     ctx.fillStyle = theme.text;
     ctx.fillText(
-      fitText(ctx, playerSurname(assignment.player.name).toUpperCase(), width - 42),
+      fitText(ctx, playerSurname(catalogueName(assignment.player)).toUpperCase(), width - 42),
       x + 8,
       y + height - 6,
     );
     if (hasWarning) warning(ctx, x + width - 20, y + 4);
   } else {
     const icon = assets.icons.get(
-      position ?? (label === 'Entraîneur' ? 'coach' : label.startsWith('Manager') ? 'manager' : ''),
+      position ??
+        (label === t('Entraîneur') ? 'coach' : label.startsWith('Manager') ? 'manager' : ''),
     );
     ctx.globalAlpha = 0.7;
     if (icon) {

@@ -537,3 +537,22 @@ test('automatic fill preserves occupied slots, uses the right passive sources an
   assert.equal(equipped.equipment?.accessory, 4);
   assert.deepEqual(base.equipment, { boots: 99 });
 });
+
+test('team snapshots retain optional bilingual player names without rejecting existing teams', () => {
+  const team = putPlayer(emptyTeam(), 'field-1', assignment(1));
+  assert(decodeTeam(team));
+  team.slots['field-1']!.player.names = { fr: 'Nom français', en: 'English name' };
+  assert.deepEqual(decodeTeam(JSON.parse(JSON.stringify(team))), team);
+  assert.equal(
+    decodeTeam({
+      ...team,
+      slots: {
+        'field-1': {
+          ...team.slots['field-1'],
+          player: { ...team.slots['field-1']!.player, names: { ja: 'unsupported' } },
+        },
+      },
+    }),
+    null,
+  );
+});

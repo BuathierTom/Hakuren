@@ -1,4 +1,5 @@
 :root {
+  color-scheme: light;
   --color-text: #1b3040;
   --color-background: #f4f7f9;
   --color-surface: #fff;
@@ -12,9 +13,64 @@
   --color-border-soft: #e8edf1;
   --color-hover: #f5f9fb;
   --color-focus: #087b9c;
+  --color-on-accent: #fff;
+  --color-danger: #b33d32;
+  --color-danger-strong: #942f26;
+  --color-danger-text: #a13c32;
+  --color-danger-border: #d7a09a;
+  --color-danger-soft: #fcf1ef;
+  --color-warning: #765b00;
+  --color-warning-border: #8b6b00;
+  --color-warning-soft: #fcf8e9;
+  --color-favorite: #b33d52;
+  --color-success: #277654;
+  --color-shadow: #1b304024;
+  --color-backdrop: #15273480;
+  --color-card: #f8fafc;
+  --color-card-basara: #f4feff;
+  --color-icon-filter: brightness(0);
+  --color-rarity: #926214;
+  --color-rarity-border: #d7c49e;
+  --color-basara: #65549a;
+  --color-basara-border: #c7c0dc;
   --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-size-caption: 12px;
   --font-size-small: 13px;
   --font-size-body: 14px;
   --content-max-width: 1440px;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-text: #e3edf4;
+  --color-background: #101b24;
+  --color-surface: #182733;
+  --color-muted: #a4b5c3;
+  --color-link: #81d4e9;
+  --color-accent: #59c2dc;
+  --color-accent-strong: #8ad9eb;
+  --color-accent-soft: #203d4a;
+  --color-gold: #e0b56a;
+  --color-border: #354a59;
+  --color-border-soft: #2b3e4d;
+  --color-hover: #203442;
+  --color-focus: #81d4e9;
+  --color-on-accent: #0b2732;
+  --color-danger-text: #ffad9f;
+  --color-danger-border: #88524c;
+  --color-danger-soft: #39292a;
+  --color-warning: #f0d694;
+  --color-warning-border: #bc9737;
+  --color-warning-soft: #342e22;
+  --color-favorite: #f59ab0;
+  --color-success: #80d7b0;
+  --color-shadow: #00000066;
+  --color-backdrop: #050b14bf;
+  --color-card: #203340;
+  --color-card-basara: #223c46;
+  --color-icon-filter: brightness(0) invert(1);
+  --color-rarity: #e5c07c;
+  --color-rarity-border: #877249;
+  --color-basara: #c1b1f0;
+  --color-basara-border: #75659b;
 }

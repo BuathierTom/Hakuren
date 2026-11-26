@@ -1,3 +1,5 @@
+import { catalogueName } from '../../../catalogue/lib/catalogue-text';
+import { locale, t } from '../../../preferences/lib/i18n';
 import { PLAY_STYLES } from '@/features/catalogue/lib/labels';
 import type { TeamImageAssets } from './assets';
 import { POWER_KEYS, POWER_LABELS } from '../power-stats';
@@ -23,7 +25,7 @@ function layout(
   const tactics = model.tactics.map(({ id, item }) => {
     const lines = wrapText(
       ctx,
-      item?.name ?? (id ? 'Tactique indisponible' : 'Aucune tactique'),
+      item ? catalogueName(item) : id ? t('Tactique indisponible') : t('Aucune tactique'),
       width - 96,
     );
     return { id, lines, height: Math.max(44, lines.length * 18 + 18) };
@@ -71,15 +73,15 @@ export function drawAnalysis(
   rectangle(ctx, x, y, width, 36, theme.accentSoft, theme.border);
   font(ctx, theme, 15, true, true);
   ctx.fillStyle = theme.accent;
-  ctx.fillText('ANALYSE', x + 14, y + 24);
+  ctx.fillText(t('Analyse').toUpperCase(), x + 14, y + 24);
   font(ctx, theme, 13, true, true);
   ctx.fillStyle = theme.text;
-  ctx.fillText('COMPOSITION', x + 14, y + 65);
+  ctx.fillText(t('Composition').toUpperCase(), x + 14, y + 65);
   const metricWidth = (width - 40) / 3;
   for (const [index, metric] of [
-    { value: `${model.counts.starters}/11`, label: 'Titulaires', warning: false },
-    { value: String(model.offPosition), label: 'Hors poste', warning: model.offPosition > 0 },
-    { value: String(model.alerts.length), label: 'Alertes', warning: model.alerts.length > 0 },
+    { value: `${model.counts.starters}/11`, label: t('Titulaires'), warning: false },
+    { value: String(model.offPosition), label: t('Hors poste'), warning: model.offPosition > 0 },
+    { value: String(model.alerts.length), label: t('Alertes'), warning: model.alerts.length > 0 },
   ].entries()) {
     const left = x + 14 + index * (metricWidth + 6);
     rectangle(
@@ -103,7 +105,10 @@ export function drawAnalysis(
   let limitX = x + 14;
   font(ctx, theme, 12, true, true);
   for (const limit of [
-    { text: `HÉRO ${model.counts.heroes}/2`, full: model.counts.heroes === 2 },
+    {
+      text: `${t('Héro').toUpperCase()} ${model.counts.heroes}/2`,
+      full: model.counts.heroes === 2,
+    },
     { text: `BASARA ${model.counts.basaras}/1`, full: model.counts.basaras === 1 },
   ]) {
     const size = ctx.measureText(limit.text).width + 16;
@@ -134,7 +139,7 @@ export function drawAnalysis(
   rectangle(ctx, x + 14, current, width - 28, 32, theme.surface, theme.border);
   font(ctx, theme, 13, true, true);
   ctx.fillStyle = theme.muted;
-  ctx.fillText('PUISSANCE CUMULÉE', x + 24, current + 22);
+  ctx.fillText(t('Puissance cumulée').toUpperCase(), x + 24, current + 22);
   current += 32;
   const cellWidth = (width - 28) / 2;
   for (const row of measured.rows) {
@@ -144,10 +149,10 @@ export function drawAnalysis(
       rectangle(ctx, left + 1, current + 1, cellWidth - 1, row.height - 1, theme.surface);
       font(ctx, theme, 11);
       ctx.fillStyle = theme.muted;
-      ctx.fillText(POWER_LABELS[key].toUpperCase(), left + 10, current + 21);
+      ctx.fillText(t(POWER_LABELS[key]).toUpperCase(), left + 10, current + 21);
       font(ctx, theme, 22, true);
       ctx.fillStyle = theme.text;
-      ctx.fillText(model.power.totals[key].toLocaleString('fr-FR'), left + 10, current + 47);
+      ctx.fillText(model.power.totals[key].toLocaleString(locale()), left + 10, current + 47);
     }
     current += row.height;
   }
@@ -171,7 +176,7 @@ export function drawAnalysis(
   font(ctx, theme, 13, true);
   ctx.fillStyle = theme.text;
   ctx.fillText(
-    model.playStyle ? PLAY_STYLES[model.playStyle] : 'Aucun archétype',
+    model.playStyle ? t(PLAY_STYLES[model.playStyle]) : t('Aucun archétype'),
     x + (style ? 54 : 24),
     current + 28,
   );
@@ -179,7 +184,7 @@ export function drawAnalysis(
   rectangle(ctx, x + 14, current, width - 28, 32, theme.surface, theme.border);
   font(ctx, theme, 13, true, true);
   ctx.fillStyle = theme.muted;
-  ctx.fillText('TACTIQUES', x + 24, current + 22);
+  ctx.fillText(t('Tactiques').toUpperCase(), x + 24, current + 22);
   ctx.textAlign = 'right';
   ctx.fillText(
     `${model.tactics.filter((entry) => entry.id).length}/3`,

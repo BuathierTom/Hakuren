@@ -1,3 +1,4 @@
+import { t } from '../../../preferences/lib/i18n';
 import type { Formation } from '@shared/formations';
 import type { LoadoutOptions } from '@shared/catalogue';
 import type { Team } from '../team';
@@ -16,7 +17,7 @@ async function loadoutOptions(team: Team): Promise<LoadoutOptions | undefined> {
     signal: AbortSignal.timeout(15_000),
   });
   if (!response.ok)
-    throw new Error('Impossible de charger les équipements et les passifs pour l’export.');
+    throw new Error(t('Impossible de charger les équipements et les passifs pour l’export.'));
   return response.json();
 }
 
@@ -34,7 +35,7 @@ export async function downloadTeamImage(
   const theme = imageTheme();
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('La création d’image est indisponible sur ce navigateur.');
+  if (!ctx) throw new Error(t('La création d’image est indisponible sur ce navigateur.'));
   const { width, padding, gap, analysisWidth, contentY } = IMAGE_LAYOUT;
   const pitchWidth = width - padding * 2 - gap - analysisWidth;
   const height =
@@ -67,7 +68,7 @@ export async function downloadTeamImage(
   font(ctx, theme, 26, true, true);
   ctx.fillStyle = theme.text;
   ctx.fillText(
-    fitText(ctx, team.name.trim() || 'Mon équipe', width - titleX - padding),
+    fitText(ctx, team.name.trim() || t('Mon équipe'), width - titleX - padding),
     titleX,
     65,
   );
@@ -78,7 +79,7 @@ export async function downloadTeamImage(
   ctx.fillText('INAZUMA ELEVEN: VICTORY ROAD', padding, height - 19);
   const blob = await new Promise<Blob>((resolve, reject) =>
     canvas.toBlob(
-      (value) => (value ? resolve(value) : reject(new Error('La création du PNG a échoué.'))),
+      (value) => (value ? resolve(value) : reject(new Error(t('La création du PNG a échoué.')))),
       'image/png',
     ),
   );

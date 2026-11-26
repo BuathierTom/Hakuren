@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import { teamPlayerHref, useLocation } from '@/app/navigation';
 import { useState } from 'react';
 import type { HistoricalTeamDetail } from '@shared/catalogue';
@@ -21,24 +22,28 @@ export function TeamPanel({ team, titleId }: { team: HistoricalTeamDetail; title
         <TeamLogo name={team.name} src={team.logoUrl} />
         <div>
           <h2 id={titleId}>{team.name}</h2>
-          <p>{count(team.playerCount)} personnages répertoriés</p>
+          <p>
+            {count(team.playerCount)} {t('personnages répertoriés')}
+          </p>
         </div>
       </div>
       {team.rosters.length > 1 && (
         <Select
-          label="Effectif par génération"
+          label={t('Effectif par génération')}
           showLabel
           value={selected}
           onChange={setSelected}
           options={team.rosters.map((roster) => ({
             value: roster.work?.code ?? 'unknown',
-            label: roster.work ? workLabel(roster.work.code) : 'Autres joueurs répertoriés',
+            label: roster.work ? workLabel(roster.work.code) : t('Autres joueurs répertoriés'),
           }))}
         />
       )}
       <section className={styles.roster}>
         <h3>
-          {roster?.work ? `Effectif - ${workLabel(roster.work.code)}` : 'Joueurs répertoriés'}
+          {roster?.work
+            ? t('Effectif - {0}', workLabel(roster.work.code))
+            : t('Joueurs répertoriés')}
         </h3>
         {roster?.players.length ? (
           <PlayerList
@@ -47,7 +52,7 @@ export function TeamPanel({ team, titleId }: { team: HistoricalTeamDetail; title
             playerLink={(id) => teamPlayerHref(team.id, id)}
           />
         ) : (
-          <p>Aucun effectif documenté pour le moment.</p>
+          <p>{t('Aucun effectif documenté pour le moment.')}</p>
         )}
       </section>
     </>

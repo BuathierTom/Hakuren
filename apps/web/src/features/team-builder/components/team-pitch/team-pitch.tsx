@@ -1,3 +1,5 @@
+import { usePreferences } from '@/features/preferences/use-preferences';
+import { t } from '@/features/preferences/lib/i18n';
 import { useEffect, useRef, useState, useMemo, type CSSProperties } from 'react';
 import type { Formation } from '@shared/formations';
 import { BENCH_SLOTS, STAFF_SLOTS, slotLabel, type Team } from '../../lib/team';
@@ -14,6 +16,7 @@ interface Props {
   onMove: (from: string, to: string) => void;
 }
 export function TeamPitch({ team, formation, onSlot, onMove }: Props) {
+  const { language } = usePreferences();
   const board = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(850);
   const { preview, over, dragging, handlers } = usePlayerDrag(team, onMove);
@@ -24,7 +27,7 @@ export function TeamPitch({ team, formation, onSlot, onMove }: Props) {
     observer.observe(board.current!);
     return () => observer.disconnect();
   }, []);
-  const alerts = useMemo(() => teamAlerts(team, formation), [team, formation]);
+  const alerts = useMemo(() => teamAlerts(team, formation), [team, formation, language]);
   const geometry = pitchGeometry(formation.positions, width);
   const tile = (slot: string, position?: Formation['positions'][number]['position']) => (
     <PlayerSlot
@@ -59,13 +62,13 @@ export function TeamPitch({ team, formation, onSlot, onMove }: Props) {
           warning={playerWarning(alerts, preview.slot)}
         />
       )}
-      <section className={styles.pitch} aria-label="Terrain de l’équipe">
+      <section className={styles.pitch} aria-label={t('Terrain de l’équipe')}>
         <header className={styles.sectionHeader}>
-          <h2>{formation.name}</h2>
+          <h2>{t(formation.name)}</h2>
           <span>
             {dragging
-              ? 'Relâcher pour déplacer ou permuter'
-              : 'Glisser pour déplacer - déposer pour permuter'}
+              ? t('Relâcher pour déplacer ou permuter')
+              : t('Glisser pour déplacer - déposer pour permuter')}
           </span>
         </header>
         <div ref={board} className={styles.board}>
@@ -83,13 +86,13 @@ export function TeamPitch({ team, formation, onSlot, onMove }: Props) {
           </div>
         </div>
       </section>
-      <section className={styles.roster} aria-label="Remplaçants et staff">
+      <section className={styles.roster} aria-label={t('Remplaçants et staff')}>
         <header className={styles.sectionHeader}>
-          <h2>Effectif</h2>
+          <h2>{t('Effectif')}</h2>
         </header>
         <div className={styles.rosterBody}>
           <div className={styles.rosterRow}>
-            <h3>Remplaçants</h3>
+            <h3>{t('Remplaçants')}</h3>
             <div className={styles.bench}>
               {BENCH_SLOTS.map((slot) => (
                 <div key={slot} data-target={over === slot}>

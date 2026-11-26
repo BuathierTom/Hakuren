@@ -1,3 +1,5 @@
+import { catalogueName } from '@/features/catalogue/lib/catalogue-text';
+import { t } from '@/features/preferences/lib/i18n';
 import type { Assignment } from '../../lib/team';
 import { playerSurname } from '../../lib/player-name';
 import { ElementIcon, PositionIcon } from '@/features/catalogue/components/game-icon/game-icon';
@@ -16,13 +18,13 @@ export function PlayerCard({
       <span className={styles.playerInfo}>
         <ElementIcon element={assignment.player.element} />
         {assignment.player.position && <PositionIcon position={assignment.player.position} />}
-        <strong>{playerSurname(assignment.player.name)}</strong>
+        <strong>{playerSurname(catalogueName(assignment.player))}</strong>
       </span>
       {warning && (
         <span
           className={styles.warning}
           role="img"
-          aria-label={`Alerte : ${warning}`}
+          aria-label={t('Alerte : {0}', warning)}
           title={warning}
         >
           <Icon name="warning" size={14} />

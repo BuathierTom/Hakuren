@@ -1,3 +1,5 @@
+import { catalogueName } from '@/features/catalogue/lib/catalogue-text';
+import { t } from '@/features/preferences/lib/i18n';
 import { useEffect, useState } from 'react';
 import type { Page } from '@shared/catalogue';
 import type { FavoriteEntry, FavoriteKind } from '@shared/favorites';
@@ -49,30 +51,30 @@ export function FavoritesPanel() {
           setRequest({
             data: null,
             loading: false,
-            error: cause instanceof Error ? cause.message : 'Les favoris sont indisponibles.',
+            error: cause instanceof Error ? cause.message : t('Les favoris sont indisponibles.'),
           });
       });
     return () => controller.abort();
   }, [api, id, kind, page, entries, retry]);
   return (
     <section className={styles.panel} aria-labelledby="favorites-title">
-      <h2 id="favorites-title">Liste de favoris</h2>
+      <h2 id="favorites-title">{t('Liste de favoris')}</h2>
       {favorites.loading && !playlist ? (
         <p className={styles.state} role="status">
-          Chargement des favoris…
+          {t('Chargement des favoris…')}
         </p>
       ) : favorites.error ? (
         <div className={styles.state} role="alert">
           <p>{favorites.error}</p>
           <button type="button" onClick={() => void favorites.refresh()}>
-            Réessayer
+            {t('Réessayer')}
           </button>
         </div>
       ) : (
         <>
           <div className={styles.toolbar}>
             <Select
-              label="Playlist de favoris"
+              label={t('Playlist de favoris')}
               value={playlist?.id ?? ''}
               options={favorites.state.playlists.map((p) => ({ value: p.id, label: p.name }))}
               onChange={(value) => {
@@ -84,8 +86,8 @@ export function FavoritesPanel() {
               <button
                 className={styles.delete}
                 type="button"
-                title="Supprimer la playlist"
-                aria-label="Supprimer la playlist"
+                title={t('Supprimer la playlist')}
+                aria-label={t('Supprimer la playlist')}
                 disabled={favorites.busy}
                 onClick={() => setDeleting(true)}
               >
@@ -99,7 +101,7 @@ export function FavoritesPanel() {
               }}
             />
           </div>
-          <div className={styles.tabs} role="group" aria-label="Catégories de favoris">
+          <div className={styles.tabs} role="group" aria-label={t('Catégories de favoris')}>
             {(Object.entries(FAVORITE_KINDS) as [FavoriteKind, string][]).map(([value, label]) => (
               <button
                 key={value}
@@ -110,7 +112,7 @@ export function FavoritesPanel() {
                   setPage(1);
                 }}
               >
-                {label}
+                {t(label)}
                 <span>{entries.filter((e) => e.playlistId === id && e.kind === value).length}</span>
               </button>
             ))}
@@ -118,30 +120,32 @@ export function FavoritesPanel() {
           <div className={styles.results} aria-busy={request.loading}>
             {request.loading ? (
               <p className={styles.state} role="status">
-                Chargement…
+                {t('Chargement…')}
               </p>
             ) : request.error ? (
               <div className={styles.state} role="alert">
                 <p>{request.error}</p>
                 <button type="button" onClick={() => setRetry((value) => value + 1)}>
-                  Réessayer
+                  {t('Réessayer')}
                 </button>
               </div>
             ) : !request.data?.items.length ? (
               <p className={styles.state}>
-                Aucun favori dans cette catégorie. Utilise le cœur dans le catalogue pour en
-                ajouter.
+                {t(
+                  'Aucun favori dans cette catégorie. Utilise le cœur dans le catalogue pour en ajouter.',
+                )}
               </p>
             ) : (
               <>
                 <div className={styles.pagination}>
                   <span>
-                    {request.data.total} favori{request.data.total > 1 ? 's' : ''}
+                    {request.data.total} {t('favori')}
+                    {request.data.total > 1 ? 's' : ''}
                   </span>
                   <CataloguePagination
                     page={page}
                     pages={request.data.pages}
-                    label="Pages des favoris"
+                    label={t('Pages des favoris')}
                     onChange={setPage}
                   />
                 </div>
@@ -158,7 +162,7 @@ export function FavoritesPanel() {
                             {entry.kind === 'players' ? (
                               <Portrait src={entry.imageUrl} small />
                             ) : entry.kind === 'teams' ? (
-                              <TeamLogo name={entry.name} src={entry.imageUrl} />
+                              <TeamLogo name={catalogueName(entry)} src={entry.imageUrl} />
                             ) : entry.imageUrl ? (
                               <img
                                 src={entry.imageUrl}
@@ -179,21 +183,21 @@ export function FavoritesPanel() {
                                 size={25}
                               />
                             )}
-                            <span>{entry.name}</span>
+                            <span>{catalogueName(entry)}</span>
                           </a>
                         ) : (
-                          <span className={styles.unavailable}>{entry.name}</span>
+                          <span className={styles.unavailable}>{catalogueName(entry)}</span>
                         )}
                         <FavoriteButton
                           kind={entry.kind}
                           targetId={entry.targetId}
-                          name={entry.name}
+                          name={catalogueName(entry)}
                         />
                         <button
                           className={styles.remove}
                           type="button"
-                          title="Retirer de cette playlist"
-                          aria-label={`Retirer ${entry.name} de ${playlist?.name}`}
+                          title={t('Retirer de cette playlist')}
+                          aria-label={t('Retirer {0} de {1}', catalogueName(entry), playlist?.name)}
                           disabled={favorites.busy}
                           onClick={() => {
                             if (id) void favorites.set(id, entry.kind, entry.targetId, false);
@@ -212,8 +216,8 @@ export function FavoritesPanel() {
       )}
       {deleting && playlist && (
         <ConfirmationDialog
-          title="Supprimer la playlist"
-          confirmLabel="Supprimer la playlist"
+          title={t('Supprimer la playlist')}
+          confirmLabel={t('Supprimer la playlist')}
           busy={favorites.busy}
           onClose={() => setDeleting(false)}
           onConfirm={() => {
@@ -227,8 +231,8 @@ export function FavoritesPanel() {
           }}
         >
           <p>
-            Supprimer « {playlist.name} » et les favoris qu’elle contient ? Les autres playlists
-            seront conservées.
+            {t('Supprimer «')} {playlist.name}{' '}
+            {t('» et les favoris qu’elle contient ? Les autres playlists seront conservées.')}
           </p>
         </ConfirmationDialog>
       )}

@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import { useLayoutEffect, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import type { Notification } from '../../notification-context';
@@ -48,7 +49,7 @@ export function NotificationViewport({
   return createPortal(
     <section
       className={styles.viewport}
-      aria-label="Notifications"
+      aria-label={t('Notifications')}
       style={
         {
           '--notification-header-bottom': `${headerBottom}px`,

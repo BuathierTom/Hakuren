@@ -21,12 +21,12 @@
 .rarity {
   display: inline-flex;
   padding: 2px 5px;
-  border: 1px solid #d7c49e;
-  color: #926214;
+  border: 1px solid var(--color-rarity-border);
+  color: var(--color-rarity);
   font-size: var(--font-size-caption);
   font-weight: 650;
   &[data-rarity='basara'] {
-    color: #65549a;
-    border-color: #c7c0dc;
+    color: var(--color-basara);
+    border-color: var(--color-basara-border);
   }
 }

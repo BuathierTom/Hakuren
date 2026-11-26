@@ -1,3 +1,5 @@
+import { catalogueName } from '@/features/catalogue/lib/catalogue-text';
+import { t } from '@/features/preferences/lib/i18n';
 import { useCallback, useId, useState } from 'react';
 import type { PlayerLearnset } from '@shared/catalogue';
 import { TechniqueTypeIcon } from '../game-icon/game-icon';
@@ -43,23 +45,25 @@ function TechniqueRows({ moves, selectedId, previewId, onSelect }: TechniqueRows
               aria-haspopup="dialog"
               aria-expanded={selectedId === move.id}
               data-selected={selectedId === move.id}
-              title="Un clic pour prévisualiser, double-clic pour ouvrir la fiche"
+              title={t('Un clic pour prévisualiser, double-clic pour ouvrir la fiche')}
               className={styles.move}
             >
-              <span className={styles.level}>Niv. {move.level ?? '—'}</span>
+              <span className={styles.level}>
+                {t('Niv.')} {move.level ?? '—'}
+              </span>
               <span
                 className={styles.icon}
-                title={move.technique.category ? CATEGORIES[move.technique.category] : undefined}
+                title={move.technique.category ? t(CATEGORIES[move.technique.category]) : undefined}
               >
                 <TechniqueTypeIcon category={move.technique.category} />
               </span>
-              <span className={styles.name}>{move.technique.name}</span>
+              <span className={styles.name}>{catalogueName(move.technique)}</span>
               <span
                 className={styles.tension}
                 aria-label={
                   move.technique.tension == null
-                    ? 'Tension non renseignée'
-                    : `${move.technique.tension} points de tension`
+                    ? t('Tension non renseignée')
+                    : t('{0} points de tension', move.technique.tension)
                 }
               >
                 {move.technique.tension == null ? '—' : `${move.technique.tension} TP`}
@@ -94,19 +98,19 @@ export function PlayerTechniques({ moves }: { moves: PlayerLearnset[] }) {
   const alternative = moves.filter((move) => move.alternatePath);
   return (
     <>
-      <PlayerDetailBlock title="Techniques & pouvoirs">
+      <PlayerDetailBlock title={t('Techniques & pouvoirs')}>
         {moves.length ? (
           <>
             <TechniqueRows moves={main} {...selection} />
             {alternative.length > 0 && (
               <>
-                <h4 className={styles.branch}>Branche alternative</h4>
+                <h4 className={styles.branch}>{t('Branche alternative')}</h4>
                 <TechniqueRows moves={alternative} {...selection} />
               </>
             )}
           </>
         ) : (
-          <p className={styles.empty}>Techniques non renseignées pour cette rareté.</p>
+          <p className={styles.empty}>{t('Techniques non renseignées pour cette rareté.')}</p>
         )}
       </PlayerDetailBlock>
       <PlayerTechniquePreview id={previewId} selection={selected} onClose={closePreview} />

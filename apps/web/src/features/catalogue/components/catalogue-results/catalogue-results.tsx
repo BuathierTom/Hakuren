@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import { PassiveList } from '../passive-list/passive-list';
 import { TeamList } from '../team-list/team-list';
 import type { useCatalogue } from '../../hooks/use-catalogue';
@@ -44,21 +45,21 @@ export function CatalogueResults({ catalogue }: { catalogue: ReturnType<typeof u
       <div className={styles.resultsHeading}>
         <p aria-live="polite">
           {request.loading && !data ? (
-            'Recherche en cours…'
+            t('Recherche en cours…')
           ) : data ? (
             <>
               <strong>{count(data.total)}</strong>{' '}
-              {data.total === 1 ? singular[view] : VIEWS[view].toLowerCase()}
+              {data.total === 1 ? t(singular[view]) : t(VIEWS[view]).toLowerCase()}
             </>
           ) : (
-            'Résultats'
+            t('Résultats')
           )}
         </p>
         {data && data.pages > 0 && !request.error && (
           <CataloguePagination
             page={data.page}
             pages={data.pages}
-            label="Pagination en haut des résultats"
+            label={t('Pagination en haut des résultats')}
             loading={request.loading}
             onChange={changePage}
           />
@@ -71,7 +72,7 @@ export function CatalogueResults({ catalogue }: { catalogue: ReturnType<typeof u
               key={key}
               type="button"
               onClick={() => update({ [key]: null })}
-              aria-label={`Retirer le filtre ${chipLabel(key)}`}
+              aria-label={t('Retirer le filtre {0}', chipLabel(key))}
             >
               {chipLabel(key)}
               <Icon name="close" size={13} />
@@ -81,24 +82,24 @@ export function CatalogueResults({ catalogue }: { catalogue: ReturnType<typeof u
       )}
       {request.error ? (
         <div className={styles.empty} role="alert">
-          <h2>Chargement impossible</h2>
+          <h2>{t('Chargement impossible')}</h2>
           <p>{request.error.message}</p>
           <button className={styles.primaryButton} onClick={request.retry}>
-            Réessayer
+            {t('Réessayer')}
           </button>
         </div>
       ) : request.loading && !data ? (
-        <div className={styles.loading} aria-label="Chargement des résultats">
+        <div className={styles.loading} aria-label={t('Chargement des résultats')}>
           {Array.from({ length: 8 }, (_, index) => (
             <div key={index} className={styles.skeleton} />
           ))}
         </div>
       ) : !data?.items.length ? (
         <div className={styles.empty}>
-          <h2>Aucun résultat</h2>
-          <p>Modifie ta recherche ou retire un filtre.</p>
+          <h2>{t('Aucun résultat')}</h2>
+          <p>{t('Modifie ta recherche ou retire un filtre.')}</p>
           <button className={styles.primaryButton} onClick={reset}>
-            Effacer les filtres
+            {t('Effacer les filtres')}
           </button>
         </div>
       ) : (
@@ -126,12 +127,12 @@ export function CatalogueResults({ catalogue }: { catalogue: ReturnType<typeof u
                 {count((data.page - 1) * data.limit + 1)}–
                 {count(Math.min(data.page * data.limit, data.total))}
               </strong>{' '}
-              sur {count(data.total)}
+              {t('sur')} {count(data.total)}
             </p>
             <CataloguePagination
               page={data.page}
               pages={data.pages}
-              label="Pagination en bas des résultats"
+              label={t('Pagination en bas des résultats')}
               loading={request.loading}
               onChange={changePage}
             />

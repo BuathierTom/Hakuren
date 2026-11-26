@@ -1,3 +1,4 @@
+import { t } from '../../preferences/lib/i18n';
 import { useEffect, useReducer, useState } from 'react';
 
 const cache = new Map<string, { data: unknown; at: number }>();
@@ -5,10 +6,10 @@ export class ApiError extends Error {
   constructor(public status: number) {
     super(
       status === 404
-        ? 'Cette fiche est introuvable.'
+        ? t('Cette fiche est introuvable.')
         : status === 400
-          ? 'Les filtres de recherche sont invalides.'
-          : 'Le catalogue est momentanément indisponible.',
+          ? t('Les filtres de recherche sont invalides.')
+          : t('Le catalogue est momentanément indisponible.'),
     );
   }
 }
@@ -65,7 +66,7 @@ export function useRequest<T>(url: string | null, keepPreviousPage = false) {
             error:
               error instanceof ApiError
                 ? error
-                : new Error('Le catalogue est momentanément indisponible.'),
+                : new Error(t('Le catalogue est momentanément indisponible.')),
             loading: false,
           });
       });

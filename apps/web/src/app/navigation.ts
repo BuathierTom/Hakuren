@@ -19,7 +19,7 @@ export const VIEW_PATHS: Record<View, string> = {
   tactics: '/tactiques',
   passives: '/passifs',
   teams: '/equipes',
-  catalogue: '/catalogue',
+  catalogue: '/wiki',
 };
 const subscribe = (callback: () => void) => {
   window.addEventListener('popstate', callback);
@@ -30,8 +30,9 @@ export function useLocation() {
   const location = useSyncExternalStore(subscribe, snapshot);
   const url = new URL(location, window.location.origin);
   const view: View =
-    (Object.entries(VIEW_PATHS).find(([, path]) => path === url.pathname)?.[0] as
-      View | undefined) ?? 'players';
+    (Object.entries(VIEW_PATHS).find(
+      ([, path]) => path === (url.pathname === '/catalogue' ? '/wiki' : url.pathname),
+    )?.[0] as View | undefined) ?? 'players';
   const params = url.searchParams;
   const rawDetail = params.get('detail') ?? '';
   const rawPlayer = params.get('player') ?? '';

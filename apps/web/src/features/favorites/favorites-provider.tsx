@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { FavoritesState } from '@shared/favorites';
 import { useAuth } from '@/features/auth/auth-context';
@@ -37,7 +38,7 @@ function FavoriteSession({ userId, children }: { userId: number | null; children
       }
     } catch (cause) {
       if (!controller.signal.aborted)
-        setError(cause instanceof Error ? cause.message : 'Les favoris sont indisponibles.');
+        setError(cause instanceof Error ? cause.message : t('Les favoris sont indisponibles.'));
     } finally {
       if (!controller.signal.aborted) setLoading(false);
     }
@@ -74,7 +75,8 @@ function FavoriteSession({ userId, children }: { userId: number | null; children
     } catch (cause) {
       if (!controller.signal.aborted)
         notify({
-          message: cause instanceof Error ? cause.message : 'Impossible de modifier les favoris.',
+          message:
+            cause instanceof Error ? cause.message : t('Impossible de modifier les favoris.'),
           tone: 'error',
         });
       return null;

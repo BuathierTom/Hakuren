@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import { useId } from 'react';
 import type { PlayerStats as Stats, StatKey } from '@shared/catalogue';
 import { PlayerDetailBlock } from '../player-detail-block/player-detail-block';
@@ -23,7 +24,7 @@ export function PlayerStats({ stats, ceiling }: { stats: Stats | null; ceiling: 
   const complete = !!stats && STATS.every(([key]) => stats.values[key] !== null);
   const total = complete ? STATS.reduce((sum, [key]) => sum + stats!.values[key]!, 0) : null;
   return (
-    <PlayerDetailBlock title="Stats de base">
+    <PlayerDetailBlock title={t('Stats de base')}>
       {stats ? (
         <>
           {complete && (
@@ -34,7 +35,7 @@ export function PlayerStats({ stats, ceiling }: { stats: Stats | null; ceiling: 
               aria-labelledby={titleId}
             >
               <title id={titleId}>
-                {STATS.map(([key, name]) => `${name} : ${stats.values[key]}`).join(', ')}
+                {STATS.map(([key, name]) => `${t(name)} : ${stats.values[key]}`).join(', ')}
               </title>
               {[0.2, 0.4, 0.6, 0.8, 1].map((scale) => (
                 <polygon
@@ -50,7 +51,7 @@ export function PlayerStats({ stats, ceiling }: { stats: Stats | null; ceiling: 
                   <g key={key}>
                     <line className={styles.grid} x1="160" y1="110" x2={x} y2={y} />
                     <text x={labelX} y={labelY} textAnchor="middle" dominantBaseline="middle">
-                      {short}
+                      {t(short)}
                     </text>
                   </g>
                 );
@@ -67,11 +68,11 @@ export function PlayerStats({ stats, ceiling }: { stats: Stats | null; ceiling: 
               })}
             </svg>
           )}
-          <table className={styles.table} aria-label="Statistiques de base">
+          <table className={styles.table} aria-label={t('Statistiques de base')}>
             <tbody>
               {STATS.map(([key, name]) => (
                 <tr key={key}>
-                  <th scope="row">{name}</th>
+                  <th scope="row">{t(name)}</th>
                   <td>{stats.values[key] ?? '—'}</td>
                 </tr>
               ))}
@@ -85,7 +86,7 @@ export function PlayerStats({ stats, ceiling }: { stats: Stats | null; ceiling: 
           </table>
         </>
       ) : (
-        <p className={styles.empty}>Statistiques non renseignées pour cette rareté.</p>
+        <p className={styles.empty}>{t('Statistiques non renseignées pour cette rareté.')}</p>
       )}
     </PlayerDetailBlock>
   );

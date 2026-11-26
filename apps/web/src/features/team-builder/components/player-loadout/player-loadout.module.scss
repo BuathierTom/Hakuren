@@ -63,11 +63,11 @@
   padding: 0;
   border: 1px solid #ffffff80;
   background: var(--color-surface);
-  color: #b33d32;
+  color: var(--color-danger-text);
   cursor: pointer;
   &:hover:not(:disabled) {
-    background: #fff1ef;
-    border-color: #b33d32;
+    background: var(--color-danger-soft);
+    border-color: var(--color-danger-text);
   }
   &:disabled {
     opacity: 0.5;

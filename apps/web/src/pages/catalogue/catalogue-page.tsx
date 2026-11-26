@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import { href, intercept } from '@/app/navigation';
 import { VIEWS } from '@/features/catalogue/lib/labels';
 import { useCatalogue } from '@/features/catalogue/hooks/use-catalogue';
@@ -27,15 +28,15 @@ export function CataloguePage() {
   return (
     <>
       <a className={styles.skip} href="#results">
-        Aller aux résultats
+        {t('Aller aux résultats')}
       </a>
       <SiteHeader view={view} />
       <main className={styles.main}>
         <div className={styles.title}>
-          <h1>{VIEWS[view]}</h1>
+          <h1>{t(VIEWS[view])}</h1>
           {!isPlayers && (
             <a href={back} onClick={(event) => intercept(event, back)}>
-              Retour au catalogue
+              {t('Retour au catalogue')}
             </a>
           )}
         </div>
@@ -63,7 +64,7 @@ export function CataloguePage() {
           id="results"
           ref={resultsRef}
           className={styles.results}
-          aria-label={`Catalogue des ${VIEWS[view].toLowerCase()}`}
+          aria-label={t('Catalogue des {0}', t(VIEWS[view]).toLowerCase())}
           aria-busy={request.loading}
         >
           <CatalogueResults catalogue={catalogue} />

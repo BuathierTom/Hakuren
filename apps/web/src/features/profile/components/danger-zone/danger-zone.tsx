@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import { useState } from 'react';
 import { useAuth } from '@/features/auth/auth-context';
 import { Icon } from '@/components/ui/icon/icon';
@@ -8,11 +9,11 @@ export function DangerZone() {
   const [confirming, setConfirming] = useState(false);
   return (
     <section className={styles.zone} aria-labelledby="danger-title">
-      <h2 id="danger-title">Zone de danger</h2>
+      <h2 id="danger-title">{t('Zone de danger')}</h2>
       <div className={styles.content}>
         <div>
-          <h3>Supprimer mon compte</h3>
-          <p>Supprime définitivement ton compte Hakuren, tes équipes et tes favoris.</p>
+          <h3>{t('Supprimer mon compte')}</h3>
+          <p>{t('Supprime définitivement ton compte Hakuren, tes équipes et tes favoris.')}</p>
         </div>
         <button
           type="button"
@@ -20,22 +21,23 @@ export function DangerZone() {
           onClick={() => setConfirming(true)}
         >
           <Icon name="trash" size={18} />
-          Supprimer mon compte
+          {t('Supprimer mon compte')}
         </button>
       </div>
       {confirming && (
         <ConfirmationDialog
-          title="Supprimer mon compte"
-          confirmLabel="Supprimer définitivement"
+          title={t('Supprimer mon compte')}
+          confirmLabel={t('Supprimer définitivement')}
           busy={auth.deletingAccount}
           onClose={() => setConfirming(false)}
           onConfirm={() => void auth.deleteAccount()}
         >
           <p>
-            Cette action est définitive. Ton compte Hakuren, tes équipes enregistrées, tes notes et
-            tes playlists de favoris seront supprimés.
+            {t(
+              'Cette action est définitive. Ton compte Hakuren, tes équipes enregistrées, tes notes et tes playlists de favoris seront supprimés.',
+            )}
           </p>
-          <p>Ton compte Discord reste inchangé.</p>
+          <p>{t('Ton compte Discord reste inchangé.')}</p>
         </ConfirmationDialog>
       )}
     </section>

@@ -5,15 +5,15 @@
   border-left: 3px solid var(--color-accent);
   background: var(--color-surface);
   color: var(--color-text);
-  box-shadow: 0 3px 12px #1b30401a;
+  box-shadow: 0 3px 12px var(--color-shadow);
   pointer-events: auto;
   cursor: pointer;
   animation: notification-enter var(--notification-transition, 180ms) ease-out both;
   &[data-tone='success'] {
-    border-left-color: #277654;
+    border-left-color: var(--color-success);
   }
   &[data-tone='error'] {
-    border-left-color: #a13c32;
+    border-left-color: var(--color-danger-text);
   }
   &[data-closing='true'] {
     pointer-events: none;

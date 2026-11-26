@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import { useEffect } from 'react';
 import type { Notification } from '../../notification-context';
 import { NOTIFICATION_DURATION, NOTIFICATION_TRANSITION } from '../../notification-timing';
@@ -28,7 +29,7 @@ export function NotificationItem({
       aria-atomic="true"
       onClick={() => dismiss(notification.id)}
     >
-      <button type="button" className={styles.message} title="Fermer la notification">
+      <button type="button" className={styles.message} title={t('Fermer la notification')}>
         {notification.message}
       </button>
       {notification.action && (

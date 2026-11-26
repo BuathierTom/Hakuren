@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import { clearDeletedAccount } from './lib/deleted-account';
 import { useNotifications } from '@/features/notifications/notification-context';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
@@ -34,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setError(null);
       }
     } catch {
-      if (!controller.signal.aborted) setError('La connexion est momentanément indisponible.');
+      if (!controller.signal.aborted) setError(t('La connexion est momentanément indisponible.'));
     } finally {
       if (!controller.signal.aborted) setLoading(false);
     }
@@ -69,11 +70,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       if (!response.ok) throw new Error('Déconnexion indisponible');
       setSession((current) => ({ ...current, user: null }));
-      notify({ message: 'Tu es déconnecté de ton compte Hakuren.', tone: 'info' });
+      notify({ message: t('Tu es déconnecté de ton compte Hakuren.'), tone: 'info' });
       setError(null);
       setLoading(false);
     } catch {
-      if (!controller.signal.aborted) setError('Impossible de se déconnecter pour le moment.');
+      if (!controller.signal.aborted) setError(t('Impossible de se déconnecter pour le moment.'));
     } finally {
       logoutActive.current = false;
       if (!controller.signal.aborted) setSigningOut(false);
@@ -97,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       if (!response.ok) {
         const failure = (await response.json().catch(() => null)) as { message?: string } | null;
-        throw new Error(failure?.message ?? 'Impossible de supprimer le compte pour le moment.');
+        throw new Error(failure?.message ?? t('Impossible de supprimer le compte pour le moment.'));
       }
       try {
         clearDeletedAccount(window.localStorage, userId);
@@ -105,14 +106,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession((current) => (current.user?.id === userId ? { ...current, user: null } : current));
       setError(null);
       setLoading(false);
-      notify({ message: 'Ton compte Hakuren a été supprimé.', tone: 'success' });
+      notify({ message: t('Ton compte Hakuren a été supprimé.'), tone: 'success' });
       return true;
     } catch (cause) {
       if (!controller.signal.aborted)
         setError(
           cause instanceof Error
             ? cause.message
-            : 'Impossible de supprimer le compte pour le moment.',
+            : t('Impossible de supprimer le compte pour le moment.'),
         );
       return false;
     } finally {

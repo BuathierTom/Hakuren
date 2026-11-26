@@ -1,3 +1,5 @@
+import { catalogueName } from '@/features/catalogue/lib/catalogue-text';
+import { t } from '@/features/preferences/lib/i18n';
 import { FavoriteButton } from '@/features/favorites/components/favorite-button/favorite-button';
 import { PlayerNotes } from '../player-notes/player-notes';
 import { playerNote } from '../../lib/player-notes';
@@ -70,7 +72,7 @@ export function PlayerEditor({
   const controls = (
     <div className={styles.controls}>
       <Select
-        label="Rareté"
+        label={t('Rareté')}
         showLabel
         value={assignment.rarity}
         onChange={(rarity) => onChange({ ...current, rarity: rarity as TeamRarity })}
@@ -81,11 +83,11 @@ export function PlayerEditor({
             try {
               putPlayer(team, slot, { ...current, rarity: value as TeamRarity });
             } catch (error) {
-              reason = error instanceof Error ? error.message : 'Rareté indisponible';
+              reason = error instanceof Error ? error.message : t('Rareté indisponible');
             }
             return {
               value,
-              label: info.name,
+              label: t(info.name),
               icon: (
                 <span
                   className={styles.rarityColor}
@@ -98,14 +100,14 @@ export function PlayerEditor({
           })}
       />
       <Select
-        label="Archétype"
+        label={t('Archétype')}
         showLabel
         value={playStyle ?? ''}
-        placeholder="Choisir un archétype"
+        placeholder={t('Choisir un archétype')}
         onChange={(value) => onChange({ ...current, playStyle: value as PlayStyle })}
         options={Object.entries(PLAY_STYLES).map(([value, label]) => ({
           value,
-          label,
+          label: t(label),
           icon: <PlayStyleIcon style={value as PlayStyle} />,
         }))}
       />
@@ -113,7 +115,7 @@ export function PlayerEditor({
   );
   return (
     <TeamDialog
-      title="Fiche joueur"
+      title={t('Fiche joueur')}
       onClose={onClose}
       wide
       actions={
@@ -121,17 +123,17 @@ export function PlayerEditor({
           <FavoriteButton
             kind="players"
             targetId={assignment.player.id}
-            name={assignment.player.name}
+            name={catalogueName(assignment.player)}
           />
           <button type="button" className={styles.change} onClick={onReplace}>
-            Changer
+            {t('Changer')}
           </button>
           <button
             type="button"
             className={styles.remove}
             onClick={onRemove}
-            aria-label="Retirer le joueur de l’équipe"
-            title="Retirer de l’équipe"
+            aria-label={t('Retirer le joueur de l’équipe')}
+            title={t('Retirer de l’équipe')}
           >
             <Icon name="trash" size={18} />
           </button>
@@ -140,7 +142,7 @@ export function PlayerEditor({
     >
       {request.loading ? (
         <div className={styles.state} role="status">
-          Chargement de la fiche de {assignment.player.name}…
+          {t('Chargement de la fiche de')} {catalogueName(assignment.player)}…
         </div>
       ) : player ? (
         <>
@@ -159,10 +161,10 @@ export function PlayerEditor({
         </>
       ) : (
         <div className={styles.state} role="alert">
-          <h3>{assignment.player.name}</h3>
-          <p>{request.error?.message ?? 'Cette fiche est indisponible.'}</p>
+          <h3>{catalogueName(assignment.player)}</h3>
+          <p>{request.error?.message ?? t('Cette fiche est indisponible.')}</p>
           <button type="button" onClick={request.retry}>
-            Réessayer
+            {t('Réessayer')}
           </button>
         </div>
       )}

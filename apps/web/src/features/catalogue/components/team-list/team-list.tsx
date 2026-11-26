@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import { FavoriteButton } from '@/features/favorites/components/favorite-button/favorite-button';
 import type { HistoricalTeam } from '@shared/catalogue';
 import { href, intercept } from '@/app/navigation';
@@ -20,7 +21,8 @@ export function TeamList({ teams }: { teams: HistoricalTeam[] }) {
                 )}
               </span>
               <span className={styles.count}>
-                {count(team.playerCount)} {team.playerCount === 1 ? 'personnage' : 'personnages'}
+                {count(team.playerCount)}{' '}
+                {team.playerCount === 1 ? t('personnage') : t('personnages')}
               </span>
             </a>
             <FavoriteButton kind="teams" targetId={team.id} name={team.name} />

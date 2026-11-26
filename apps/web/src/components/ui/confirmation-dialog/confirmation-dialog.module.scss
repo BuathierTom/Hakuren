@@ -13,7 +13,7 @@
     display: none;
   }
   &::backdrop {
-    background: #142c40a6;
+    background: var(--color-backdrop);
   }
   header {
     display: flex;
@@ -67,7 +67,7 @@
   }
   .confirm {
     background: #b33d32;
-    border-color: #b33d32;
+    border-color: var(--color-danger-text);
     color: white;
   }
 }

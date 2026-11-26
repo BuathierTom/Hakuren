@@ -1,3 +1,4 @@
+import { catalogueName } from '../src/features/catalogue/lib/catalogue-text.ts';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { CatalogueItem, LoadoutOptions, Passive, StatKey } from '../../../shared/catalogue.js';
@@ -318,4 +319,19 @@ test('undo restores the previous equipment and passive contribution immediately'
   );
   assert.equal(teamPower(history.present, data).totals.shootAT, 315);
   assert.equal(teamPower(teamReducer(history, { type: 'undo' }).present, data).totals.shootAT, 200);
+});
+
+test('localized passive labels never change equipment selection or computed power', () => {
+  const member = player();
+  member.passives = [{ id: 1, value: 10 }];
+  const effect = passive(1, 'ATT des tirs +… % pour les joueurs du même élément');
+  effect.translations = {
+    en: { name: 'Shot ATK +… % for same-element players', description: null },
+  };
+  const data = catalogue([], [effect]);
+  const current = team(member);
+  const before = teamPower(current, data);
+  assert.equal(catalogueName(effect, 'en'), 'Shot ATK +… % for same-element players');
+  assert.equal(effect.name, 'ATT des tirs +… % pour les joueurs du même élément');
+  assert.deepEqual(teamPower(current, data), before);
 });

@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { Icon } from '@/components/ui/icon/icon';
 import styles from './team-dialog.module.scss';
@@ -40,7 +41,7 @@ export function TeamDialog({
           <button
             className={styles.close}
             type="button"
-            aria-label="Fermer la modale"
+            aria-label={t('Fermer la modale')}
             onClick={onClose}
             autoFocus
           >

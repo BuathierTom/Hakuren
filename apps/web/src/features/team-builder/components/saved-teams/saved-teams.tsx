@@ -1,3 +1,4 @@
+import { locale, t } from '@/features/preferences/lib/i18n';
 import { useState } from 'react';
 import { Icon } from '@/components/ui/icon/icon';
 import { Popover } from '@/components/ui/popover/popover';
@@ -36,16 +37,16 @@ export function SavedTeams({
     <Popover
       id={id}
       anchor={anchor}
-      label="Mes équipes"
+      label={t('Mes équipes')}
       onClose={onClose}
       placement="bottom"
       className={styles.popover}
     >
       <header className={styles.heading}>
-        <h2>Mes équipes</h2>
+        <h2>{t('Mes équipes')}</h2>
         <button
           type="button"
-          aria-label="Fermer mes équipes"
+          aria-label={t('Fermer mes équipes')}
           onClick={() => {
             anchor?.focus({ preventScroll: true });
             onClose();
@@ -56,22 +57,25 @@ export function SavedTeams({
       </header>
       <div className={styles.body}>
         <button type="button" className={styles.newTeam} onClick={onNew}>
-          Créer une nouvelle équipe
+          {t('Créer une nouvelle équipe')}
         </button>
         {imports > 0 && (
           <div className={styles.import}>
             <p>
-              {imports} équipe{imports > 1 ? 's' : ''} enregistrée{imports > 1 ? 's' : ''} dans ce
-              navigateur.
+              {imports} {t('équipe')}
+              {imports > 1 ? 's' : ''} {t('enregistrée')}
+              {imports > 1 ? 's' : ''} dans ce navigateur.
             </p>
             <button type="button" disabled={busy} onClick={onImport}>
-              Importer sur mon compte
+              {t('Importer sur mon compte')}
             </button>
           </div>
         )}
         {localDraft && onResume && (
           <div className={styles.import}>
-            <p>Une copie locale de « {localDraft.name} » est disponible.</p>
+            <p>
+              {t('Une copie locale de «')} {localDraft.name} {t('» est disponible.')}
+            </p>
             <button
               type="button"
               disabled={busy}
@@ -80,12 +84,12 @@ export function SavedTeams({
                 onClose();
               }}
             >
-              Reprendre dans une nouvelle équipe
+              {t('Reprendre dans une nouvelle équipe')}
             </button>
           </div>
         )}
         {teams.length === 0 ? (
-          <p className={styles.empty}>Aucune équipe enregistrée pour le moment.</p>
+          <p className={styles.empty}>{t('Aucune équipe enregistrée pour le moment.')}</p>
         ) : (
           <ul className={styles.list}>
             {teams.map(({ team, updatedAt }) => (
@@ -93,8 +97,8 @@ export function SavedTeams({
                 <button type="button" className={styles.load} onClick={() => onLoad(team)}>
                   <strong>{team.name}</strong>
                   <span>
-                    {teamCounts(team).starters}/11 titulaires -{' '}
-                    {new Date(updatedAt).toLocaleDateString('fr-FR')}
+                    {teamCounts(team).starters}
+                    {t('/11 titulaires -')} {new Date(updatedAt).toLocaleDateString(locale())}
                   </span>
                 </button>
                 {deleting === team.id ? (
@@ -102,8 +106,8 @@ export function SavedTeams({
                     <button
                       type="button"
                       className={styles.confirmDelete}
-                      aria-label={`Confirmer la suppression de ${team.name}`}
-                      title="Confirmer la suppression"
+                      aria-label={t('Confirmer la suppression de {0}', team.name)}
+                      title={t('Confirmer la suppression')}
                       disabled={busy}
                       onClick={() => {
                         onDelete(team.id);
@@ -114,8 +118,8 @@ export function SavedTeams({
                     </button>
                     <button
                       type="button"
-                      aria-label={`Annuler la suppression de ${team.name}`}
-                      title="Annuler la suppression"
+                      aria-label={t('Annuler la suppression de {0}', team.name)}
+                      title={t('Annuler la suppression')}
                       onClick={() => setDeleting(null)}
                     >
                       <Icon name="close" size={18} />
@@ -127,8 +131,8 @@ export function SavedTeams({
                     className={styles.delete}
                     disabled={busy}
                     onClick={() => setDeleting(team.id)}
-                    aria-label={`Supprimer ${team.name}`}
-                    title="Supprimer l’équipe"
+                    aria-label={t('Supprimer {0}', team.name)}
+                    title={t('Supprimer l’équipe')}
                   >
                     <Icon name="trash" size={18} />
                   </button>

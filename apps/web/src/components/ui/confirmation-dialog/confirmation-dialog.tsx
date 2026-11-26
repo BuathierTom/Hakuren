@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { Icon } from '../icon/icon';
 import styles from './confirmation-dialog.module.scss';
@@ -38,7 +39,12 @@ export function ConfirmationDialog({
     >
       <header>
         <h2 id={titleId}>{title}</h2>
-        <button type="button" aria-label="Fermer la confirmation" onClick={onClose} disabled={busy}>
+        <button
+          type="button"
+          aria-label={t('Fermer la confirmation')}
+          onClick={onClose}
+          disabled={busy}
+        >
           <Icon name="close" size={22} />
         </button>
       </header>
@@ -46,10 +52,10 @@ export function ConfirmationDialog({
         {children}
         <div className={styles.actions}>
           <button type="button" onClick={onClose} disabled={busy} autoFocus>
-            Annuler
+            {t('Annuler')}
           </button>
           <button className={styles.confirm} type="button" onClick={onConfirm} disabled={busy}>
-            {busy ? 'Suppression…' : confirmLabel}
+            {busy ? t('Suppression…') : confirmLabel}
           </button>
         </div>
       </div>

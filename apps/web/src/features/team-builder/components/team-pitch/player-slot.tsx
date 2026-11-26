@@ -1,3 +1,5 @@
+import { catalogueName } from '@/features/catalogue/lib/catalogue-text';
+import { t } from '@/features/preferences/lib/i18n';
 import type { CSSProperties } from 'react';
 import type { Position } from '@shared/catalogue';
 import { PositionIcon } from '@/features/catalogue/components/game-icon/game-icon';
@@ -44,12 +46,16 @@ export function PlayerSlot({
       }
       aria-label={
         assignment
-          ? `${label} : ${assignment.player.name}, ${RARITIES[assignment.rarity].name}${warning ? `. Alerte : ${warning}` : ''}. Modifier`
-          : `Ajouter un personnage : ${label}`
+          ? `${label} : ${catalogueName(assignment.player)}, ${t(RARITIES[assignment.rarity].name)}${warning ? t('. Alerte : {0}', warning) : ''}. Modifier`
+          : t('Ajouter un personnage : {0}', label)
       }
       data-dragging={dragging}
       onClick={onClick}
-      title={assignment ? `${assignment.player.name} - ${RARITIES[assignment.rarity].name}` : label}
+      title={
+        assignment
+          ? `${catalogueName(assignment.player)} - ${t(RARITIES[assignment.rarity].name)}`
+          : label
+      }
     >
       {assignment ? (
         <PlayerCard assignment={assignment} warning={warning} />

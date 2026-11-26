@@ -32,7 +32,7 @@
   padding: 0;
   border: 1px solid var(--color-border);
   background: var(--color-surface);
-  color: #b33d32;
+  color: var(--color-danger-text);
   cursor: pointer;
   &:disabled {
     opacity: 0.5;

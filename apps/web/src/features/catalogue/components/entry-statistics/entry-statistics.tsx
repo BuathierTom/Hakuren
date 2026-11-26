@@ -1,8 +1,9 @@
+import { t } from '@/features/preferences/lib/i18n';
 import type { ReactNode } from 'react';
 import styles from './entry-statistics.module.scss';
 export function EntryStatistics({ fields }: { fields: { label: string; value: ReactNode }[] }) {
   return (
-    <div className={styles.wrapper} role="region" aria-label="Caractéristiques" tabIndex={0}>
+    <div className={styles.wrapper} role="region" aria-label={t('Caractéristiques')} tabIndex={0}>
       <table className={styles.table}>
         <thead>
           <tr>

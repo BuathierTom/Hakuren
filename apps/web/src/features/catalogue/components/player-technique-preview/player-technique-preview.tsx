@@ -1,3 +1,5 @@
+import { catalogueName } from '@/features/catalogue/lib/catalogue-text';
+import { t } from '@/features/preferences/lib/i18n';
 import { useLayoutEffect, useRef } from 'react';
 import type { TechniqueDetail, TechniqueSummary } from '@shared/catalogue';
 import { Icon } from '@/components/ui/icon/icon';
@@ -77,7 +79,9 @@ export function PlayerTechniquePreview({
       popover="auto"
       role="dialog"
       aria-modal={false}
-      aria-label={technique ? `Prévisualisation de ${technique.name}` : 'Prévisualisation'}
+      aria-label={
+        technique ? t('Prévisualisation de {0}', catalogueName(technique)) : t('Prévisualisation')
+      }
       className={styles.popover}
       onToggle={(event) => {
         if (
@@ -91,14 +95,14 @@ export function PlayerTechniquePreview({
       {technique && (
         <div className={styles.surface}>
           <div className={styles.heading}>
-            <strong>{technique.name}</strong>
+            <strong>{catalogueName(technique)}</strong>
             <div className={styles.actions}>
               {target && (
                 <a
                   className={styles.action}
                   href={target}
-                  aria-label="Ouvrir la fiche technique"
-                  title="Ouvrir la fiche technique"
+                  aria-label={t('Ouvrir la fiche technique')}
+                  title={t('Ouvrir la fiche technique')}
                   onClick={(event) => intercept(event, target, { overlay: true })}
                 >
                   <Icon name="external" size={15} />
@@ -108,8 +112,8 @@ export function PlayerTechniquePreview({
                 ref={closeButton}
                 className={styles.action}
                 type="button"
-                aria-label="Fermer la prévisualisation"
-                title="Fermer la prévisualisation"
+                aria-label={t('Fermer la prévisualisation')}
+                title={t('Fermer la prévisualisation')}
                 onClick={() => {
                   selection?.anchor.focus({ preventScroll: true });
                   onClose();
@@ -122,25 +126,25 @@ export function PlayerTechniquePreview({
           <div className={styles.content} aria-live="polite" aria-busy={request.loading}>
             {request.loading ? (
               <p className={styles.message} role="status">
-                Chargement de la prévisualisation…
+                {t('Chargement de la prévisualisation…')}
               </p>
             ) : request.error ? (
               <div className={styles.error} role="alert">
                 <p>{request.error.message}</p>
                 <button type="button" onClick={request.retry}>
-                  Réessayer
+                  {t('Réessayer')}
                 </button>
               </div>
             ) : request.data?.preview ? (
               <TechniqueVideo
                 key={`${selection.revision}/${technique.id}/${request.data.preview.url}`}
                 preview={request.data.preview}
-                name={technique.name}
+                name={catalogueName(technique)}
                 autoPlay
               />
             ) : (
               <p className={styles.message}>
-                Aucune prévisualisation disponible pour cette technique.
+                {t('Aucune prévisualisation disponible pour cette technique.')}
               </p>
             )}
           </div>

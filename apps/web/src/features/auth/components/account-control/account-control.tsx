@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import { href, intercept, useLocation } from '@/app/navigation';
 import discordLogo from '../../../../../assets/icons/brands/discord.svg';
 import { useAuth } from '../../auth-context';
@@ -13,8 +14,8 @@ export function AccountControl() {
         className={styles.profile}
         href={target}
         onClick={(event) => intercept(event, target)}
-        aria-label="Ouvrir mon profil"
-        title="Mon profil"
+        aria-label={t('Ouvrir mon profil')}
+        title={t('Mon profil')}
         aria-current={view === 'profile' ? 'page' : undefined}
       >
         <AccountAvatar
@@ -42,7 +43,7 @@ export function AccountControl() {
         height="18"
         aria-hidden="true"
       />
-      <span>Se connecter avec Discord</span>
+      <span>{t('Se connecter avec Discord')}</span>
     </>
   );
   return auth.configured && !auth.loading ? (
@@ -57,8 +58,8 @@ export function AccountControl() {
       aria-busy={auth.loading}
       title={
         auth.loading
-          ? 'Chargement de la connexion'
-          : 'La connexion Discord est momentanément indisponible'
+          ? t('Chargement de la connexion')
+          : t('La connexion Discord est momentanément indisponible')
       }
     >
       {loginLabel}

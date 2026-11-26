@@ -1,3 +1,5 @@
+import { catalogueName, catalogueDescription } from '@/features/catalogue/lib/catalogue-text';
+import { t } from '@/features/preferences/lib/i18n';
 import type { TechniqueDetail, TechniqueSummary } from '@shared/catalogue';
 import { ElementBadge, PositionBadge } from '../catalogue-badges/catalogue-badges';
 import { Portrait } from '../player-portrait/player-portrait';
@@ -17,7 +19,7 @@ function TechniqueLink({ technique }: { technique: TechniqueSummary }) {
       onClick={(event) => intercept(event, target, { overlay: true })}
     >
       <TechniqueTypeIcon category={technique.category} />
-      <strong>{technique.name}</strong>
+      <strong>{catalogueName(technique)}</strong>
     </a>
   );
 }
@@ -31,9 +33,11 @@ export function TechniquePanel({
   const userTarget = href('players', { technique: technique.id }, false);
   const fields = [
     { label: 'ID', value: technique.gameId ?? '—' },
-    ...(technique.power != null ? [{ label: 'Puissance', value: String(technique.power) }] : []),
+    ...(technique.power != null ? [{ label: t('Puissance'), value: String(technique.power) }] : []),
     ...(technique.tension != null ? [{ label: 'Tension', value: `${technique.tension} TP` }] : []),
-    ...(technique.notes?.length ? [{ label: 'Notes', value: technique.notes.join(' - ') }] : []),
+    ...(technique.notes?.length
+      ? [{ label: t('Notes'), value: technique.notes.map((note) => t(note)).join(' - ') }]
+      : []),
   ];
   return (
     <>
@@ -43,25 +47,27 @@ export function TechniquePanel({
         </span>
         <div>
           {technique.category && (
-            <span className={styles.eyebrow}>{CATEGORIES[technique.category]}</span>
+            <span className={styles.eyebrow}>{t(CATEGORIES[technique.category])}</span>
           )}
-          <h2 id={titleId}>{technique.name}</h2>
+          <h2 id={titleId}>{catalogueName(technique)}</h2>
           <ElementBadge element={technique.element} />
         </div>
       </div>
-      {technique.description && <p className={styles.description}>{technique.description}</p>}
+      {catalogueDescription(technique) && (
+        <p className={styles.description}>{catalogueDescription(technique)}</p>
+      )}
       <EntryStatistics fields={fields} />
       {technique.preview && (
         <TechniquePreview
           key={technique.preview.url}
           preview={technique.preview}
-          name={technique.name}
+          name={catalogueName(technique)}
         />
       )}
       {technique.grantedTechnique && (
         <section className={styles.section}>
           <div className={styles.sectionHeading}>
-            <h3>Technique accordée</h3>
+            <h3>{t('Technique accordée')}</h3>
           </div>
           <TechniqueLink technique={technique.grantedTechnique} />
         </section>
@@ -69,7 +75,7 @@ export function TechniquePanel({
       {!!technique.grantedBy?.length && (
         <section className={styles.section}>
           <div className={styles.sectionHeading}>
-            <h3>Pouvoirs associés</h3>
+            <h3>{t('Pouvoirs associés')}</h3>
           </div>
           {technique.grantedBy.map((entry) => (
             <TechniqueLink key={entry.id} technique={entry} />
@@ -78,7 +84,7 @@ export function TechniquePanel({
       )}
       <section className={styles.section}>
         <div className={styles.sectionHeading}>
-          <h3>Joueurs associés</h3>
+          <h3>{t('Joueurs associés')}</h3>
           <span>{count(technique.userCount)}</span>
         </div>
         {technique.users.length ? (
@@ -94,7 +100,7 @@ export function TechniquePanel({
                   >
                     <Portrait src={player.portraitUrl} small />
                     <span>
-                      <strong>{player.name}</strong>
+                      <strong>{catalogueName(player)}</strong>
                       <small>
                         {age(player.ageGroup)} -{' '}
                         {player.origin ? workLabel(player.origin.code) : ''} - N°{' '}
@@ -111,11 +117,11 @@ export function TechniquePanel({
               href={userTarget}
               onClick={(event) => intercept(event, userTarget)}
             >
-              Voir les joueurs dans le catalogue
+              {t('Voir les joueurs dans le catalogue')}
             </a>
           </>
         ) : (
-          <p className={styles.empty}>Aucun joueur associé répertorié.</p>
+          <p className={styles.empty}>{t('Aucun joueur associé répertorié.')}</p>
         )}
       </section>
     </>

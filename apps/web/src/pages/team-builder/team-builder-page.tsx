@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import { setPlayerNote } from '@/features/team-builder/lib/player-notes';
 import { useNotifications } from '@/features/notifications/notification-context';
 import { useAuth } from '@/features/auth/auth-context';
@@ -35,7 +36,7 @@ export function TeamBuilderPage() {
       <div className={styles.page}>
         <SiteHeader view="builder" />
         <main className={styles.main}>
-          <div className={styles.state}>Chargement du compte…</div>
+          <div className={styles.state}>{t('Chargement du compte…')}</div>
         </main>
       </div>
     );
@@ -58,11 +59,11 @@ function TeamBuilderAccount({ userId }: { userId: number | null }) {
                     void account?.load();
                   }}
                 >
-                  Réessayer
+                  {t('Réessayer')}
                 </button>
               </>
             ) : (
-              'Chargement de tes équipes…'
+              t('Chargement de tes équipes…')
             )}
           </div>
         </main>
@@ -102,9 +103,9 @@ function TeamBuilderWorkspace({
     if (account && builder.imports.length)
       notify({
         id: importId,
-        message: 'Des équipes de ce navigateur peuvent être importées sur ton compte.',
+        message: t('Des équipes de ce navigateur peuvent être importées sur ton compte.'),
         tone: 'info',
-        action: { label: 'Mes équipes', onClick: () => setModal({ kind: 'teams' }) },
+        action: { label: t('Mes équipes'), onClick: () => setModal({ kind: 'teams' }) },
       });
     else dismiss(importId);
   }, [account, builder.imports.length, importId, notify, dismiss]);
@@ -121,12 +122,12 @@ function TeamBuilderWorkspace({
   return (
     <div className={styles.page}>
       <a className={styles.skip} href="#composition">
-        Aller à la composition
+        {t('Aller à la composition')}
       </a>
       <SiteHeader view="builder" />
-      <main className={styles.main} id="composition">
+      <main className={styles.main} id={t('composition')}>
         <div className={styles.title}>
-          <h1>Composition d’équipe</h1>
+          <h1>{t('Composition d’équipe')}</h1>
           {builder.error && (
             <button
               className={styles.retrySave}
@@ -134,7 +135,7 @@ function TeamBuilderWorkspace({
               disabled={builder.busy}
               onClick={builder.retry}
             >
-              {builder.blocked ? 'Recharger' : 'Réessayer'}
+              {builder.blocked ? t('Recharger') : t('Réessayer')}
             </button>
           )}
         </div>
@@ -176,22 +177,23 @@ function TeamBuilderWorkspace({
           }}
         />
         {request.loading ? (
-          <div className={styles.state}>Chargement des formations…</div>
+          <div className={styles.state}>{t('Chargement des formations…')}</div>
         ) : request.error || !formations.length ? (
           <div className={styles.state} role="alert">
-            <h2>Formations indisponibles</h2>
+            <h2>{t('Formations indisponibles')}</h2>
             <p>
-              {request.error?.message ?? 'Les formations n’ont pas encore été chargées en base.'}
+              {request.error?.message ?? t('Les formations n’ont pas encore été chargées en base.')}
             </p>
             <button type="button" onClick={request.retry}>
-              Réessayer
+              {t('Réessayer')}
             </button>
           </div>
         ) : !formation ? (
           <div className={styles.state} role="alert">
             <p>
-              La formation de ce brouillon n’est plus disponible. Choisissez une formation ci-dessus
-              pour conserver vos joueurs.
+              {t(
+                'La formation de ce brouillon n’est plus disponible. Choisissez une formation ci-dessus pour conserver vos joueurs.',
+              )}
             </p>
           </div>
         ) : (
@@ -246,7 +248,7 @@ function TeamBuilderWorkspace({
             onConfirm={() => {
               if (builder.change(clearTeam)) {
                 setModal(null);
-                notify({ message: 'L’équipe a été vidée.', tone: 'success' });
+                notify({ message: t('L’équipe a été vidée.'), tone: 'success' });
               }
             }}
           />
@@ -271,7 +273,7 @@ function TeamBuilderWorkspace({
             onNew={() => {
               builder.change(emptyTeam());
               setModal(null);
-              notify({ message: 'Nouvelle équipe créée.', tone: 'success' });
+              notify({ message: t('Nouvelle équipe créée.'), tone: 'success' });
             }}
             onDelete={(id) => {
               void builder.removeSaved(id);

@@ -43,7 +43,7 @@
   min-height: 40px;
   padding: 10px 16px;
   background: var(--color-accent);
-  color: white;
+  color: var(--color-on-accent);
   border: 0;
   cursor: pointer;
   font-size: var(--font-size-body);
@@ -105,7 +105,7 @@
 }
 .delete,
 .confirmDelete {
-  color: #a13c32;
+  color: var(--color-danger-text);
 }
 .confirm {
   display: flex;

@@ -1,3 +1,5 @@
+import { catalogueName, catalogueDescription } from '@/features/catalogue/lib/catalogue-text';
+import { locale, t } from '@/features/preferences/lib/i18n';
 import { useMemo } from 'react';
 import type { LoadoutOptions, EquipmentSlot } from '@shared/catalogue';
 import { Select } from '@/components/ui/select/select';
@@ -40,7 +42,7 @@ export function PlayerLoadout({
       .filter((item) => item.slot === type)
       .map((item) => ({
         value: String(item.id),
-        label: item.name,
+        label: catalogueName(item),
         icon: item.imageUrl ? (
           <img src={item.imageUrl} alt="" width="20" height="20" loading="lazy" />
         ) : (
@@ -51,7 +53,7 @@ export function PlayerLoadout({
     if (selected && !options.some((item) => item.value === String(selected)))
       options.push({
         value: String(selected),
-        label: 'Équipement indisponible',
+        label: t('Équipement indisponible'),
         icon: <Icon name="shirt" size={16} />,
       });
     return [{ value: '', label: '—' }, ...options];
@@ -76,13 +78,13 @@ export function PlayerLoadout({
         }
       >
         <Icon name="sparkles" size={14} />
-        {kind === 'equipment' ? 'Remplir les équipements vides' : 'Remplir les passifs vides'}
+        {kind === 'equipment' ? t('Remplir les équipements vides') : t('Remplir les passifs vides')}
       </button>
       <button
         className={styles.clear}
         type="button"
-        aria-label={kind === 'equipment' ? 'Vider les équipements' : 'Vider les passifs'}
-        title={kind === 'equipment' ? 'Vider les équipements' : 'Vider les passifs'}
+        aria-label={kind === 'equipment' ? t('Vider les équipements') : t('Vider les passifs')}
+        title={kind === 'equipment' ? t('Vider les équipements') : t('Vider les passifs')}
         disabled={
           kind === 'equipment'
             ? !Object.values(assignment.equipment ?? {}).some(Boolean)
@@ -104,19 +106,19 @@ export function PlayerLoadout({
     <div className={styles.root}>
       {request.loading && (
         <p className={styles.state} role="status">
-          Chargement des équipements et passifs…
+          {t('Chargement des équipements et passifs…')}
         </p>
       )}
       {request.error && (
         <div className={styles.state} role="alert">
           <p>{request.error.message}</p>
           <button type="button" onClick={request.retry}>
-            Réessayer
+            {t('Réessayer')}
           </button>
         </div>
       )}
       <div className={styles.panels}>
-        <PlayerDetailBlock title="Équipements" action={action('equipment')}>
+        <PlayerDetailBlock title={t('Équipements')} action={action('equipment')}>
           <div className={styles.rows}>
             {EQUIPMENT_ORDER.map((type) => {
               const selected = equipment.find(
@@ -127,11 +129,11 @@ export function PlayerLoadout({
                   <EquipmentPreview
                     key={selected?.id ?? type}
                     item={selected}
-                    label={EQUIPMENT_SLOTS[type]}
+                    label={t(EQUIPMENT_SLOTS[type])}
                   />
-                  <span className={styles.label}>{EQUIPMENT_SLOTS[type]}</span>
+                  <span className={styles.label}>{t(EQUIPMENT_SLOTS[type])}</span>
                   <Select
-                    label={`Équipement - ${EQUIPMENT_SLOTS[type]}`}
+                    label={t('Équipement - {0}', t(EQUIPMENT_SLOTS[type]))}
                     value={String(assignment.equipment?.[type] ?? '')}
                     options={equipmentOptions(type)}
                     showSelectedIcon={false}
@@ -152,7 +154,7 @@ export function PlayerLoadout({
             })}
           </div>
         </PlayerDetailBlock>
-        <PlayerDetailBlock title="Passifs" action={action('passives')}>
+        <PlayerDetailBlock title={t('Passifs')} action={action('passives')}>
           <div className={styles.rows}>
             {Array.from({ length: 6 }, (_, index) => {
               const label = index === 5 ? 'Custom' : `Preset ${index + 1}`;
@@ -168,15 +170,15 @@ export function PlayerLoadout({
                   value: String(passive.id),
                   label:
                     current?.id === passive.id
-                      ? passive.name.replaceAll(
+                      ? catalogueName(passive).replaceAll(
                           '…',
-                          current.value.toLocaleString('fr-FR', { maximumFractionDigits: 4 }),
+                          current.value.toLocaleString(locale(), { maximumFractionDigits: 4 }),
                         )
-                      : passive.description,
+                      : (catalogueDescription(passive) ?? catalogueName(passive)),
                 })),
               ];
               if (current && !selected)
-                options.push({ value: String(current.id), label: 'Passif indisponible' });
+                options.push({ value: String(current.id), label: t('Passif indisponible') });
               return (
                 <div className={styles.passiveRow} key={index}>
                   <span className={styles.label}>{label}</span>
@@ -201,7 +203,7 @@ export function PlayerLoadout({
                     min="0"
                     max="99999"
                     step={selected?.unit === 'points' ? '1' : '0.1'}
-                    aria-label={`Valeur ${label}`}
+                    aria-label={t('Valeur {0}', label)}
                     value={current?.value ?? ''}
                     disabled={!current || !request.data}
                     onChange={(event) => {

@@ -1,3 +1,4 @@
+import { t } from '../../preferences/lib/i18n';
 import type { Page } from '@shared/catalogue';
 import type { FavoriteEntry, FavoriteKind, FavoritesState } from '@shared/favorites';
 
@@ -22,7 +23,7 @@ export function createFavoritesApi(userId: number, request: typeof fetch = fetch
     });
     if (!response.ok) {
       const error = (await response.json().catch(() => null)) as { message?: string } | null;
-      throw new Error(error?.message ?? 'Les favoris sont momentanément indisponibles.');
+      throw new Error(error?.message ?? t('Les favoris sont momentanément indisponibles.'));
     }
     return response.json() as Promise<T>;
   }

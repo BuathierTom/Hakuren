@@ -1,3 +1,5 @@
+import { catalogueName } from '@/features/catalogue/lib/catalogue-text';
+import { locale, t } from '@/features/preferences/lib/i18n';
 import { useId, useRef, useState } from 'react';
 import type { CatalogueItem, StatKey } from '@shared/catalogue';
 import { Popover } from '@/components/ui/popover/popover';
@@ -22,23 +24,27 @@ export function EquipmentPreview({ item, label }: { item?: CatalogueItem; label:
         className={styles.trigger}
         type="button"
         disabled={!item}
-        aria-label={item ? `Voir les bonus de ${item.name}` : `Aucun équipement - ${label}`}
+        aria-label={
+          item
+            ? t('Voir les bonus de {0}', catalogueName(item))
+            : t('Aucun équipement - {0}', label)
+        }
         aria-expanded={open}
         aria-controls={id}
         aria-describedby={open ? id : undefined}
-        title={item ? `Voir les bonus de ${item.name}` : label}
+        title={item ? t('Voir les bonus de {0}', catalogueName(item)) : label}
         popoverTarget={id}
         onClick={(event) => {
           event.preventDefault();
           setOpen((current) => !current);
         }}
       >
-        <EquipmentIcon src={item?.imageUrl ?? null} name={item?.name ?? label} />
+        <EquipmentIcon src={item?.imageUrl ?? null} name={item ? catalogueName(item) : label} />
       </button>
       <Popover
         id={id}
         anchor={open ? trigger.current : null}
-        label={`Bonus de ${item?.name ?? label}`}
+        label={t('Bonus de {0}', item ? catalogueName(item) : label)}
         role="tooltip"
         className={styles.preview}
         onClose={() => setOpen(false)}
@@ -47,13 +53,13 @@ export function EquipmentPreview({ item, label }: { item?: CatalogueItem; label:
           <dl className={styles.stats}>
             {bonuses.map(({ stat, value }) => (
               <div key={stat}>
-                <dt>{STAT_NAMES[stat]}</dt>
-                <dd>{value.toLocaleString('fr-FR', { signDisplay: 'always' })}</dd>
+                <dt>{t(STAT_NAMES[stat])}</dt>
+                <dd>{value.toLocaleString(locale(), { signDisplay: 'always' })}</dd>
               </div>
             ))}
           </dl>
         ) : (
-          <p className={styles.empty}>Aucun bonus de statistiques.</p>
+          <p className={styles.empty}>{t('Aucun bonus de statistiques.')}</p>
         )}
       </Popover>
     </>

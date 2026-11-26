@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import type { Element, Position } from '@shared/catalogue';
 import { ElementIcon, PositionIcon } from '../game-icon/game-icon';
 import { ELEMENTS, POSITIONS } from '../../lib/labels';
@@ -15,10 +16,10 @@ export function ElementBadge({
     <span
       className={`${styles.element} ${compact ? styles.compact : ''}`}
       data-element={element ?? 'unknown'}
-      title={ELEMENTS[element]}
+      title={t(ELEMENTS[element])}
     >
       <ElementIcon element={element} />
-      {!compact && <span>{ELEMENTS[element]}</span>}
+      {!compact && <span>{t(ELEMENTS[element])}</span>}
     </span>
   );
 }
@@ -27,9 +28,9 @@ export function PositionBadge({ position }: { position: Position | null }) {
     <span
       className={styles.position}
       data-position={position ?? 'unknown'}
-      title={position ? POSITIONS[position] : 'Poste non renseigné'}
+      title={position ? t(POSITIONS[position]) : t('Poste non renseigné')}
       role="img"
-      aria-label={position ? POSITIONS[position] : 'Poste non renseigné'}
+      aria-label={position ? t(POSITIONS[position]) : t('Poste non renseigné')}
     >
       {position ? <PositionIcon position={position} /> : '—'}
     </span>
@@ -40,7 +41,7 @@ export function RarityBadge({ name }: { name: string }) {
     .normalize('NFD')
     .replace(/\p{Diacritic}/gu, '')
     .toLowerCase();
-  const title = code === 'hero' ? 'Héro' : code === 'basara' ? 'Basara' : name;
+  const title = code === 'hero' ? t('Héro') : code === 'basara' ? 'Basara' : name;
   return (
     <span className={styles.rarity} data-rarity={code}>
       {title}

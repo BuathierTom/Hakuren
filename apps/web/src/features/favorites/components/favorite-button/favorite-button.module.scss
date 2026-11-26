@@ -12,10 +12,10 @@
   color: var(--color-muted);
   cursor: pointer;
   &:hover {
-    color: #b33d52;
+    color: var(--color-favorite);
   }
   &[data-selected='true'] {
-    color: #b33d52;
+    color: var(--color-favorite);
     svg {
       fill: currentColor;
     }

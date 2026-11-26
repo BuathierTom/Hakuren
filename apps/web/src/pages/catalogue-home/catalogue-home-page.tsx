@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import type { CatalogueFilters } from '@shared/catalogue';
 import { SiteHeader } from '@/components/layout/site-header/site-header';
 import { SiteFooter } from '@/components/layout/site-footer/site-footer';
@@ -16,9 +17,9 @@ export function CatalogueHomePage() {
   const metadata = useRequest<CatalogueFilters>('/api/catalogue');
   return (
     <>
-      <SiteHeader view="catalogue" />
+      <SiteHeader view={'catalogue'} />
       <main className={styles.main}>
-        <h1>Catalogue</h1>
+        <h1>{t('Catalogue')}</h1>
         <div className={styles.sections}>
           {sections.map((section) => {
             const target = href(section.view, {}, false);
@@ -26,10 +27,10 @@ export function CatalogueHomePage() {
             return (
               <a key={section.view} href={target} onClick={(event) => intercept(event, target)}>
                 <h2>
-                  {VIEWS[section.view]}
+                  {t(VIEWS[section.view])}
                   <span>{total != null ? count(total) : '—'}</span>
                 </h2>
-                <p>{section.description}</p>
+                <p>{t(section.description)}</p>
               </a>
             );
           })}

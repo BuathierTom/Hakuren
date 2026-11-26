@@ -1,3 +1,4 @@
+import { t } from '../../preferences/lib/i18n';
 import { validPlayerNotes } from './player-notes';
 import {
   ALL_SLOTS,
@@ -83,6 +84,14 @@ export function decodeTeam(value: unknown): Team | null {
       return null;
     const p = assignment.player;
     if (
+      p.names !== undefined &&
+      (!record(p.names) ||
+        Object.entries(p.names).some(
+          ([language, name]) => !['fr', 'en'].includes(language) || !text(name, 200),
+        ))
+    )
+      return null;
+    if (
       !Number.isSafeInteger(p.id) ||
       Number(p.id) <= 0 ||
       ids.has(Number(p.id)) ||
@@ -138,12 +147,14 @@ export function readDraft(storage: Storage): { team: Team | null; error: string 
     const team = record(payload) && payload.version === 1 ? decodeTeam(payload.team) : null;
     return {
       team,
-      error: team ? null : 'Le brouillon local est illisible. Une nouvelle équipe a été ouverte.',
+      error: team
+        ? null
+        : t('Le brouillon local est illisible. Une nouvelle équipe a été ouverte.'),
     };
   } catch {
     return {
       team: null,
-      error: 'Le stockage du navigateur est indisponible ou le brouillon est illisible.',
+      error: t('Le stockage du navigateur est indisponible ou le brouillon est illisible.'),
     };
   }
 }

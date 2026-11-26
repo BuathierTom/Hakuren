@@ -14,7 +14,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 7px 14px;
-  color: white;
+  color: var(--color-on-accent);
   background: var(--color-accent);
   h2 {
     font-size: 14px;
@@ -52,9 +52,9 @@
   height: 100%;
   min-height: 44px;
   padding: 0;
-  border: 2px dashed #c5d1df;
-  background: #f5f8fc;
-  box-shadow: 5px 6px 0 #253b4b20;
+  border: 2px dashed var(--color-border);
+  background: var(--color-hover);
+  box-shadow: 5px 6px 0 var(--color-shadow);
   transform: skewX(-9deg);
   color: var(--color-text);
   user-select: none;
@@ -71,13 +71,13 @@
   &[data-filled='true'] {
     border-style: solid;
     border-color: var(--rarity);
-    background: #f8fafc;
+    background: var(--color-card);
     box-shadow: 5px 6px 0 var(--rarity-shadow);
     touch-action: none;
     cursor: grab;
   }
   &[data-rarity='basara'] {
-    background: #f4feff;
+    background: var(--color-card-basara);
   }
   &[data-dragging='true'] {
     opacity: 0.4;
@@ -146,7 +146,7 @@
   justify-content: center;
   flex-direction: column;
   gap: 2px;
-  color: #72869e;
+  color: var(--color-muted);
   opacity: 0.7;
   font-size: 10px;
   font-style: italic;
@@ -164,7 +164,7 @@
 }
 .roster {
   margin-top: 18px;
-  box-shadow: 4px 5px 0 #253b4b12;
+  box-shadow: 4px 5px 0 var(--color-shadow);
 }
 .rosterBody {
   padding: 20px 24px 22px 16px;

@@ -1,3 +1,4 @@
+import { t } from '../../../preferences/lib/i18n';
 import type { TeamImageModel } from './model';
 import type { TeamImageAssets } from './assets';
 import { IMAGE_LAYOUT } from './model';
@@ -28,7 +29,7 @@ export function drawComposition(
   const header = IMAGE_LAYOUT.sectionHeader;
   const geometry = pitchGeometry(model.formation.positions, width - 2);
   rectangle(ctx, x, y, width, geometry.boardHeight + header, theme.surface, theme.border);
-  heading(ctx, theme, model.formation.name, x, y, width);
+  heading(ctx, theme, t(model.formation.name), x, y, width);
   for (const position of geometry.positions) {
     const slot = `field-${position.slot}`;
     const px = x + 14 + (position.x / 100) * (width - geometry.cardWidth - 28);
@@ -53,7 +54,7 @@ export function drawComposition(
   }
   const rosterY = y + geometry.boardHeight + header + IMAGE_LAYOUT.rosterGap;
   rectangle(ctx, x, rosterY, width, IMAGE_LAYOUT.rosterHeight, theme.surface, theme.border);
-  heading(ctx, theme, 'Effectif', x, rosterY, width);
+  heading(ctx, theme, t('Effectif'), x, rosterY, width);
   const groups = [
     { title: 'Remplaçants', slots: BENCH_SLOTS },
     { title: 'Staff', slots: STAFF_SLOTS },
@@ -62,7 +63,7 @@ export function drawComposition(
     const rowY = rosterY + header + 19 + index * 81;
     font(ctx, theme, 12, true, true);
     ctx.fillStyle = theme.muted;
-    ctx.fillText(title.toUpperCase(), x + 16, rowY + 34);
+    ctx.fillText(t(title).toUpperCase(), x + 16, rowY + 34);
     for (const [column, slot] of slots.entries()) {
       drawPlayerCard(
         ctx,

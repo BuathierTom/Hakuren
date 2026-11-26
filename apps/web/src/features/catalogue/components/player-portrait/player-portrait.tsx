@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import { useEffect, useState } from 'react';
 import styles from './player-portrait.module.scss';
 
@@ -28,7 +29,7 @@ export function Portrait({ src, small = false }: { src: string | null; small?: b
         />
       ) : (
         <span className={styles.placeholder}>
-          <span>{small ? '—' : 'Portrait indisponible'}</span>
+          <span>{small ? '—' : t('Portrait indisponible')}</span>
         </span>
       )}
     </span>

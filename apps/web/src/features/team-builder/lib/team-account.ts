@@ -1,3 +1,4 @@
+import { t } from '../../preferences/lib/i18n';
 import { teamIdentity } from './team-identity';
 import type { AccountTeam, Team, SavedTeam } from '@shared/teams';
 import { createTeamAccountApi, TeamApiError, type TeamAccountApi } from './account-api';
@@ -83,7 +84,7 @@ export class TeamAccount {
         this.update({
           loading: false,
           error:
-            error instanceof Error ? error.message : 'Les équipes du compte sont indisponibles.',
+            error instanceof Error ? error.message : t('Les équipes du compte sont indisponibles.'),
         });
     }
   }
@@ -111,7 +112,9 @@ export class TeamAccount {
             error:
               error instanceof TeamApiError
                 ? error.message
-                : 'La sauvegarde du compte a échoué. Tes modifications restent dans ce navigateur.',
+                : t(
+                    'La sauvegarde du compte a échoué. Tes modifications restent dans ce navigateur.',
+                  ),
             errorCode: error instanceof TeamApiError ? error.code : null,
             errorOperation: operation,
             blocked:

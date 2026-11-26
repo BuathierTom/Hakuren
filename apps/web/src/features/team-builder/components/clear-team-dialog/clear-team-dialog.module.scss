@@ -26,7 +26,7 @@
   .confirm {
     color: white;
     background: #b33d32;
-    border-color: #b33d32;
+    border-color: var(--color-danger-text);
     &:hover {
       background: #942f26;
       border-color: #942f26;

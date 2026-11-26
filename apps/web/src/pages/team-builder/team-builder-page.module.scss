@@ -1,8 +1,8 @@
 @use '@/styles/patterns/controls';
 .page {
   min-height: 100dvh;
-  background: #f4f7f9 url('../../../assets/backgrounds/composition.svg') center 76px / 100% auto
-    repeat-y;
+  background: var(--color-background) url('../../../assets/backgrounds/composition.svg') center
+    76px / 100% auto repeat-y;
 }
 .main {
   max-width: var(--content-max-width);
@@ -42,7 +42,7 @@
     padding: 10px 16px;
     border: 1px solid var(--color-border);
     color: var(--color-accent);
-    background: white;
+    background: var(--color-surface);
     @include controls.label;
     cursor: pointer;
   }
@@ -52,7 +52,7 @@
   top: -100px;
   left: 16px;
   padding: 12px;
-  background: white;
+  background: var(--color-surface);
   z-index: 30;
   &:focus {
     top: 10px;

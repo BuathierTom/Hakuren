@@ -231,3 +231,15 @@ test('catalogue detail links keep their current filters while builder details ta
     page.restore();
   }
 });
+
+test('catalogue links use the wiki route and retain query parameters', () => {
+  const page = browser('/catalogue?work=IE');
+  try {
+    assert.equal(href('catalogue'), '/wiki?work=IE');
+    navigate(href('catalogue', {}, false), { replace: true });
+    assert.equal(page.url.pathname, '/wiki');
+    assert.equal(page.url.search, '');
+  } finally {
+    page.restore();
+  }
+});

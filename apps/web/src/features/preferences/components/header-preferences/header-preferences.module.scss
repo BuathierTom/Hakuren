@@ -1,0 +1,55 @@
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 38px;
+  height: 38px;
+  padding: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--color-muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  &:hover,
+  &[aria-expanded='true'] {
+    color: var(--color-text);
+    background: var(--color-hover);
+  }
+}
+.menu {
+  width: 200px;
+}
+.options {
+  padding: 6px;
+  button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px;
+    min-height: 40px;
+    border: 0;
+    background: transparent;
+    color: var(--color-text);
+    font: inherit;
+    font-size: var(--font-size-small);
+    text-align: left;
+    cursor: pointer;
+    span {
+      flex: 1;
+    }
+    &[aria-checked='true'],
+    &:hover {
+      background: var(--color-accent-soft);
+      color: var(--color-accent-strong);
+    }
+  }
+}

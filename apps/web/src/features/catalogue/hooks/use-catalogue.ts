@@ -1,3 +1,4 @@
+import { t } from '../../preferences/lib/i18n';
 import { deferCatalogueSearch } from '../lib/search-navigation';
 import { useEffect, useRef, useState } from 'react';
 import type {
@@ -150,12 +151,12 @@ export function useCatalogue() {
     if (key === 'gender') return label(GENDERS, value);
     if (key === 'style') return label(PLAY_STYLES, value);
     if (key === 'rarity')
-      return value === 'hero' || value === 'basara' ? PLAYER_FORMS[value] : value;
+      return value === 'hero' || value === 'basara' ? t(PLAYER_FORMS[value]) : value;
     if (key === 'source') return label(PASSIVE_SOURCES, value);
     if (key === 'role') return label(PLAYER_TYPES, value);
     if (key === 'slot') return label(EQUIPMENT_SLOTS, value);
     if (key === 'category') return label(CATEGORIES, value);
-    return 'Technique sélectionnée';
+    return t('Technique sélectionnée');
   }
 
   return {

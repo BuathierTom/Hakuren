@@ -1,3 +1,8 @@
+import { getPreferences } from '../../preferences/preferences-store';
+import goalkeeperEn from '../../../../assets/icons/positions/icon_position_gk.en.png';
+import defenderEn from '../../../../assets/icons/positions/icon_position_def.en.png';
+import midfielderEn from '../../../../assets/icons/positions/icon_position_mid.en.png';
+import forwardEn from '../../../../assets/icons/positions/icon_position_fwd.en.png';
 import type { Element, PlayStyle, Position } from '@shared/catalogue';
 import wind from '../../../../assets/icons/elements/icon_element_wind.png';
 import forest from '../../../../assets/icons/elements/icon_element_wood.png';
@@ -31,12 +36,22 @@ export const elementIcons: Record<Element, string> = {
   mountain,
   void: voidElement,
 };
-export const positionIcons: Record<Position, string> = {
+const frenchPositionIcons: Record<Position, string> = {
   GK: goalkeeper,
   DF: defender,
   MF: midfielder,
   FW: forward,
 };
+
+const englishPositionIcons: Record<Position, string> = {
+  GK: goalkeeperEn,
+  DF: defenderEn,
+  MF: midfielderEn,
+  FW: forwardEn,
+};
+export function positionIcons(language = getPreferences().language): Record<Position, string> {
+  return language === 'en' ? englishPositionIcons : frenchPositionIcons;
+}
 
 const tacticIcons = import.meta.glob('../../../../assets/icons/tactics/*.png', {
   eager: true,

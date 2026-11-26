@@ -67,7 +67,7 @@
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-text);
-  box-shadow: 4px 5px 0 #1b30401a;
+  box-shadow: 4px 5px 0 var(--color-shadow);
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-width: none;

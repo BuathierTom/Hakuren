@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import type { ReactNode } from 'react';
 import styles from './catalogue-filters.module.scss';
 export interface FilterOption {
@@ -15,19 +16,19 @@ interface FilterGroupProps {
 export function FilterGroup({ label, value, options, onChange }: FilterGroupProps) {
   return (
     <fieldset className={styles.group}>
-      <legend>{label}</legend>
+      <legend>{t(label)}</legend>
       <div className={styles.options}>
         {options.map((option) => (
           <button
             key={option.value}
             type="button"
-            aria-label={option.label}
-            title={option.label}
+            aria-label={t(option.label)}
+            title={t(option.label)}
             aria-pressed={value === option.value}
             onClick={() => onChange(value === option.value ? null : option.value)}
           >
             {option.icon}
-            <span className={option.iconOnly ? 'sr-only' : undefined}>{option.label}</span>
+            <span className={option.iconOnly ? 'sr-only' : undefined}>{t(option.label)}</span>
           </button>
         ))}
       </div>

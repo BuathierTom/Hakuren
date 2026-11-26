@@ -1,3 +1,5 @@
+import { catalogueName } from '@/features/catalogue/lib/catalogue-text';
+import { t } from '@/features/preferences/lib/i18n';
 import { useState } from 'react';
 import type { PlayerDetail, PlayerForm } from '@shared/catalogue';
 import { Portrait } from '../player-portrait/player-portrait';
@@ -40,17 +42,17 @@ export function PlayerPanel({
         aside={
           <dl className={styles.origin}>
             <div>
-              <dt>Œuvre d’origine</dt>
-              <dd>{player.origin?.name ?? 'Origine non renseignée'}</dd>
+              <dt>{t('Œuvre d’origine')}</dt>
+              <dd>{player.origin?.name ?? t('Origine non renseignée')}</dd>
             </div>
             <div>
-              <dt>Équipe</dt>
-              <dd>{player.teams.length ? player.teams.join(' / ') : 'Équipe non renseignée'}</dd>
+              <dt>{t('Équipe')}</dt>
+              <dd>{player.teams.length ? player.teams.join(' / ') : t('Équipe non renseignée')}</dd>
             </div>
           </dl>
         }
       />
-      <div className={styles.formButtons} role="group" aria-label="Rareté du joueur">
+      <div className={styles.formButtons} role="group" aria-label={t('Rareté du joueur')}>
         {forms.map((form) => (
           <button
             key={form}
@@ -58,7 +60,7 @@ export function PlayerPanel({
             aria-pressed={rarity === form}
             onClick={() => setRarity(form)}
           >
-            {PLAYER_FORMS[form]}
+            {t(PLAYER_FORMS[form])}
           </button>
         ))}
       </div>
@@ -69,7 +71,7 @@ export function PlayerPanel({
       {player.variants.length > 0 && (
         <section className={styles.section}>
           <div className={styles.sectionHeading}>
-            <h3>Les autres versions</h3>
+            <h3>{t('Les autres versions')}</h3>
             <span>{player.variants.length}</span>
           </div>
           <div className={styles.related}>
@@ -83,10 +85,10 @@ export function PlayerPanel({
                 >
                   <Portrait src={variant.portraitUrl} small />
                   <span>
-                    <strong>{variant.name}</strong>
+                    <strong>{catalogueName(variant)}</strong>
                     <small>
                       {variant.formLabel ?? age(variant.ageGroup)} -{' '}
-                      {variant.origin ? workLabel(variant.origin.code) : 'Origine inconnue'} - N°{' '}
+                      {variant.origin ? workLabel(variant.origin.code) : t('Origine inconnue')} - N°{' '}
                       {variant.number ?? '—'}
                     </small>
                   </span>

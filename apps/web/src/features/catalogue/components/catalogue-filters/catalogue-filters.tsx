@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import type { Category, Element, Gender, PlayStyle, Position } from '@shared/catalogue';
 import type { View } from '@/app/navigation';
 import {
@@ -46,13 +47,13 @@ export function CatalogueFilters({
   const options = (labels: Record<string, string>) =>
     Object.entries(labels).map(([value, label]) => ({ value, label }));
   return (
-    <section className={styles.filters} aria-label="Filtres du catalogue" data-view={view}>
+    <section className={styles.filters} aria-label={t('Filtres du catalogue')} data-view={view}>
       <div className={styles.groups}>
         {view === 'players' && (
           <>
             {group(
               'gender',
-              'Sexes',
+              t('Sexes'),
               Object.entries(GENDERS).map(([value, label]) => ({
                 value,
                 label,
@@ -61,7 +62,7 @@ export function CatalogueFilters({
             )}
             {group(
               'position',
-              'Poste',
+              t('Poste'),
               Object.entries(POSITIONS).map(([value, label]) => ({
                 value,
                 label,
@@ -69,7 +70,7 @@ export function CatalogueFilters({
                 iconOnly: true,
               })),
             )}
-            {group('role', 'Type de joueur', [
+            {group('role', t('Type de joueur'), [
               { value: '', label: 'All' },
               ...['manager', 'coordinator'].map((value) => ({
                 value,
@@ -81,7 +82,7 @@ export function CatalogueFilters({
         {view === 'techniques' &&
           group(
             'category',
-            'Type de technique',
+            t('Type de technique'),
             TECHNIQUE_CATEGORIES.map(([value, label]) => ({
               value,
               label,
@@ -91,7 +92,7 @@ export function CatalogueFilters({
         {(view === 'players' || view === 'techniques') &&
           group(
             'element',
-            'Éléments',
+            t('Éléments'),
             Object.entries(ELEMENTS).map(([value, label]) => ({
               value,
               label,
@@ -103,25 +104,25 @@ export function CatalogueFilters({
           <>
             {group(
               'style',
-              'Styles',
+              t('Styles'),
               Object.entries(PLAY_STYLES).map(([value, label]) => ({
                 value,
                 label,
                 icon: <PlayStyleIcon style={value as PlayStyle} />,
               })),
             )}
-            {group('rarity', 'Rareté', [
-              { value: 'hero', label: 'Héro' },
+            {group('rarity', t('Rareté'), [
+              { value: 'hero', label: t('Héro') },
               { value: 'basara', label: 'Basara' },
             ])}
           </>
         )}
         {view === 'passives' && (
           <>
-            {group('source', 'Type de passif', options(PASSIVE_SOURCES))}
+            {group('source', t('Type de passif'), options(PASSIVE_SOURCES))}
             {group(
               'style',
-              'Styles',
+              t('Styles'),
               Object.entries(PLAY_STYLES).map(([value, label]) => ({
                 value,
                 label,
@@ -130,11 +131,12 @@ export function CatalogueFilters({
             )}
           </>
         )}
-        {view === 'equipment' && group('slot', 'Catégories', options(EQUIPMENT_SLOTS))}
+        {view === 'equipment' && group('slot', t('Catégories'), options(EQUIPMENT_SLOTS))}
       </div>
       {activeCount > 0 && (
         <button type="button" className={styles.reset} onClick={reset}>
-          Effacer les filtres ({activeCount})
+          {t('Effacer les filtres (')}
+          {activeCount})
         </button>
       )}
     </section>

@@ -1,3 +1,4 @@
+import { t } from '../../preferences/lib/i18n';
 import type { AccountTeam, Team } from '@shared/teams';
 import { decodeTeam } from './storage';
 export class TeamApiError extends Error {
@@ -58,7 +59,9 @@ export function createTeamAccountApi(
       throw new TeamApiError(
         error?.error ?? 'TEAMS_UNAVAILABLE',
         error?.message ??
-          'Impossible de joindre les équipes du compte. Tes modifications restent dans ce navigateur.',
+          t(
+            'Impossible de joindre les équipes du compte. Tes modifications restent dans ce navigateur.',
+          ),
       );
     }
     return response.status === 204 ? null : (response.json() as Promise<unknown>);

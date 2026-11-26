@@ -1,3 +1,4 @@
+import { t } from '../../preferences/lib/i18n';
 import { useEffect, useRef, useState } from 'react';
 import type { LoadoutOptions } from '@shared/catalogue';
 import type { Formation } from '@shared/formations';
@@ -35,11 +36,11 @@ export function useTeamLoadouts(
         signal: AbortSignal.any([task.signal, AbortSignal.timeout(15_000)]),
       });
       if (!response.ok)
-        throw new Error('Les équipements et les passifs sont momentanément indisponibles.');
+        throw new Error(t('Les équipements et les passifs sont momentanément indisponibles.'));
       const catalogue: LoadoutOptions = await response.json();
       if (task.signal.aborted) return;
       if (!catalogue.equipment.length || !catalogue.passives.length)
-        throw new Error('Le catalogue des équipements et des passifs est incomplet.');
+        throw new Error(t('Le catalogue des équipements et des passifs est incomplet.'));
       const current = latest.current;
       if (!current.formation || current.blocked) return;
       const snapshot = JSON.stringify(current.team);
@@ -49,37 +50,38 @@ export function useTeamLoadouts(
       worker.current = processor;
       const next = await new Promise<Team>((resolve, reject) => {
         calculationTimeout = setTimeout(
-          () => reject(new Error('Le calcul a dépassé le délai prévu.')),
+          () => reject(new Error(t('Le calcul a dépassé le délai prévu.'))),
           30_000,
         );
         processor.onmessage = (event: MessageEvent<{ team?: Team; error?: string }>) => {
           if (event.data.team) resolve(event.data.team);
           else reject(new Error(event.data.error));
         };
-        processor.onerror = () => reject(new Error('Le calcul a échoué.'));
+        processor.onerror = () => reject(new Error(t('Le calcul a échoué.')));
         task.signal.addEventListener('abort', () => reject(task.signal.reason), { once: true });
         processor.postMessage({ team: current.team, formation: current.formation, catalogue });
       });
       if (task.signal.aborted || latest.current.blocked) return;
       if (JSON.stringify(latest.current.team) !== snapshot) {
         notify({
-          message: 'L’équipe a changé pendant le calcul. Relance le remplissage.',
+          message: t('L’équipe a changé pendant le calcul. Relance le remplissage.'),
           tone: 'info',
         });
         return;
       }
       if (JSON.stringify(next) === snapshot)
-        notify({ message: 'Aucune case supplémentaire ne peut être remplie.', tone: 'info' });
+        notify({ message: t('Aucune case supplémentaire ne peut être remplie.'), tone: 'info' });
       else if (latest.current.change(next))
         notify({
-          message: 'Les équipements et les passifs vides ont été remplis selon le poste.',
+          message: t('Les équipements et les passifs vides ont été remplis selon le poste.'),
           tone: 'success',
         });
     } catch {
       if (!task.signal.aborted)
         notify({
-          message:
+          message: t(
             'Impossible de remplir les équipements et les passifs. Réessaie dans un instant.',
+          ),
           tone: 'error',
         });
     } finally {

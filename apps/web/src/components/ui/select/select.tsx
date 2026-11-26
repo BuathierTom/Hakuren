@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import {
   useEffect,
   useId,
@@ -221,8 +222,8 @@ export function Select({
               ref={searchInput}
               type="search"
               value={query}
-              aria-label={`Rechercher dans ${label}`}
-              placeholder="Rechercher…"
+              aria-label={t('Rechercher dans {0}', label)}
+              placeholder={t('Rechercher…')}
               onChange={(event) => {
                 setQuery(event.target.value);
                 setActive(-1);
@@ -265,9 +266,11 @@ export function Select({
               );
             })}
         </div>
-        {open && !shown.length && <p className={styles.hint}>Aucun résultat</p>}
+        {open && !shown.length && <p className={styles.hint}>{t('Aucun résultat')}</p>}
         {open && searchable && visible.length > shown.length && (
-          <p className={styles.hint}>Précise ta recherche pour afficher d’autres résultats.</p>
+          <p className={styles.hint}>
+            {t('Précise ta recherche pour afficher d’autres résultats.')}
+          </p>
         )}
       </div>
     </div>

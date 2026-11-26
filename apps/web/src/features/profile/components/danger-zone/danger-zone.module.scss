@@ -1,11 +1,11 @@
 @use '@/styles/patterns/controls';
 .zone {
-  border: 1px solid #d7a09a;
+  border: 1px solid var(--color-danger-border);
   background: var(--color-surface);
   padding: 28px;
   h2 {
     margin: 0 0 22px;
-    color: #a03128;
+    color: var(--color-danger-text);
     font-size: 19px;
   }
 }
@@ -34,13 +34,13 @@
     min-height: 40px;
     padding: 10px 14px;
     border: 1px solid #b33d32;
-    color: #b33d32;
+    color: var(--color-danger-text);
     background: var(--color-surface);
     font-size: var(--font-size-small);
     @include controls.label;
     cursor: pointer;
     &:hover {
-      background: #fcf1ef;
+      background: var(--color-danger-soft);
     }
     &:disabled {
       opacity: 0.5;

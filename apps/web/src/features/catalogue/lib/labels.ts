@@ -1,3 +1,4 @@
+import { locale, t } from '../../preferences/lib/i18n';
 import type { Category, Element, Position, Gender, PlayStyle } from '@shared/catalogue';
 
 export const ELEMENTS: Record<Element, string> = {
@@ -60,11 +61,12 @@ const ROLES: Record<string, string> = {
   'Player Coordinator': 'Joueur / coordinateur',
 };
 export const label = (labels: Record<string, string>, value: string) =>
-  Object.hasOwn(labels, value) ? labels[value]! : value;
-export const age = (value: string | null) => (value ? label(AGES, value) : 'Âge non renseigné');
-export const role = (value: string | null) => (value ? label(ROLES, value) : 'Rôle non renseigné');
+  t(Object.hasOwn(labels, value) ? labels[value]! : value);
+export const age = (value: string | null) => (value ? label(AGES, value) : t('Âge non renseigné'));
+export const role = (value: string | null) =>
+  value ? label(ROLES, value) : t('Rôle non renseigné');
 export const workLabel = (code: string) => label(WORK_LABELS, code);
-export const count = (value: number) => value.toLocaleString('fr-FR');
+export const count = (value: number) => value.toLocaleString(locale());
 
 export const VIEWS = {
   profile: 'Profil',

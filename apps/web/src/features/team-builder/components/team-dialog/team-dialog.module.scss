@@ -13,7 +13,7 @@
     display: none;
   }
   &::backdrop {
-    background: #142c40a6;
+    background: var(--color-backdrop);
   }
 }
 .wide {

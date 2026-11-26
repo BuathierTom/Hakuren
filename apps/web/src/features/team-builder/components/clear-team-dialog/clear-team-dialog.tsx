@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import { TeamDialog } from '../team-dialog/team-dialog';
 import styles from './clear-team-dialog.module.scss';
 export function ClearTeamDialog({
@@ -8,16 +9,16 @@ export function ClearTeamDialog({
   onClose: () => void;
 }) {
   return (
-    <TeamDialog title="Vider l’équipe" onClose={onClose}>
+    <TeamDialog title={t('Vider l’équipe')} onClose={onClose}>
       <p className={styles.message}>
-        Retirer tous les titulaires, les remplaçants et le staff de cette composition ?
+        {t('Retirer tous les titulaires, les remplaçants et le staff de cette composition ?')}
       </p>
       <div className={styles.actions}>
         <button type="button" onClick={onClose}>
-          Annuler
+          {t('Annuler')}
         </button>
         <button type="button" className={styles.confirm} onClick={onConfirm}>
-          Vider l’équipe
+          {t('Vider l’équipe')}
         </button>
       </div>
     </TeamDialog>

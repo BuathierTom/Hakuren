@@ -1,3 +1,5 @@
+import { t } from '@/features/preferences/lib/i18n';
+import { HeaderPreferences } from '@/features/preferences/components/header-preferences/header-preferences';
 import { AccountControl } from '@/features/auth/components/account-control/account-control';
 import { AuthNotice } from '@/features/auth/components/auth-notice/auth-notice';
 import { intercept, type View } from '@/app/navigation';
@@ -11,28 +13,28 @@ export function SiteHeader({ view }: { view: View }) {
             href="/"
             className={styles.brand}
             onClick={(event) => intercept(event, '/')}
-            aria-label="Hakuren, accueil"
+            aria-label={t('Hakuren, accueil')}
           >
             <img src="/icon.webp" alt="" width="44" height="44" />
             <span>Hakuren</span>
           </a>
-          <nav aria-label="Navigation principale" className={styles.nav}>
+          <nav aria-label={t('Navigation principale')} className={styles.nav}>
             <a
               href="/"
               aria-current={view === 'builder' ? 'page' : undefined}
               onClick={(event) => intercept(event, '/')}
             >
-              Composition
+              {t('Composition')}
             </a>
             <a
               href="/joueurs"
               aria-current={view === 'players' ? 'page' : undefined}
               onClick={(event) => intercept(event, '/joueurs')}
             >
-              Joueurs
+              {t('Joueurs')}
             </a>
             <a
-              href="/catalogue"
+              href="/wiki"
               aria-current={
                 ['catalogue', 'techniques', 'equipment', 'tactics', 'passives', 'teams'].includes(
                   view,
@@ -40,12 +42,13 @@ export function SiteHeader({ view }: { view: View }) {
                   ? 'page'
                   : undefined
               }
-              onClick={(event) => intercept(event, '/catalogue')}
+              onClick={(event) => intercept(event, '/wiki')}
             >
-              Catalogue
+              {t('Catalogue')}
             </a>
           </nav>
           <div className={styles.account}>
+            <HeaderPreferences />
             <AccountControl />
           </div>
         </div>

@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import { FavoriteButton } from '@/features/favorites/components/favorite-button/favorite-button';
 import { favoriteKind } from '@/features/favorites/lib/kinds';
 import { PassivePanel } from '../passive-details/passive-details';
@@ -93,7 +94,7 @@ export function DetailDialog({ view, id }: { view: View; id: number }) {
       onCancel={(event) => event.preventDefault()}
     >
       <div className={styles.topbar}>
-        <span>{DETAIL_LABELS[rosterPlayer ? 'players' : view]}</span>
+        <span>{t(DETAIL_LABELS[rosterPlayer ? 'players' : view])}</span>
         <div className={styles.actions}>
           {favoriteKind(selectedKind) && (
             <FavoriteButton kind={selectedKind} targetId={rosterPlayer ?? id} />
@@ -103,7 +104,7 @@ export function DetailDialog({ view, id }: { view: View; id: number }) {
             ref={closeButton}
             type="button"
             onClick={() => closeDetail(view, rosterPlayer ? 'player' : 'detail')}
-            aria-label="Fermer la fiche"
+            aria-label={t('Fermer la fiche')}
             autoFocus
           >
             <Icon name="close" size={22} />
@@ -113,14 +114,14 @@ export function DetailDialog({ view, id }: { view: View; id: number }) {
       <div className={styles.body} hidden={!!rosterPlayer} aria-busy={request.loading}>
         {request.loading ? (
           <div className={styles.state}>
-            <h2 id={title}>Chargement de la fiche…</h2>
+            <h2 id={title}>{t('Chargement de la fiche…')}</h2>
           </div>
         ) : request.error ? (
           <div className={styles.state} role="alert">
-            <h2 id={title}>Fiche indisponible</h2>
+            <h2 id={title}>{t('Fiche indisponible')}</h2>
             <p>{request.error.message}</p>
             <button className={styles.primaryButton} onClick={request.retry}>
-              Réessayer
+              {t('Réessayer')}
             </button>
           </div>
         ) : (
@@ -139,14 +140,14 @@ export function DetailDialog({ view, id }: { view: View; id: number }) {
         <div className={styles.body} aria-busy={player.loading}>
           {player.loading ? (
             <div className={styles.state}>
-              <h2 id={playerTitle}>Chargement de la fiche…</h2>
+              <h2 id={playerTitle}>{t('Chargement de la fiche…')}</h2>
             </div>
           ) : player.error ? (
             <div className={styles.state} role="alert">
-              <h2 id={playerTitle}>Fiche indisponible</h2>
+              <h2 id={playerTitle}>{t('Fiche indisponible')}</h2>
               <p>{player.error.message}</p>
               <button className={styles.primaryButton} onClick={player.retry}>
-                Réessayer
+                {t('Réessayer')}
               </button>
             </div>
           ) : (

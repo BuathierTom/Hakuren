@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import { Icon } from '@/components/ui/icon/icon';
 import { paginationEntries } from '../../lib/pagination';
 import styles from './catalogue-pagination.module.scss';
@@ -23,10 +24,10 @@ export function CataloguePagination({
         type="button"
         onClick={() => onChange(page - 1)}
         disabled={loading || page <= 1}
-        aria-label="Page précédente"
+        aria-label={t('Page précédente')}
       >
         <Icon name="left" size={16} className={styles.directionIcon} />
-        <span className={styles.directionText}>Précédent</span>
+        <span className={styles.directionText}>{t('Précédent')}</span>
       </button>
       <ol className={styles.pages}>
         {paginationEntries(page, pages).map((entry) => (
@@ -35,7 +36,7 @@ export function CataloguePagination({
               <button
                 type="button"
                 className={styles.pageButton}
-                aria-label={`Page ${entry}`}
+                aria-label={t('Page {0}', entry)}
                 aria-current={entry === page ? 'page' : undefined}
                 disabled={loading}
                 onClick={() => {
@@ -56,9 +57,9 @@ export function CataloguePagination({
         type="button"
         onClick={() => onChange(page + 1)}
         disabled={loading || page >= pages}
-        aria-label="Page suivante"
+        aria-label={t('Page suivante')}
       >
-        <span className={styles.directionText}>Suivant</span>
+        <span className={styles.directionText}>{t('Suivant')}</span>
         <Icon name="right" size={16} className={styles.directionIcon} />
       </button>
     </nav>

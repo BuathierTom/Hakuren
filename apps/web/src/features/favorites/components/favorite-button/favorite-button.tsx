@@ -1,3 +1,4 @@
+import { t } from '@/features/preferences/lib/i18n';
 import { useId, useState } from 'react';
 import type { FavoriteKind } from '@shared/favorites';
 import { Icon } from '@/components/ui/icon/icon';
@@ -22,7 +23,7 @@ export function FavoriteButton({
   const selected = favorites.state.entries.filter(
     (e) => e.kind === kind && e.targetId === targetId,
   );
-  const label = `${selected.length ? 'Gérer les favoris' : 'Ajouter aux favoris'}${name ? ` : ${name}` : ''}`;
+  const label = `${selected.length ? t('Gérer les favoris') : t('Ajouter aux favoris')}${name ? ` : ${name}` : ''}`;
   const login = new URL(auth.loginUrl, window.location.origin);
   login.searchParams.set('returnTo', window.location.pathname + window.location.search);
   return (
@@ -45,32 +46,32 @@ export function FavoriteButton({
         <Popover
           id={id}
           anchor={anchor}
-          label="Choisir les playlists de favoris"
+          label={t('Choisir les playlists de favoris')}
           placement="bottom"
           onClose={() => setAnchor(null)}
           className={styles.menu}
         >
           <div className={styles.content}>
-            <h3>Ajouter à une playlist</h3>
+            <h3>{t('Ajouter à une playlist')}</h3>
             {!auth.user ? (
               <div className={styles.state}>
-                <p>Connecte-toi pour enregistrer tes favoris.</p>
-                {auth.configured && <a href={login.href}>Se connecter avec Discord</a>}
+                <p>{t('Connecte-toi pour enregistrer tes favoris.')}</p>
+                {auth.configured && <a href={login.href}>{t('Se connecter avec Discord')}</a>}
               </div>
             ) : favorites.loading ? (
               <p className={styles.state} role="status">
-                Chargement…
+                {t('Chargement…')}
               </p>
             ) : favorites.error ? (
               <div className={styles.state}>
                 <p>{favorites.error}</p>
                 <button type="button" onClick={() => void favorites.refresh()}>
-                  Réessayer
+                  {t('Réessayer')}
                 </button>
               </div>
             ) : (
               <>
-                <div className={styles.playlists} role="group" aria-label="Playlists">
+                <div className={styles.playlists} role="group" aria-label={t('Playlists')}>
                   {favorites.state.playlists.map((playlist) => {
                     const checked = selected.some((e) => e.playlistId === playlist.id);
                     return (
