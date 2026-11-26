@@ -37,3 +37,14 @@ export const positionIcons: Record<Position, string> = {
   MF: midfielder,
   FW: forward,
 };
+
+const tacticIcons = import.meta.glob('../../../../assets/icons/tactics/*.png', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+}) as Record<string, string>;
+export function tacticIconSource(stringId: string) {
+  return Object.entries(tacticIcons).find(([path]) =>
+    path.endsWith(`/icon_tactic_${stringId}.png`),
+  )?.[1];
+}

@@ -116,3 +116,22 @@ export function warning(ctx: CanvasRenderingContext2D, x: number, y: number) {
   ctx.fillRect(x + 6.3, y + 10, 1.4, 1.4);
   ctx.restore();
 }
+
+export function drawStyleIcon(
+  ctx: CanvasRenderingContext2D,
+  image: HTMLImageElement,
+  x: number,
+  y: number,
+  size: number,
+) {
+  const canvas = document.createElement('canvas');
+  canvas.width = image.naturalWidth;
+  canvas.height = image.naturalHeight;
+  const tint = canvas.getContext('2d');
+  if (!tint) return;
+  tint.drawImage(image, 0, 0);
+  tint.globalCompositeOperation = 'source-in';
+  tint.fillStyle = '#111827';
+  tint.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(canvas, x, y, size, size);
+}

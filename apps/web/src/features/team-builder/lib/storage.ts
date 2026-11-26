@@ -26,6 +26,20 @@ export function decodeTeam(value: unknown): Team | null {
     !record(value.slots)
   )
     return null;
+  if (value.playStyle !== undefined && !optional(value.playStyle, playStyles)) return null;
+  if (value.tactics !== undefined) {
+    if (
+      !Array.isArray(value.tactics) ||
+      value.tactics.length > 3 ||
+      value.tactics.some(
+        (id) =>
+          id !== null && (!Number.isSafeInteger(id) || Number(id) <= 0 || Number(id) > 4294967295),
+      )
+    )
+      return null;
+    const selected = value.tactics.filter((id) => id !== null);
+    if (new Set(selected).size !== selected.length) return null;
+  }
   const ids = new Set<number>();
   for (const [slot, assignment] of Object.entries(value.slots)) {
     if (

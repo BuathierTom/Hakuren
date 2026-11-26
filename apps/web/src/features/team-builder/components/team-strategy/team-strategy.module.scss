@@ -1,0 +1,42 @@
+@use '@/styles/patterns/controls';
+.strategy {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+.section {
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  h3 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0;
+    padding: 9px;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-muted);
+    span {
+      font-style: normal;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+}
+.content {
+  display: grid;
+  gap: 8px;
+  padding: 9px;
+}
+.error {
+  font-size: var(--font-size-small);
+  line-height: 1.6;
+  color: var(--color-muted);
+  button {
+    @include controls.label;
+    border: 1px solid var(--color-border);
+    padding: 6px 8px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+  }
+}

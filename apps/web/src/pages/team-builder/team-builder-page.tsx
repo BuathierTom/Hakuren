@@ -203,7 +203,7 @@ function TeamBuilderWorkspace({
               }}
               onMove={move}
             />
-            <TeamAnalysis team={team} formation={formation} />
+            <TeamAnalysis team={team} formation={formation} onChange={builder.change} />
           </div>
         )}
         {modal?.kind === 'picker' && (

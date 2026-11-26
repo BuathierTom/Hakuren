@@ -14,7 +14,12 @@ import bond from '../../../../../assets/icons/aura/icon_aura_bond_transform.png'
 import awakening from '../../../../../assets/icons/aura/icon_aura_awakening_power.png';
 import mode from '../../../../../assets/icons/aura/icon_aura_mode_change.png';
 import styles from './game-icon.module.scss';
-import { elementIcons, playStyleIcons, positionIcons } from '../../lib/game-icon-assets';
+import {
+  elementIcons,
+  playStyleIcons,
+  positionIcons,
+  tacticIconSource,
+} from '../../lib/game-icon-assets';
 
 const genders: Partial<Record<Gender, string>> = { male, female };
 const categories: Partial<Record<Category, string>> = {
@@ -30,11 +35,6 @@ const categories: Partial<Record<Category, string>> = {
   awakening_power: awakening,
   mode_change: mode,
 };
-const tactics = import.meta.glob('../../../../../assets/icons/tactics/*.png', {
-  eager: true,
-  query: '?url',
-  import: 'default',
-}) as Record<string, string>;
 export function ElementIcon({ element }: { element: Element | null }) {
   const src = element ? elementIcons[element] : null;
   return src ? (
@@ -78,9 +78,7 @@ export function TechniqueTypeIcon({ category }: { category: Category | null }) {
   ) : null;
 }
 export function TacticIcon({ stringId }: { stringId: string }) {
-  const src = Object.entries(tactics).find(([path]) =>
-    path.endsWith(`/icon_tactic_${stringId}.png`),
-  )?.[1];
+  const src = tacticIconSource(stringId);
   return src ? (
     <img
       className={styles.type}

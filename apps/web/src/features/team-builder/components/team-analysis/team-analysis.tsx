@@ -1,3 +1,4 @@
+import { TeamStrategy } from '../team-strategy/team-strategy';
 import { useMemo } from 'react';
 import type { LoadoutOptions } from '@shared/catalogue';
 import { useRequest } from '@/features/catalogue/hooks/use-catalogue-request';
@@ -7,7 +8,15 @@ import { teamAlerts } from '../../lib/team-alerts';
 import { Icon } from '@/components/ui/icon/icon';
 import styles from './team-analysis.module.scss';
 import { hasTeamLoadout } from '../../lib/loadouts';
-export function TeamAnalysis({ team, formation }: { team: Team; formation: Formation }) {
+export function TeamAnalysis({
+  team,
+  formation,
+  onChange,
+}: {
+  team: Team;
+  formation: Formation;
+  onChange: (update: (team: Team) => Team) => void;
+}) {
   const counts = teamCounts(team);
   const alerts = teamAlerts(team, formation);
   const offPosition = alerts.find((alert) => alert.code === 'off-position')?.slots ?? [];
@@ -99,6 +108,7 @@ export function TeamAnalysis({ team, formation }: { team: Team; formation: Forma
             </>
           )}
         </section>
+        <TeamStrategy team={team} onChange={onChange} />
       </div>
     </aside>
   );

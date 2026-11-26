@@ -2,7 +2,7 @@ import type { Position } from '@shared/catalogue';
 import { playerSurname } from '../player-name';
 import { assignmentAppearance } from '../rarity-appearance';
 import { RARITIES, type Assignment } from '../team';
-import { fitText, font, warning, type ImageTheme } from './drawing';
+import { drawStyleIcon, fitText, font, warning, type ImageTheme } from './drawing';
 import type { TeamImageAssets } from './assets';
 
 function tile(ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number) {
@@ -57,19 +57,7 @@ export function drawPlayerCard(
     if (badge) ctx.drawImage(badge, x + 8, y + 20, badgeWidth, 13);
     const style = assignment.playStyle ?? assignment.player.playStyle;
     const styleIcon = style ? assets.icons.get(style) : undefined;
-    if (styleIcon) {
-      const tinted = document.createElement('canvas');
-      tinted.width = styleIcon.naturalWidth;
-      tinted.height = styleIcon.naturalHeight;
-      const tint = tinted.getContext('2d');
-      if (tint) {
-        tint.drawImage(styleIcon, 0, 0);
-        tint.globalCompositeOperation = 'source-in';
-        tint.fillStyle = '#111827';
-        tint.fillRect(0, 0, tinted.width, tinted.height);
-        ctx.drawImage(tinted, x + 8 + (badge ? badgeWidth + 4 : 0), y + 20, 13, 13);
-      }
-    }
+    if (styleIcon) drawStyleIcon(ctx, styleIcon, x + 8 + (badge ? badgeWidth + 4 : 0), y + 20, 13);
     font(ctx, theme, 9);
     ctx.fillStyle = theme.muted;
     ctx.fillText(RARITIES[assignment.rarity].name, x + 8, y + 42);

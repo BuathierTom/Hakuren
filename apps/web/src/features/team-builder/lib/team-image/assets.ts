@@ -2,10 +2,12 @@ import {
   elementIcons,
   playStyleIcons,
   positionIcons,
+  tacticIconSource,
 } from '@/features/catalogue/lib/game-icon-assets';
 import coach from '../../../../../assets/icons/positions/icon_position_coach.png';
 import manager from '../../../../../assets/icons/positions/icon_position_manager.png';
 import background from '../../../../../assets/backgrounds/composition.svg';
+import type { CatalogueItem } from '@shared/catalogue';
 import type { Team } from '../team';
 
 const cache = new Map<string, Promise<HTMLImageElement | null>>();
@@ -35,7 +37,7 @@ async function loadImage(source: string): Promise<HTMLImageElement | null> {
   return result;
 }
 
-export async function teamImageAssets(team: Team) {
+export async function teamImageAssets(team: Team, tactics: CatalogueItem[] = []) {
   const sources = {
     ...elementIcons,
     ...positionIcons,
@@ -44,6 +46,13 @@ export async function teamImageAssets(team: Team) {
     manager,
     background,
     logo: '/icon.webp',
+    ...Object.fromEntries(
+      (team.tactics ?? []).flatMap((id) => {
+        const item = tactics.find((item) => item.id === id);
+        const source = item ? tacticIconSource(item.stringId) : null;
+        return source ? [[`tactic:${id}`, source]] : [];
+      }),
+    ),
   };
   const icons = new Map<string, HTMLImageElement>();
   const portraits = new Map<number, HTMLImageElement>();

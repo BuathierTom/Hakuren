@@ -1,6 +1,7 @@
 import type { Formation } from '@shared/formations';
 import type { LoadoutOptions } from '@shared/catalogue';
 import type { Team } from '../team';
+import { loadTactics } from '@/features/catalogue/lib/tactics';
 import { hasTeamLoadout } from '../loadouts';
 import { teamImageAssets } from './assets';
 import { analysisHeight, drawAnalysis } from './analysis';
@@ -23,12 +24,13 @@ export async function downloadTeamImage(
   team: Team,
   formation: Formation,
 ): Promise<{ missingPortraits: number }> {
-  const [assets, catalogue] = await Promise.all([
-    teamImageAssets(team),
+  const [catalogue, tactics] = await Promise.all([
     loadoutOptions(team),
+    team.tactics?.some(Boolean) ? loadTactics() : Promise.resolve([]),
     document.fonts.ready,
   ]);
-  const model = teamImageModel(team, formation, catalogue);
+  const assets = await teamImageAssets(team, tactics);
+  const model = teamImageModel(team, formation, catalogue, tactics);
   const theme = imageTheme();
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
@@ -70,7 +72,7 @@ export async function downloadTeamImage(
     65,
   );
   drawComposition(ctx, theme, assets, model, padding, contentY, pitchWidth);
-  drawAnalysis(ctx, theme, model, padding + pitchWidth + gap, contentY, analysisWidth);
+  drawAnalysis(ctx, theme, assets, model, padding + pitchWidth + gap, contentY, analysisWidth);
   font(ctx, theme, 11);
   ctx.fillStyle = theme.muted;
   ctx.fillText('INAZUMA ELEVEN: VICTORY ROAD', padding, height - 19);

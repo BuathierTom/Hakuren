@@ -1,6 +1,8 @@
+import { PLAY_STYLES } from '@/features/catalogue/lib/labels';
+import type { TeamImageAssets } from './assets';
 import { POWER_KEYS, POWER_LABELS } from '../power-stats';
 import type { TeamImageModel } from './model';
-import { font, rectangle, warning, wrapText, type ImageTheme } from './drawing';
+import { drawStyleIcon, font, rectangle, warning, wrapText, type ImageTheme } from './drawing';
 
 function layout(
   ctx: CanvasRenderingContext2D,
@@ -18,18 +20,30 @@ function layout(
       height: 66,
     };
   });
+  const tactics = model.tactics.map(({ id, item }) => {
+    const lines = wrapText(
+      ctx,
+      item?.name ?? (id ? 'Tactique indisponible' : 'Aucune tactique'),
+      width - 96,
+    );
+    return { id, lines, height: Math.max(44, lines.length * 18 + 18) };
+  });
+  const strategyHeight =
+    16 + 32 + 46 + 16 + 32 + tactics.reduce((height, row) => height + row.height, 0);
   const alertsHeight = alerts.reduce((total, lines) => total + lines.length * 18 + 26, 0);
   const notesHeight = notes.reduce((total, lines) => total + lines.length * 18 + 18, 0);
   return {
     alerts,
     notes,
     rows,
+    tactics,
     height:
       218 +
       alertsHeight +
       32 +
       rows.reduce((total, row) => total + row.height, 0) +
       notesHeight +
+      strategyHeight +
       16,
   };
 }
@@ -46,6 +60,7 @@ export function analysisHeight(
 export function drawAnalysis(
   ctx: CanvasRenderingContext2D,
   theme: ImageTheme,
+  assets: TeamImageAssets,
   model: TeamImageModel,
   x: number,
   y: number,
@@ -143,5 +158,52 @@ export function drawAnalysis(
     ctx.fillStyle = theme.muted;
     lines.forEach((line, index) => ctx.fillText(line, x + 24, current + 21 + index * 18));
     current += height;
+  }
+  current += 16;
+  rectangle(ctx, x + 14, current, width - 28, 32, theme.surface, theme.border);
+  font(ctx, theme, 13, true, true);
+  ctx.fillStyle = theme.muted;
+  ctx.fillText('BUILD TEAM', x + 24, current + 22);
+  current += 32;
+  rectangle(ctx, x + 14, current, width - 28, 46, theme.surface, theme.border);
+  const style = model.playStyle ? assets.icons.get(model.playStyle) : null;
+  if (style) drawStyleIcon(ctx, style, x + 24, current + 13, 20);
+  font(ctx, theme, 13, true);
+  ctx.fillStyle = theme.text;
+  ctx.fillText(
+    model.playStyle ? PLAY_STYLES[model.playStyle] : 'Aucun archétype',
+    x + (style ? 54 : 24),
+    current + 28,
+  );
+  current += 62;
+  rectangle(ctx, x + 14, current, width - 28, 32, theme.surface, theme.border);
+  font(ctx, theme, 13, true, true);
+  ctx.fillStyle = theme.muted;
+  ctx.fillText('TACTIQUES', x + 24, current + 22);
+  ctx.textAlign = 'right';
+  ctx.fillText(
+    `${model.tactics.filter((entry) => entry.id).length}/3`,
+    x + width - 24,
+    current + 22,
+  );
+  ctx.textAlign = 'left';
+  current += 32;
+  for (const [index, row] of measured.tactics.entries()) {
+    rectangle(ctx, x + 14, current, width - 28, row.height, theme.surface, theme.border);
+    font(ctx, theme, 11);
+    ctx.fillStyle = theme.muted;
+    ctx.fillText(String(index + 1), x + 24, current + row.height / 2 + 4);
+    const icon = row.id ? assets.icons.get(`tactic:${row.id}`) : null;
+    if (icon) ctx.drawImage(icon, x + 40, current + (row.height - 22) / 2, 22, 22);
+    font(ctx, theme, 12);
+    ctx.fillStyle = row.id ? theme.text : theme.muted;
+    row.lines.forEach((line, lineIndex) =>
+      ctx.fillText(
+        line,
+        x + 70,
+        current + (row.height - row.lines.length * 18) / 2 + 13 + lineIndex * 18,
+      ),
+    );
+    current += row.height;
   }
 }

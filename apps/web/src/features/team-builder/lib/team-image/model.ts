@@ -1,4 +1,4 @@
-import type { LoadoutOptions } from '@shared/catalogue';
+import type { CatalogueItem, LoadoutOptions } from '@shared/catalogue';
 import type { Formation } from '@shared/formations';
 import { teamAlerts } from '../team-alerts';
 import { teamCounts, teamPower, type Team } from '../team';
@@ -27,7 +27,12 @@ export function teamImageFilename(name: string): string {
   return `hakuren-${slug || 'mon-equipe'}.png`;
 }
 
-export function teamImageModel(team: Team, formation: Formation, catalogue?: LoadoutOptions) {
+export function teamImageModel(
+  team: Team,
+  formation: Formation,
+  catalogue?: LoadoutOptions,
+  tactics: CatalogueItem[] = [],
+) {
   const counts = teamCounts(team);
   const alerts = teamAlerts(team, formation);
   const power = teamPower(team, catalogue);
@@ -40,7 +45,21 @@ export function teamImageModel(team: Team, formation: Formation, catalogue?: Loa
     );
   if (power.unavailable || power.unresolved)
     notes.push(`${power.unavailable + power.unresolved} bonus indisponible(s) ou non reconnu(s).`);
-  return { team, formation, counts, alerts, offPosition, power, notes };
+  const selectedTactics = Array.from({ length: 3 }, (_, index) => {
+    const id = team.tactics?.[index] ?? null;
+    return { id, item: tactics.find((item) => item.id === id) ?? null };
+  });
+  return {
+    team,
+    formation,
+    counts,
+    alerts,
+    offPosition,
+    power,
+    notes,
+    tactics: selectedTactics,
+    playStyle: team.playStyle ?? null,
+  };
 }
 
 export type TeamImageModel = ReturnType<typeof teamImageModel>;
