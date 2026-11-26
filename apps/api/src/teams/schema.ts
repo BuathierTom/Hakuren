@@ -18,6 +18,12 @@ export const teamIdSchema = { type: 'string', pattern: '^[A-Za-z0-9_-]{1,80}$' }
 export const teamSchema = object(
   {
     playStyle: { type: ['string', 'null'], enum: [...styles, null] },
+    playerNotes: {
+      type: 'object',
+      maxProperties: 500,
+      propertyNames: { pattern: '^[1-9][0-9]{0,9}$' },
+      additionalProperties: { type: 'string', maxLength: 10000 },
+    },
     tactics: { type: 'array', maxItems: 3, items: { ...id, type: ['integer', 'null'] } },
     id: teamIdSchema,
     name: string(120),
@@ -89,6 +95,27 @@ export function validateTeam(team: Team, draft = false) {
     throw new TeamError(400, 'INVALID_TEAM', 'La composition de cette équipe est invalide.');
   };
   if (!draft && !team.name.trim()) invalid();
+  if (team.playerNotes !== undefined) {
+    if (
+      !team.playerNotes ||
+      typeof team.playerNotes !== 'object' ||
+      Array.isArray(team.playerNotes)
+    )
+      invalid();
+    const entries = Object.entries(team.playerNotes);
+    if (
+      entries.length > 500 ||
+      entries.some(
+        ([id, note]) =>
+          !/^[1-9]\d{0,9}$/.test(id) ||
+          Number(id) > 4294967295 ||
+          typeof note !== 'string' ||
+          note.length > 10000,
+      ) ||
+      entries.reduce((total, [, note]) => total + note.length, 0) > 100000
+    )
+      invalid();
+  }
   if (team.playStyle != null && !styles.includes(team.playStyle)) invalid();
   if (team.tactics !== undefined) {
     if (!Array.isArray(team.tactics) || team.tactics.length > 3) invalid();

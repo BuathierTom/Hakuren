@@ -391,3 +391,75 @@ test('team strategy rejects a fourth tactic, duplicate tactics, invalid IDs and 
     assert.equal(response.statusCode, 400, JSON.stringify(extra) + response.body);
   }
 });
+
+test('player notes are isolated per saved team and round-trip after squad removal and re-addition', async (t) => {
+  const { app, headers } = await setup();
+  t.after(() => app.close());
+  const note = '  Consignes\nÉviter les fautes ⚽ <script>texte littéral</script>  ';
+  const source = { ...exampleTeam(), playerNotes: { '1': note, '99': 'Ancien joueur' } };
+  const second = { ...source, id: 'second-notes', playerNotes: { '1': 'Autre équipe' } };
+  for (const team of [source, second]) {
+    const response = await app.inject({
+      method: 'PUT',
+      url: '/api/me/teams/' + team.id,
+      headers,
+      payload: { team, revision: null },
+    });
+    assert.equal(response.statusCode, 201, response.body);
+    assert.deepEqual(response.json().team, team);
+  }
+  const removed = { ...source, slots: {} };
+  const saved = await app.inject({
+    method: 'PUT',
+    url: '/api/me/teams/' + source.id,
+    headers,
+    payload: { team: removed, revision: 1 },
+  });
+  assert.equal(saved.statusCode, 200, saved.body);
+  assert.equal(saved.json().team.playerNotes['1'], note);
+  const restored = await app.inject({
+    method: 'PUT',
+    url: '/api/me/teams/' + source.id,
+    headers,
+    payload: { team: { ...saved.json().team, slots: source.slots }, revision: 2 },
+  });
+  assert.equal(restored.statusCode, 200, restored.body);
+  assert.equal(restored.json().team.playerNotes['1'], note);
+  const draft = await app.inject({
+    method: 'PUT',
+    url: '/api/me/team-draft',
+    headers,
+    payload: { team: removed, revision: null },
+  });
+  assert.equal(draft.statusCode, 200, draft.body);
+  assert.deepEqual(draft.json().team.playerNotes, source.playerNotes);
+  const all = (await app.inject({ url: '/api/me/teams', headers })).json().items;
+  assert.equal(
+    all.find((item: AccountTeam) => item.team.id === second.id).team.playerNotes['1'],
+    'Autre équipe',
+  );
+});
+test('invalid player note IDs, malformed maps and excessive notes are rejected', async (t) => {
+  const { app, headers } = await setup();
+  t.after(() => app.close());
+  for (const playerNotes of [
+    null,
+    [],
+    'note',
+    { '0': 'note' },
+    { '01': 'note' },
+    { '4294967296': 'note' },
+    { bad: 'note' },
+    { '1': {} },
+    { '1': 'x'.repeat(10001) },
+    Object.fromEntries(Array.from({ length: 11 }, (_, i) => [String(i + 1), 'x'.repeat(10000)])),
+  ]) {
+    const response = await app.inject({
+      method: 'PUT',
+      url: '/api/me/teams/hakuren-team',
+      headers,
+      payload: { team: { ...exampleTeam(), playerNotes }, revision: null },
+    });
+    assert.equal(response.statusCode, 400, response.body);
+  }
+});

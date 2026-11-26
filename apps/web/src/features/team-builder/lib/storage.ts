@@ -1,3 +1,4 @@
+import { validPlayerNotes } from './player-notes';
 import {
   ALL_SLOTS,
   RARITIES,
@@ -26,6 +27,7 @@ export function decodeTeam(value: unknown): Team | null {
     !record(value.slots)
   )
     return null;
+  if (value.playerNotes !== undefined && !validPlayerNotes(value.playerNotes)) return null;
   if (value.playStyle !== undefined && !optional(value.playStyle, playStyles)) return null;
   if (value.tactics !== undefined) {
     if (

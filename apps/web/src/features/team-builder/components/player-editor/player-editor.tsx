@@ -1,3 +1,5 @@
+import { PlayerNotes } from '../player-notes/player-notes';
+import { playerNote } from '../../lib/player-notes';
 import { PlayerLoadout } from '../player-loadout/player-loadout';
 import { useId } from 'react';
 import type { PlayStyle, PlayerDetail } from '@shared/catalogue';
@@ -26,11 +28,20 @@ interface Props {
   team: Team;
   slot: string;
   onChange: (assignment: Assignment) => void;
+  onNoteChange: (playerId: number, note: string) => void;
   onRemove: () => void;
   onReplace: () => void;
   onClose: () => void;
 }
-export function PlayerEditor({ team, slot, onChange, onRemove, onReplace, onClose }: Props) {
+export function PlayerEditor({
+  team,
+  slot,
+  onChange,
+  onNoteChange,
+  onRemove,
+  onReplace,
+  onClose,
+}: Props) {
   const assignment = team.slots[slot]!;
   const request = useRequest<PlayerDetail>(`/api/players/${assignment.player.id}`);
   const titleId = useId();
@@ -149,6 +160,10 @@ export function PlayerEditor({ team, slot, onChange, onRemove, onReplace, onClos
           </button>
         </div>
       )}
+      <PlayerNotes
+        value={playerNote(team, assignment.player.id)}
+        onChange={(note) => onNoteChange(assignment.player.id, note)}
+      />
     </TeamDialog>
   );
 }

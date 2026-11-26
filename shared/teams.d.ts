@@ -37,6 +37,7 @@ export interface Team {
   slots: Record<string, Assignment>;
   playStyle?: PlayStyle | null;
   tactics?: (number | null)[];
+  playerNotes?: Record<string, string>;
 }
 export interface SavedTeam {
   team: Team;

@@ -1,3 +1,4 @@
+import { setPlayerNote } from '@/features/team-builder/lib/player-notes';
 import { useNotifications } from '@/features/notifications/notification-context';
 import { useAuth } from '@/features/auth/auth-context';
 import { useAccountTeams } from '@/features/team-builder/hooks/use-account-teams';
@@ -229,6 +230,9 @@ function TeamBuilderWorkspace({
             onClose={() => setModal(null)}
             onChange={(assignment) =>
               builder.change((current) => putPlayer(current, modal.slot, assignment))
+            }
+            onNoteChange={(playerId, note) =>
+              builder.change((current) => setPlayerNote(current, playerId, note))
             }
             onRemove={() => {
               if (builder.change((current) => putPlayer(current, modal.slot))) setModal(null);

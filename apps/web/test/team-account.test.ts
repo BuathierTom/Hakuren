@@ -309,3 +309,35 @@ test('the private transport binds every request to the expected account and reje
     (error) => error instanceof TeamApiError && error.code === 'ACCOUNT_CHANGED',
   );
 });
+
+test('player notes stay isolated by team and persist after removing a player and loading a fresh account client', async () => {
+  const f = fixture();
+  const account = new TeamAccount(1, f.api);
+  await account.load();
+  const first = {
+    ...exampleTeam(),
+    playerNotes: { '1': 'Première équipe\nConsignes ⚽', '99': 'Ancien joueur' },
+  };
+  const second = {
+    ...exampleTeam(),
+    id: 'second-notes-team',
+    playerNotes: { '1': 'Deuxième équipe' },
+  };
+  await account.save(first);
+  await account.save(second);
+  const removed = { ...first, slots: {} };
+  await account.save(removed);
+  await account.saveDraft(removed);
+  const fresh = new TeamAccount(1, f.api);
+  await fresh.load();
+  assert.deepEqual(
+    fresh.getSnapshot().items.find((item) => item.team.id === first.id)?.team.playerNotes,
+    first.playerNotes,
+  );
+  assert.deepEqual(
+    fresh.getSnapshot().items.find((item) => item.team.id === second.id)?.team.playerNotes,
+    second.playerNotes,
+  );
+  assert.deepEqual(fresh.getSnapshot().draft?.team.playerNotes, first.playerNotes);
+  assert.deepEqual(fresh.getSnapshot().draft?.team.slots, {});
+});
