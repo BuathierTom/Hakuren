@@ -1,3 +1,4 @@
+import { catalogueTranslations } from './localization.js';
 import { createExtrasRepository } from './extras-repository.js';
 import type { Pool, RowDataPacket } from 'mysql2/promise';
 import { WIKI_MAPPINGS } from './curation.js';
@@ -50,7 +51,7 @@ const PLAYER_FROM = `FROM player_variants v
   LEFT JOIN source_records vs ON vs.id=v.source_record_id
   LEFT JOIN works ow ON ow.id=v.origin_work_id
   LEFT JOIN variant_external_ids ext ON ext.variant_id=v.id AND ext.source_id=(SELECT id FROM data_sources WHERE code='level5-codex')`;
-const PLAYER_FIELDS = `v.id, v.character_id, v.name, v.variant_label, v.portrait_url, v.element, v.position,
+const PLAYER_FIELDS = `v.translations, v.id, v.character_id, v.name, v.variant_label, v.portrait_url, v.element, v.position,
   v.role, v.age_group, v.gender, v.school_year, vs.payload AS identity_payload, CASE WHEN v.style_source_record_id IS NULL OR EXISTS (SELECT 1 FROM source_records st WHERE st.id=v.style_source_record_id AND st.review_status='verified') THEN v.play_style ELSE NULL END AS play_style, ext.external_key AS number,
   ow.id AS origin_id, ow.code AS origin_code, ow.name AS origin_name, ow.kind AS origin_kind`;
 const TECH_FROM = 'FROM techniques t LEFT JOIN source_records ts ON ts.id=t.source_record_id';
@@ -58,7 +59,7 @@ const publishedTechnique = `t.is_published=1 AND t.category IS NOT NULL AND t.ca
 const TECH_ELEMENT = `COALESCE(t.element,CASE WHEN ts.entity_kind='ability'
   AND ts.source_id=(SELECT id FROM data_sources WHERE code='kizuna-game-data')
   AND JSON_EXTRACT(ts.payload,'$.element')=5 THEN 'void' ELSE NULL END)`;
-const TECH_FIELDS = `t.id,t.name,t.category,${TECH_ELEMENT} AS element,t.game_id,t.kind,t.power,t.tension,t.notes`;
+const TECH_FIELDS = `t.translations,t.id,t.name,t.category,${TECH_ELEMENT} AS element,t.game_id,t.kind,t.power,t.tension,t.notes`;
 const pattern = (q: string) => `%${q.replace(/[!%_]/g, '!$&')}%`;
 const work = (row: RowDataPacket, prefix = ''): Work => ({
   id: row[`${prefix}id`],
@@ -68,6 +69,7 @@ const work = (row: RowDataPacket, prefix = ''): Work => ({
 });
 const rarity = (row: RowDataPacket): Rarity => ({ code: row.code, name: row.name });
 const technique = (row: RowDataPacket): TechniqueSummary => ({
+  ...catalogueTranslations(row.translations),
   id: row.id,
   name: row.name,
   category: row.category,
@@ -164,6 +166,7 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
               typeof team === 'string' && !!team.trim() && !NON_TEAMS.has(team),
           );
       return {
+        ...catalogueTranslations(row.translations),
         id: row.id,
         number: row.number ?? null,
         name: row.name,
@@ -193,7 +196,7 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
     const values: Values = [];
     const q = query.q?.trim();
     if (q) {
-      conditions.push(`(v.name LIKE ? ESCAPE '!' OR EXISTS (SELECT 1 FROM character_names n
+      conditions.push(`(v.name LIKE ? ESCAPE '!' OR JSON_UNQUOTE(JSON_EXTRACT(v.translations,'$.fr.name')) LIKE ? ESCAPE '!' OR JSON_UNQUOTE(JSON_EXTRACT(v.translations,'$.en.name')) LIKE ? ESCAPE '!' OR EXISTS (SELECT 1 FROM character_names n
         LEFT JOIN source_records ns ON ns.id=n.source_record_id WHERE n.character_id=v.character_id AND n.name LIKE ? ESCAPE '!' AND ${approved('n', 'ns')}) OR ext.external_key=?
         OR EXISTS (SELECT 1 FROM historical_teams ht LEFT JOIN source_records hs ON hs.id=ht.source_record_id
           WHERE ht.name LIKE ? ESCAPE '!' AND ${approved('ht', 'hs')}
@@ -201,7 +204,7 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
             OR EXISTS (SELECT 1 FROM appearance_teams tm JOIN variant_appearances ta ON ta.id=tm.appearance_id
               LEFT JOIN source_records tms ON tms.id=tm.source_record_id LEFT JOIN source_records tas ON tas.id=ta.source_record_id
               WHERE tm.historical_team_id=ht.id AND ta.variant_id=v.id AND ${approved('tm', 'tms')} AND ${approved('ta', 'tas')}))))`);
-      values.push(pattern(q), pattern(q), q, pattern(q));
+      values.push(pattern(q), pattern(q), pattern(q), pattern(q), q, pattern(q));
     }
     if (query.work) {
       conditions.push(`EXISTS (SELECT 1 FROM variant_appearances a JOIN works w ON w.id=a.work_id
@@ -262,9 +265,9 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
     const q = query.q?.trim();
     if (q) {
       const byGameId = /^-?\d{1,10}$/.test(q);
-      conditions.push(`(t.name LIKE ? ESCAPE '!' OR EXISTS (SELECT 1 FROM technique_names n
+      conditions.push(`(t.name LIKE ? ESCAPE '!' OR JSON_UNQUOTE(JSON_EXTRACT(t.translations,'$.fr.name')) LIKE ? ESCAPE '!' OR JSON_UNQUOTE(JSON_EXTRACT(t.translations,'$.en.name')) LIKE ? ESCAPE '!' OR EXISTS (SELECT 1 FROM technique_names n
         LEFT JOIN source_records ns ON ns.id=n.source_record_id WHERE n.technique_id=t.id AND n.name LIKE ? ESCAPE '!' AND ${approved('n', 'ns')})${byGameId ? ' OR t.game_id=?' : ''})`);
-      values.push(pattern(q), pattern(q));
+      values.push(pattern(q), pattern(q), pattern(q), pattern(q));
       if (byGameId) values.push(q);
     }
     if (query.element) {
@@ -303,6 +306,7 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
       gameId: row.game_id,
       stringId: row.string_id,
       name: row.name,
+      ...catalogueTranslations(row.translations),
       description: row.description,
       slot: row.slot,
       imageUrl: url(row.image_url),
@@ -333,9 +337,9 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
         const q = query.q.trim();
         const byIdentifier = /^[a-z0-9_-]+$/i.test(q);
         conditions.push(
-          `(i.name LIKE ? ESCAPE '!'${byIdentifier ? ' OR i.game_id=? OR i.string_id=?' : ''})`,
+          `(i.name LIKE ? ESCAPE '!' OR JSON_UNQUOTE(JSON_EXTRACT(i.translations,'$.fr.name')) LIKE ? ESCAPE '!' OR JSON_UNQUOTE(JSON_EXTRACT(i.translations,'$.en.name')) LIKE ? ESCAPE '!'${byIdentifier ? ' OR i.game_id=? OR i.string_id=?' : ''})`,
         );
-        values.push(pattern(q));
+        values.push(pattern(q), pattern(q), pattern(q));
         if (byIdentifier) values.push(q, q);
       }
       if (query.slot) {
@@ -464,7 +468,7 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
         rows(
           `SELECT l.id, l.unlock_level, l.source_flags, l.alternate_path, l.basara_only, l.rarity_scope, c.mode_code,c.game_version,
           ls.external_key AS learnset_source_key,ls.payload AS learnset_source_payload,lds.code AS learnset_source,
-          t.id AS technique_id,t.name AS technique_name,t.category,t.tension AS technique_tension,${TECH_ELEMENT} AS element,ts.payload AS technique_element_payload,
+          t.id AS technique_id,t.name AS technique_name,t.translations AS technique_translations,t.category,t.tension AS technique_tension,${TECH_ELEMENT} AS element,ts.payload AS technique_element_payload,
           w.id AS work_id,w.code AS work_code,w.name AS work_name,w.kind AS work_kind
           FROM variant_learnsets l JOIN techniques t ON t.id=l.technique_id JOIN game_contexts c ON c.id=l.context_id JOIN works w ON w.id=c.work_id
           LEFT JOIN source_records ls ON ls.id=l.source_record_id LEFT JOIN source_records ts ON ts.id=t.source_record_id
@@ -517,6 +521,7 @@ export function createCatalogueRepository(pool: Pool): CatalogueRepository {
         return {
           id: l.id,
           technique: {
+            ...catalogueTranslations(l.technique_translations),
             id: l.technique_id,
             name: l.technique_name,
             category: l.category,

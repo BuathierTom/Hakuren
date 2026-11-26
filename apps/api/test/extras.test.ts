@@ -72,3 +72,12 @@ test('passives and historical teams validate their own filters and handle missin
     await missing.close();
   }
 });
+
+test('English passive texts preserve placeholders and leave canonical effect names unchanged', () => {
+  const passive = prepareExtras(extrasResources()).passives[0]!;
+  assert.equal(passive.name, 'ATT +… % pour les alliés');
+  assert.deepEqual(passive.translations, {
+    fr: { name: 'ATT +… % pour les alliés', description: 'ATT +1,2 % pour les alliés' },
+    en: { name: 'ATK +… % for allies', description: 'ATK +1.2 % for allies' },
+  });
+});

@@ -1,3 +1,4 @@
+import { Migration20261126135356_catalogue_translations } from '../src/db/migrations/migration-20261126135356-catalogue-translations.js';
 import { Migration20261126120000_favorites } from '../src/db/migrations/migration-20261126120000-favorites.js';
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
@@ -124,9 +125,16 @@ test(
           await pool.query(
             "INSERT INTO users (id,discord_id,display_name) VALUES (7,'123456789012345678','Existing user')",
           );
-          await pool.query("INSERT INTO player_variants (id,name) VALUES (42,'Existing player')");
           await pool.query(
-            "INSERT INTO techniques (id,slug,name,category) VALUES (51,'existing-shot','Existing technique','shoot')",
+            "INSERT INTO data_sources (id,code,name) VALUES (1,'level5-codex','Existing source')",
+          );
+          await pool.query(`INSERT INTO source_records (id,source_id,entity_kind,external_key,source_version,retrieved_at,payload,review_status)
+            VALUES (1,1,'player','42','fixture',UTC_TIMESTAMP(3),'${JSON.stringify({ gameCharacterId: 'c01000010' })}','verified')`);
+          await pool.query(
+            "INSERT INTO player_variants (id,name,source_record_id) VALUES (42,'Existing player',1)",
+          );
+          await pool.query(
+            "INSERT INTO techniques (id,slug,name,category,game_id) VALUES (51,'existing-shot','Existing technique','shoot','221679467')",
           );
           await pool.query(
             "INSERT INTO formations (id,code,name) VALUES (77,'4-3-3-triangle','Existing formation')",
@@ -171,6 +179,15 @@ test(
               assert.equal((await database.teams.draft(7))?.revision, 4);
               assert.equal((await database.catalogue.technique(51))?.name, 'Existing technique');
               assert.equal(
+                (await database.catalogue.technique(51))?.translations?.en?.name,
+                "Heaven's Time",
+              );
+              assert.equal(
+                (await database.catalogue.players({ q: 'Mark Evans' })).items[0]?.translations?.en
+                  ?.name,
+                'Mark Evans',
+              );
+              assert.equal(
                 (await database.formations.list()).find(
                   (formation) => formation.code === team.formation,
                 )?.id,
@@ -192,12 +209,18 @@ test(
         let baseline: string;
         let baselineCount: number;
         let favoritesMigration: string;
+        let translationsMigration: string;
         try {
           await migrate(initial);
           const executed = await initial.migrator.getExecuted();
           baseline = executed[0]!.name;
           baselineCount = executed.length;
-          favoritesMigration = executed[1]!.name;
+          favoritesMigration = executed.find((migration) =>
+            migration.name.endsWith('-favorites'),
+          )!.name;
+          translationsMigration = executed.find((migration) =>
+            migration.name.endsWith('-catalogue-translations'),
+          )!.name;
         } finally {
           await initial.close(true);
         }
@@ -208,6 +231,7 @@ test(
         const migrations = [
           { name: baseline, class: Migration20261124104546_initial },
           { name: favoritesMigration, class: Migration20261126120000_favorites },
+          { name: translationsMigration, class: Migration20261126135356_catalogue_translations },
           { name: 'migration-99999999999990-fixture', class: AddFixtureFlag },
         ];
         const orm = await MikroORM.init({

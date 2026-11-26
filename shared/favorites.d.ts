@@ -1,3 +1,4 @@
+import type { LocalizedCatalogueEntry } from './catalogue.js';
 export type FavoriteKind = 'players' | 'techniques' | 'equipment' | 'tactics' | 'teams';
 export interface FavoritePlaylist {
   id: string;
@@ -13,7 +14,7 @@ export interface FavoritesState {
   playlists: FavoritePlaylist[];
   entries: FavoriteRef[];
 }
-export interface FavoriteEntry {
+export interface FavoriteEntry extends LocalizedCatalogueEntry {
   kind: FavoriteKind;
   targetId: number;
   name: string;

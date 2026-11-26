@@ -1,9 +1,11 @@
+import type { CatalogueTranslations } from '../../../../../shared/catalogue.js';
 import { EntitySchema, type Ref } from '@mikro-orm/core';
 import { Character } from './character.js';
 import { SourceRecord } from './source-record.js';
 import { Work } from './work.js';
 
 export class PlayerVariant {
+  translations?: CatalogueTranslations | null;
   id!: number;
   character?: Ref<Character> | null;
   name!: string;
@@ -72,6 +74,7 @@ export const PlayerVariantSchema = new EntitySchema({
     { name: 'idx_variant_profile', properties: ['gender', 'playStyle', 'id'] },
   ],
   properties: {
+    translations: { type: 'json', nullable: true, defaultRaw: `NULL` },
     id: { primary: true, type: 'integer' },
     character: {
       kind: 'm:1',

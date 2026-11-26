@@ -59,6 +59,11 @@ export function extrasResources() {
       { id: 6, string_id: 'swap_test', name: 'Emplacement', value: 0, tiers: [] },
     ],
   });
+  add('game-en', {
+    passives: [
+      { id: -1, string_id: 'ps_test_00', name: 'ATK [CPASSIVE01]+<VALUE> %[C] \\nfor allies' },
+    ],
+  });
   add('wiki-teams-1', {
     query: {
       redirects: [{ from: 'Test Team', to: 'Équipe test' }],

@@ -463,3 +463,18 @@ test('invalid player note IDs, malformed maps and excessive notes are rejected',
     assert.equal(response.statusCode, 400, response.body);
   }
 });
+
+test('saved teams accept bilingual player names without changing the account payload', async (t) => {
+  const { app, headers } = await setup();
+  t.after(() => app.close());
+  const team = exampleTeam();
+  team.slots['field-1']!.player.names = { fr: 'Nom français', en: 'English name' };
+  const saved = await app.inject({
+    method: 'PUT',
+    url: '/api/me/teams/' + team.id,
+    headers,
+    payload: { team, revision: null },
+  });
+  assert.equal(saved.statusCode, 201, saved.body);
+  assert.deepEqual(saved.json().team, team);
+});

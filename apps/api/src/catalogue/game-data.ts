@@ -2,6 +2,7 @@ import type { CataloguePlan, RecordSpec, TechniqueSpec } from './prepare.js';
 import { numberOrNull, object, safeUrl } from './prepare.js';
 import { digest, GAME_SNAPSHOT, type Resource } from './sources.js';
 import type {
+  CatalogueTranslations,
   EquipmentSlot,
   ItemSection,
   PlayStyle,
@@ -10,6 +11,7 @@ import type {
 
 type Raw = Record<string, unknown>;
 export interface ItemSpec {
+  translations?: CatalogueTranslations;
   section: ItemSection;
   gameId: string;
   stringId: string;
@@ -108,6 +110,26 @@ export function enrichGameData(plan: CataloguePlan, resources: Map<string, Resou
   });
   if (new Set(locales.map((locale) => locale.bundle.game_version)).size !== 1)
     throw new Error('Versions des catalogues incohérentes.');
+  const translationTables = new Map<string, Map<string, Raw>>();
+  function translations(table: string, row: Raw): CatalogueTranslations {
+    return Object.fromEntries(
+      locales
+        .filter((value) => value.locale === 'fr' || value.locale === 'en')
+        .map((value) => {
+          const key = `${value.locale}/${table}`;
+          if (!translationTables.has(key))
+            translationTables.set(
+              key,
+              new Map(rows(value.bundle, table).map((entry) => [gameId(entry.id), entry])),
+            );
+          const entry = translationTables.get(key)!.get(gameId(row.id));
+          return [
+            value.locale,
+            { name: gameText(entry?.name), description: gameText(entry?.description) },
+          ];
+        }),
+    );
+  }
   const fr = locales[0]!;
   const en = locales[1]!;
   plan.gameData = true;
@@ -206,6 +228,7 @@ export function enrichGameData(plan: CataloguePlan, resources: Map<string, Resou
     const technique: TechniqueSpec = {
       key: previous?.key ?? `game:${id}`,
       name,
+      translations: translations(table, row),
       wikiName: previous?.wikiName ?? null,
       category,
       element,
@@ -249,6 +272,19 @@ export function enrichGameData(plan: CataloguePlan, resources: Map<string, Resou
   plan.learnsets = plan.learnsets.filter(
     (move) => move.work !== 'VR' && retained.has(move.technique),
   );
+  const characterRows = new Map<string, Raw[]>();
+  for (const row of rows(fr.bundle, 'characters')) {
+    if (typeof row.character_id !== 'string') continue;
+    characterRows.set(row.character_id, [...(characterRows.get(row.character_id) ?? []), row]);
+  }
+  for (const variant of plan.variants) {
+    const candidates = characterRows.get(variant.official.gameCharacterId ?? '') ?? [];
+    const unique = new Map(
+      candidates.map((row) => [JSON.stringify(translations('characters', row)), row]),
+    );
+    if (unique.size === 1)
+      variant.translations = translations('characters', [...unique.values()][0]!);
+  }
   const official = new Map<string, typeof plan.variants>();
   for (const variant of plan.variants)
     if (variant.official.gameCharacterId)
@@ -412,6 +448,7 @@ export function enrichGameData(plan: CataloguePlan, resources: Map<string, Resou
         gameId: gameId(row.id),
         stringId,
         name,
+        translations: translations(table, row),
         description: gameText(row.description),
         slot: slot ?? null,
         image: candidates.length === 1 ? safeUrl(candidates[0]!.image) : null,

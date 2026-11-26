@@ -1,3 +1,4 @@
+import { catalogueTranslations } from './localization.js';
 import { createTeamRepository } from './team-repository.js';
 import type { Pool, RowDataPacket } from 'mysql2/promise';
 import type {
@@ -14,6 +15,7 @@ const approved = (a: string, s: string) =>
   `(${a}.source_record_id IS NULL OR ${s}.review_status='verified')`;
 const escape = (value: string) => `%${value.replace(/[!%_]/g, '!$&')}%`;
 const passive = (row: RowDataPacket): Passive => ({
+  ...catalogueTranslations(row.translations),
   id: row.id,
   gameId: row.game_id,
   stringId: row.string_id,
@@ -51,8 +53,16 @@ export function createExtrasRepository(
       const where = ['is_published=1'];
       const values: Values = [];
       if (query.q?.trim()) {
-        where.push(`(description LIKE ? ESCAPE '!' OR game_id=? OR string_id=?)`);
-        values.push(escape(query.q.trim()), query.q.trim(), query.q.trim());
+        where.push(
+          `(description LIKE ? ESCAPE '!' OR JSON_UNQUOTE(JSON_EXTRACT(translations,'$.fr.description')) LIKE ? ESCAPE '!' OR JSON_UNQUOTE(JSON_EXTRACT(translations,'$.en.description')) LIKE ? ESCAPE '!' OR game_id=? OR string_id=?)`,
+        );
+        values.push(
+          escape(query.q.trim()),
+          escape(query.q.trim()),
+          escape(query.q.trim()),
+          query.q.trim(),
+          query.q.trim(),
+        );
       }
       if (query.source) {
         where.push('source=?');

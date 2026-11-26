@@ -1,3 +1,10 @@
+export type CatalogueLanguage = 'fr' | 'en';
+export type CatalogueTranslations = Partial<
+  Record<CatalogueLanguage, { name: string | null; description: string | null }>
+>;
+export interface LocalizedCatalogueEntry {
+  translations?: CatalogueTranslations;
+}
 export type Element = 'wind' | 'forest' | 'fire' | 'mountain' | 'void';
 export type Gender = 'male' | 'female' | 'neutral';
 export type PlayStyle = 'breach' | 'tension' | 'counter' | 'bond' | 'rough_play' | 'justice';
@@ -71,7 +78,7 @@ export interface TechniqueQuery {
   page?: number;
   limit?: number;
 }
-export interface PlayerSummary {
+export interface PlayerSummary extends LocalizedCatalogueEntry {
   gender: Gender | null;
   playStyle: PlayStyle | null;
   id: number;
@@ -125,7 +132,7 @@ export interface PlayerDetail extends PlayerSummary {
   variants: PlayerSummary[];
   sourceUrl: string | null;
 }
-export interface TechniqueSummary {
+export interface TechniqueSummary extends LocalizedCatalogueEntry {
   id: number;
   name: string;
   category: Category | null;
@@ -166,7 +173,7 @@ export interface ItemQuery {
   page?: number;
   limit?: number;
 }
-export interface CatalogueItem {
+export interface CatalogueItem extends LocalizedCatalogueEntry {
   id: number;
   section: ItemSection;
   gameId: string;
@@ -188,7 +195,7 @@ export interface PassiveQuery {
   page?: number;
   limit?: number;
 }
-export interface Passive {
+export interface Passive extends LocalizedCatalogueEntry {
   id: number;
   gameId: string;
   stringId: string;
@@ -209,7 +216,7 @@ export interface HistoricalTeamQuery {
   page?: number;
   limit?: number;
 }
-export interface HistoricalTeam {
+export interface HistoricalTeam extends LocalizedCatalogueEntry {
   id: number;
   name: string;
   logoUrl: string | null;

@@ -7,10 +7,29 @@ export interface CatalogueExtras {
   passives: Omit<Passive, 'id'>[];
   badges: ReturnType<typeof teamBadgeImages>;
 }
+function passiveTemplate(value: unknown): string {
+  return String(value ?? '')
+    .replace(/\[C[^\]]*\]/g, '')
+    .replace(/<VALUE>/gi, '…')
+    .replace(/<[^>]*>/g, '')
+    .replace(/\\+n/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 const styles = new Set(['breach', 'tension', 'counter', 'bond', 'rough_play', 'justice']);
 export function prepareExtras(resources: Map<string, Resource>): CatalogueExtras {
   const resource = resources.get('game-fr');
   const bundle = resource ? JSON.parse(resource.body.replace(/^\uFEFF/, '')) : {};
+  const englishResource = resources.get('game-en');
+  const englishBundle = englishResource
+    ? JSON.parse(englishResource.body.replace(/^\uFEFF/, ''))
+    : {};
+  const english = new Map<string, Record<string, unknown>>(
+    (englishBundle.passives ?? []).map((row: Record<string, unknown>) => [
+      String(row.string_id),
+      row,
+    ]),
+  );
   const passives: Omit<Passive, 'id'>[] = [];
   const seen = new Set<string>();
   const gameIds = new Set<number>();
@@ -31,13 +50,7 @@ export function prepareExtras(resources: Map<string, Resource>): CatalogueExtras
     seen.add(raw.string_id);
     gameIds.add(raw.id);
     const value = Math.round(raw.value * 10000) / 10000;
-    const template = String(raw.name ?? '')
-      .replace(/\[C[^\]]*\]/g, '')
-      .replace(/<VALUE>/gi, '…')
-      .replace(/<[^>]*>/g, '')
-      .replace(/\\+n/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
+    const template = passiveTemplate(raw.name);
     if (!template || /必殺|test_|^\?+$/i.test(template)) continue;
     const source: PassiveSource = /^(?:b?mps)/i.test(raw.string_id)
       ? 'manager'
@@ -48,7 +61,22 @@ export function prepareExtras(resources: Map<string, Resource>): CatalogueExtras
           : 'player';
     const tiers = Array.isArray(raw.tiers) ? raw.tiers : [];
     const tier = tiers[0];
+    const englishTemplate = passiveTemplate(english.get(raw.string_id)?.name) || null;
     passives.push({
+      ...(englishTemplate
+        ? {
+            translations: {
+              fr: {
+                name: template,
+                description: template.replaceAll('…', String(value).replace('.', ',')),
+              },
+              en: {
+                name: englishTemplate,
+                description: englishTemplate.replaceAll('…', String(value)),
+              },
+            },
+          }
+        : {}),
       gameId: String(raw.id),
       stringId: raw.string_id,
       name: template,
@@ -70,8 +98,8 @@ export async function importExtras(db: PoolConnection, extras: CatalogueExtras) 
     await db.execute('UPDATE catalogue_passives SET is_published=0');
     for (const passive of extras.passives) {
       await db.execute(
-        `INSERT INTO catalogue_passives (game_id,string_id,name,description,source,play_style,value,unit,icon,family,tier,source_url,is_published)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,1) ON DUPLICATE KEY UPDATE name=VALUES(name),description=VALUES(description),source=VALUES(source),play_style=VALUES(play_style),value=VALUES(value),unit=VALUES(unit),icon=VALUES(icon),family=VALUES(family),tier=VALUES(tier),source_url=VALUES(source_url),is_published=1`,
+        `INSERT INTO catalogue_passives (game_id,string_id,name,description,source,play_style,value,unit,icon,family,tier,source_url,translations,is_published)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,1) ON DUPLICATE KEY UPDATE translations=VALUES(translations),name=VALUES(name),description=VALUES(description),source=VALUES(source),play_style=VALUES(play_style),value=VALUES(value),unit=VALUES(unit),icon=VALUES(icon),family=VALUES(family),tier=VALUES(tier),source_url=VALUES(source_url),is_published=1`,
         [
           passive.gameId,
           passive.stringId,
@@ -85,6 +113,7 @@ export async function importExtras(db: PoolConnection, extras: CatalogueExtras) 
           passive.family,
           passive.tier,
           passive.sourceUrl,
+          passive.translations ? JSON.stringify(passive.translations) : null,
         ],
       );
     }

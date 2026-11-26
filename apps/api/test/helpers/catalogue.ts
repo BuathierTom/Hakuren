@@ -139,7 +139,7 @@ export async function fixtureGamePlan(unknownLegacy = false, moveElement = 3, fo
         {
           id: 221679467,
           name: locale === 'fr' ? 'Tir français' : 'Test Shot',
-          description: 'Une frappe\\npuissante.',
+          description: locale === 'fr' ? 'Une frappe\\npuissante.' : 'A powerful\\nshot.',
           category: 1,
           element: moveElement,
           power: 85,
@@ -168,8 +168,18 @@ export async function fixtureGamePlan(unknownLegacy = false, moveElement = 3, fo
         },
       ],
       tactics: [
-        { id: 99, string_id: 'wht_test', name: 'Défense totale', tp_cost: 2.5 },
-        { id: 100, string_id: 'wht_test_st01', name: 'Défense totale', tp_cost: 2.5 },
+        {
+          id: 99,
+          string_id: 'wht_test',
+          name: locale === 'fr' ? 'Défense totale' : 'Total Defence',
+          tp_cost: 2.5,
+        },
+        {
+          id: 100,
+          string_id: 'wht_test_st01',
+          name: locale === 'fr' ? 'Défense totale' : 'Total Defence',
+          tp_cost: 2.5,
+        },
         { id: 101, string_id: 'test_cut', name: '必殺タクティクス名1', tp_cost: 99999 },
       ],
       characters: [
@@ -177,7 +187,8 @@ export async function fixtureGamePlan(unknownLegacy = false, moveElement = 3, fo
           id: 42,
           character_id: 'c01000010',
           name: 'Player 2',
-          description: 'Une description\\nfrançaise.',
+          description:
+            locale === 'fr' ? 'Une description\\nfrançaise.' : 'An English\\ndescription.',
           stats_lv50: {
             kick: 100,
             control: 110,

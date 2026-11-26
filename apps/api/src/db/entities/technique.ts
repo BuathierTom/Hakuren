@@ -1,7 +1,9 @@
+import type { CatalogueTranslations } from '../../../../../shared/catalogue.js';
 import { EntitySchema, type Opt, type Ref } from '@mikro-orm/core';
 import { SourceRecord } from './source-record.js';
 
 export class Technique {
+  translations?: CatalogueTranslations | null;
   id!: number;
   gameId?: string | null = null;
   stringId?: string | null = null;
@@ -65,6 +67,7 @@ export const TechniqueSchema = new EntitySchema({
   tableName: 'techniques',
   indexes: [{ name: 'idx_technique_filters', properties: ['category', 'element', 'id'] }],
   properties: {
+    translations: { type: 'json', nullable: true, defaultRaw: `NULL` },
     id: { primary: true, type: 'integer' },
     gameId: {
       type: 'string',

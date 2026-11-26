@@ -1,4 +1,5 @@
 import type {
+  CatalogueLanguage,
   PlayerStatProfile,
   Position,
   Element,
@@ -8,6 +9,7 @@ import type {
 } from './catalogue.js';
 export type TeamRarity = 'common' | 'rising' | 'advanced' | 'top' | 'legendary' | 'hero' | 'basara';
 export interface TeamPlayer {
+  names?: Partial<Record<CatalogueLanguage, string>>;
   id: number;
   name: string;
   portraitUrl: string | null;

@@ -3,3 +3,5 @@ node_modules
 work
 audit
 package-lock.json
+
+apps/api/database/catalogue-texts.json

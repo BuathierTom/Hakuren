@@ -1,7 +1,9 @@
+import type { CatalogueTranslations } from '../../../../../shared/catalogue.js';
 import { EntitySchema, type Opt, type Ref } from '@mikro-orm/core';
 import { SourceRecord } from './source-record.js';
 
 export class CatalogueItem {
+  translations?: CatalogueTranslations | null;
   id!: number;
   section!: TCatalogueItemsSection;
   gameId!: string;
@@ -44,6 +46,7 @@ export const CatalogueItemSchema = new EntitySchema({
   ],
   uniques: [{ name: 'uq_catalogue_item', properties: ['section', 'stringId'] }],
   properties: {
+    translations: { type: 'json', nullable: true, defaultRaw: `NULL` },
     id: { primary: true, type: 'integer' },
     section: { enum: true, items: () => CatalogueItemsSection },
     gameId: { type: 'string', length: 24, collation: 'ascii_bin' },

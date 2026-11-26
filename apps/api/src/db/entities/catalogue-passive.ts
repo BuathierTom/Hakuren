@@ -1,6 +1,8 @@
+import type { CatalogueTranslations } from '../../../../../shared/catalogue.js';
 import { EntitySchema, type Opt } from '@mikro-orm/core';
 
 export class CataloguePassive {
+  translations?: CatalogueTranslations | null;
   id!: number;
   gameId!: string;
   stringId!: string;
@@ -57,6 +59,7 @@ export const CataloguePassiveSchema = new EntitySchema({
     },
   ],
   properties: {
+    translations: { type: 'json', nullable: true, defaultRaw: `NULL` },
     id: { primary: true, type: 'integer' },
     gameId: {
       type: 'string',

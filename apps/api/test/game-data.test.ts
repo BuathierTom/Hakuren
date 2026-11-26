@@ -78,3 +78,21 @@ test('game profiles preserve French descriptions and independent stats for every
     'Une description\nfrançaise.',
   );
 });
+
+test('catalogue translations keep stable game identities and localized names and descriptions', async () => {
+  const plan = await fixtureGamePlan();
+  const shot = plan.techniques.find((row) => row.gameId === '221679467')!;
+  assert.deepEqual(shot.translations, {
+    fr: { name: 'Tir français', description: 'Une frappe\npuissante.' },
+    en: { name: 'Test Shot', description: 'A powerful\nshot.' },
+  });
+  assert.equal(plan.variants[2]?.translations?.en?.description, 'An English\ndescription.');
+  assert.equal(
+    plan.items?.find((row) => row.section === 'equipment')?.translations?.en?.name,
+    'Test Boots',
+  );
+  assert.equal(
+    plan.items?.find((row) => row.section === 'tactics')?.translations?.en?.name,
+    'Total Defence',
+  );
+});

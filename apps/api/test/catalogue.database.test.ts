@@ -1,3 +1,5 @@
+import { createOrm } from '../src/db/orm.js';
+import { migrate } from '../src/db/migrate.js';
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
@@ -40,6 +42,12 @@ test(
         .map((s) => s.trim())
         .filter(Boolean))
         await pool.query(statement);
+      const orm = await createOrm(url.toString());
+      try {
+        await migrate(orm);
+      } finally {
+        await orm.close(true);
+      }
       const db = pool;
       const plan = fixturePlan();
       async function rows(sql: string, values: (number | string)[] = []) {
@@ -358,7 +366,21 @@ test(
             210,
           );
           assert(playerProfiles?.learnsets.some((move) => move.technique.tension === 80));
+          assert.equal(
+            playerProfiles?.learnsets.find((move) => move.technique.tension === 80)?.technique
+              .translations?.en?.name,
+            'Test Shot',
+          );
           await importCatalogue(db, await fixtureGamePlan(false, 5));
+          assert.equal(
+            (await read.items('equipment', { q: 'Test Boots' })).items[0]?.translations?.en?.name,
+            'Test Boots',
+          );
+          assert.equal((await read.items('tactics', { q: 'Total Defence' })).total, 1);
+          assert.equal(
+            (await read.techniques({ q: 'Test Shot' })).items[0]?.translations?.en?.description,
+            'A powerful\nshot.',
+          );
           const neutral = await read.techniques({ element: 'void' });
           assert.equal(neutral.total, 1);
           assert.equal(neutral.items[0]?.id, result.items[0]?.id);

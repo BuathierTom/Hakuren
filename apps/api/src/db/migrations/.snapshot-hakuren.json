@@ -546,6 +546,23 @@
           "collation": null,
           "enumItems": [],
           "mappedType": "decimal"
+        },
+        "translations": {
+          "name": "translations",
+          "type": "json",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": "NULL",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "json"
         }
       },
       "indexes": [
@@ -803,6 +820,23 @@
           "collation": null,
           "enumItems": [],
           "mappedType": "tinyint"
+        },
+        "translations": {
+          "name": "translations",
+          "type": "json",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": "NULL",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "json"
         },
         "unit": {
           "name": "unit",
@@ -2565,6 +2599,23 @@
           "collation": null,
           "enumItems": [],
           "mappedType": "integer"
+        },
+        "translations": {
+          "name": "translations",
+          "type": "json",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": "NULL",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "json"
         },
         "variant_label": {
           "name": "variant_label",
@@ -4542,6 +4593,23 @@
           "collation": null,
           "enumItems": [],
           "mappedType": "smallint"
+        },
+        "translations": {
+          "name": "translations",
+          "type": "json",
+          "unsigned": false,
+          "autoincrement": false,
+          "primary": false,
+          "nullable": true,
+          "unique": false,
+          "length": null,
+          "precision": null,
+          "scale": null,
+          "default": "NULL",
+          "comment": null,
+          "collation": null,
+          "enumItems": [],
+          "mappedType": "json"
         }
       },
       "indexes": [

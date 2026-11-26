@@ -35,33 +35,53 @@ export const teamSchema = object(
       patternProperties: {
         '^(field-(?:[1-9]|10|11)|bench-[1-5]|coach|manager-[1-3])$': object(
           {
-            player: object({
-              id,
-              name: string(200),
-              portraitUrl: nullable({ type: 'string', maxLength: 2000, pattern: '^https?://' }),
-              position: nullable(choice(['GK', 'DF', 'MF', 'FW'])),
-              element: nullable(choice(['wind', 'forest', 'fire', 'mountain', 'void'])),
-              gender: nullable(choice(['male', 'female', 'neutral'])),
-              playStyle: nullable(choice(styles)),
-              role: nullable(string(80)),
-              rarities: { type: 'array', maxItems: 7, uniqueItems: true, items: choice(rarities) },
-              profiles: {
-                type: 'array',
-                maxItems: 6,
-                items: object({
-                  rarity: choice(['common', 'hero', 'basara']),
-                  level: { type: 'integer', enum: [50, 99] },
-                  values: object(
-                    Object.fromEntries(
-                      stats.map((key) => [
-                        key,
-                        nullable({ type: 'number', minimum: 0, maximum: 10000 }),
-                      ]),
+            player: object(
+              {
+                names: object({ fr: string(200), en: string(200) }, []),
+                id,
+                name: string(200),
+                portraitUrl: nullable({ type: 'string', maxLength: 2000, pattern: '^https?://' }),
+                position: nullable(choice(['GK', 'DF', 'MF', 'FW'])),
+                element: nullable(choice(['wind', 'forest', 'fire', 'mountain', 'void'])),
+                gender: nullable(choice(['male', 'female', 'neutral'])),
+                playStyle: nullable(choice(styles)),
+                role: nullable(string(80)),
+                rarities: {
+                  type: 'array',
+                  maxItems: 7,
+                  uniqueItems: true,
+                  items: choice(rarities),
+                },
+                profiles: {
+                  type: 'array',
+                  maxItems: 6,
+                  items: object({
+                    rarity: choice(['common', 'hero', 'basara']),
+                    level: { type: 'integer', enum: [50, 99] },
+                    values: object(
+                      Object.fromEntries(
+                        stats.map((key) => [
+                          key,
+                          nullable({ type: 'number', minimum: 0, maximum: 10000 }),
+                        ]),
+                      ),
                     ),
-                  ),
-                }),
+                  }),
+                },
               },
-            }),
+              [
+                'id',
+                'name',
+                'portraitUrl',
+                'position',
+                'element',
+                'gender',
+                'playStyle',
+                'role',
+                'rarities',
+                'profiles',
+              ],
+            ),
             rarity: choice(rarities),
             playStyle: choice(styles),
             equipment: object(

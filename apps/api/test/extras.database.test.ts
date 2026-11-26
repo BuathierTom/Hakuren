@@ -1,3 +1,5 @@
+import { createOrm } from '../src/db/orm.js';
+import { migrate } from '../src/db/migrate.js';
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
@@ -34,6 +36,12 @@ test(
         .map((s) => s.trim())
         .filter(Boolean))
         await pool.query(statement);
+      const orm = await createOrm(url.toString());
+      try {
+        await migrate(orm);
+      } finally {
+        await orm.close(true);
+      }
       const plan = await fixtureGamePlan();
       plan.extras = prepareExtras(extrasResources());
       const record = {
@@ -55,6 +63,8 @@ test(
       assert.equal(first.total, 2);
       assert.equal(first.pages, 2);
       assert.equal(first.items[0]?.value, 1.2);
+      assert.equal((await repo.passives!({ q: 'for allies' })).total, 1);
+      assert.equal(first.items[0]?.translations?.en?.description, 'ATK +1.2 % for allies');
       assert.equal((await repo.passives!({ q: '%' })).total, 4);
       assert.equal((await repo.passives!({ q: "' OR 1=1" })).total, 0);
       assert.equal((await repo.loadouts!()).equipment.length, 1);

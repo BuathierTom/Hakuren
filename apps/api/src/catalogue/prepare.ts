@@ -1,4 +1,8 @@
-import type { PlayStyle, PlayerStatProfile } from '../../../../shared/catalogue.js';
+import type {
+  CatalogueTranslations,
+  PlayStyle,
+  PlayerStatProfile,
+} from '../../../../shared/catalogue.js';
 import { FAMILIES, HISTORICAL_MEMBERSHIPS, WIKI_MAPPINGS } from './curation.js';
 import { parseOfficial, WORKS, type OfficialPlayer } from './official.js';
 import { digest, SNAPSHOT, type Resource } from './sources.js';
@@ -22,6 +26,7 @@ export interface RecordSpec {
   note: string | null;
 }
 export interface VariantSpec {
+  translations?: CatalogueTranslations;
   statProfiles?: (PlayerStatProfile & { record: RecordSpec })[];
   playStyle?: { code: PlayStyle; record: RecordSpec };
   externalId: string;
@@ -33,6 +38,7 @@ export interface VariantSpec {
   statsRecord: RecordSpec | null;
 }
 export interface TechniqueSpec {
+  translations?: CatalogueTranslations;
   key: string;
   name: string;
   wikiName: string | null;
