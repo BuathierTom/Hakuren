@@ -1,3 +1,5 @@
+import { registerFavoriteRoutes } from './favorites/routes.js';
+import type { FavoriteRepository } from './favorites/repository.js';
 import { registerTeamRoutes } from './teams/routes.js';
 import type { TeamRepository } from './teams/repository.js';
 import cookie from '@fastify/cookie';
@@ -18,6 +20,7 @@ export interface AppOptions {
   logger?: boolean;
   auth?: AuthOptions;
   teams?: TeamRepository;
+  favorites?: FavoriteRepository;
 }
 export function buildApp({
   database,
@@ -25,6 +28,7 @@ export function buildApp({
   formations,
   auth,
   teams,
+  favorites,
   logger = false,
 }: AppOptions = {}) {
   const app = Fastify({
@@ -86,6 +90,7 @@ export function buildApp({
   const authentication = auth ?? { config: getAuthConfig({}) };
   registerAuthRoutes(app, authentication);
   registerTeamRoutes(app, authentication, teams);
+  registerFavoriteRoutes(app, authentication, favorites);
   registerCatalogueRoutes(app, catalogue);
   registerFormationRoutes(app, formations);
   app.addHook('onClose', async () => {

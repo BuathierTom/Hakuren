@@ -1,3 +1,4 @@
+import { Migration20261126120000_favorites } from '../src/db/migrations/migration-20261126120000-favorites.js';
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
@@ -190,11 +191,13 @@ test(
         const initial = await createOrm(url);
         let baseline: string;
         let baselineCount: number;
+        let favoritesMigration: string;
         try {
           await migrate(initial);
           const executed = await initial.migrator.getExecuted();
           baseline = executed[0]!.name;
           baselineCount = executed.length;
+          favoritesMigration = executed[1]!.name;
         } finally {
           await initial.close(true);
         }
@@ -204,6 +207,7 @@ test(
         const options = ormOptions(url);
         const migrations = [
           { name: baseline, class: Migration20261124104546_initial },
+          { name: favoritesMigration, class: Migration20261126120000_favorites },
           { name: 'migration-99999999999990-fixture', class: AddFixtureFlag },
         ];
         const orm = await MikroORM.init({

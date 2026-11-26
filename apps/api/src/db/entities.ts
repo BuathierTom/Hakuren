@@ -1,3 +1,5 @@
+import { FavoritePlaylistSchema } from './entities/favorite-playlist.js';
+import { FavoriteEntrySchema } from './entities/favorite-entry.js';
 import { AppearanceTeamSchema } from './entities/appearance-team.js';
 import { AuthSessionSchema } from './entities/auth-session.js';
 import { AuthStateSchema } from './entities/auth-state.js';
@@ -37,6 +39,8 @@ import { VariantSourceLinkSchema } from './entities/variant-source-link.js';
 import { WorkSchema } from './entities/work.js';
 
 export const entities = [
+  FavoritePlaylistSchema,
+  FavoriteEntrySchema,
   AppearanceTeamSchema,
   AuthSessionSchema,
   AuthStateSchema,

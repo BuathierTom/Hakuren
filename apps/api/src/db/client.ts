@@ -1,3 +1,5 @@
+import { createFavoriteRepository, type FavoriteRepository } from '../favorites/repository.js';
+import { favoriteCatalogue } from '../favorites/catalogue.js';
 import { createTeamRepository, type TeamRepository } from '../teams/repository.js';
 import { createAuthRepository, type AuthRepository } from '../auth/repository.js';
 import { createPool as createMysqlPool, type Pool } from 'mysql2/promise';
@@ -33,12 +35,14 @@ export async function createDatabase(connectionString: string): Promise<
     formations: FormationRepository;
     auth: AuthRepository;
     teams: TeamRepository;
+    favorites: FavoriteRepository;
   }
 > {
   const orm = await createOrm(connectionString);
   const pool = (await orm.em.getConnection().getNativeClient()).promise();
   return {
     auth: createAuthRepository(orm.em),
+    favorites: createFavoriteRepository(orm.em, favoriteCatalogue(pool)),
     teams: createTeamRepository(orm.em),
     catalogue: createCatalogueRepository(pool),
     formations: createFormationRepository(orm.em),

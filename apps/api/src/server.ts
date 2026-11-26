@@ -10,6 +10,7 @@ const app = buildApp({
   catalogue: database?.catalogue,
   formations: database?.formations,
   teams: database?.teams,
+  favorites: database?.favorites,
   auth: { config: config.auth, repository: database?.auth },
   logger: true,
 });
