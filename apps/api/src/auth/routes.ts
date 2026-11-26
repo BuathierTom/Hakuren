@@ -1,3 +1,4 @@
+import { accountUser } from './account.js';
 import type { FastifyInstance } from 'fastify';
 import type { AuthConfig } from './config.js';
 import { authCallback } from './config.js';
@@ -134,6 +135,38 @@ export function registerAuthRoutes(
       } catch {
         request.log.warn({ code: 'DISCORD_LOGIN_FAILED' }, 'Discord sign-in failed');
         return reply.redirect(failure(destination, 'failed'));
+      }
+    },
+  );
+  app.delete<{ Body: { confirm: boolean } }>(
+    '/api/me/account',
+    {
+      bodyLimit: 1024,
+      schema: {
+        querystring: { type: 'object', properties: {}, additionalProperties: false },
+        body: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['confirm'],
+          properties: { confirm: { const: true, type: 'boolean' } },
+        },
+      },
+    },
+    async (request, reply) => {
+      try {
+        const user = await accountUser(request, reply, { config, repository });
+        if (!user) return;
+        await repository!.deleteAccount(user.id);
+        reply.clearCookie(sessionCookie, cookie);
+        reply.clearCookie(browserCookie, cookie);
+        return reply.code(204).send();
+      } catch {
+        return reply
+          .code(503)
+          .send({
+            error: 'ACCOUNT_UNAVAILABLE',
+            message: 'Impossible de supprimer le compte pour le moment.',
+          });
       }
     },
   );

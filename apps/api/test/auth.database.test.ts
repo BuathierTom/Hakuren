@@ -68,7 +68,10 @@ test(
       assert.equal(await store.consumeState(hash(state), hash(binding)), null);
       const firstToken = token();
       const first = await store.signIn(discordUser, hash(firstToken));
-      assert.equal((await store.session(hash(firstToken)))?.id, first.id);
+      const firstProfile = await store.session(hash(firstToken));
+      assert.equal(firstProfile?.id, first.id);
+      assert(firstProfile?.createdAt);
+      assert(Number.isFinite(Date.parse(firstProfile.createdAt)));
       const nextToken = token();
       const next = await store.signIn(
         { ...discordUser, displayName: 'Updated tester' },
@@ -77,6 +80,7 @@ test(
       );
       assert.equal(next.id, first.id);
       assert.equal(next.displayName, 'Updated tester');
+      assert.equal((await store.session(hash(nextToken)))?.createdAt, firstProfile.createdAt);
       assert.equal(await store.session(hash(firstToken)), null);
       const [rows] = await pool.query<RowDataPacket[]>(
         'SELECT HEX(token_hash) AS hash,LENGTH(token_hash) AS length FROM auth_sessions',

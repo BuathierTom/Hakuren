@@ -36,6 +36,10 @@ export function memoryAuth() {
     async session(key) {
       return sessions.get(key) ?? null;
     },
+    async deleteAccount(userId) {
+      for (const [key, user] of users) if (user.id === userId) users.delete(key);
+      for (const [key, user] of sessions) if (user.id === userId) sessions.delete(key);
+    },
     async signOut(key) {
       sessions.delete(key);
     },

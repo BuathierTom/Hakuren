@@ -18,6 +18,7 @@ export interface AuthRepository {
   signIn(profile: DiscordProfile, sessionHash: string, previousHash?: string): Promise<AuthUser>;
   session(sessionHash: string): Promise<AuthUser | null>;
   signOut(sessionHash: string): Promise<void>;
+  deleteAccount(userId: number): Promise<void>;
 }
 
 const hashBuffer = (hash: string) => Buffer.from(hash, 'hex');
@@ -26,6 +27,7 @@ const user = (account: User): AuthUser => ({
   discordId: account.discordId,
   displayName: account.displayName,
   avatarUrl: account.avatarUrl ?? null,
+  createdAt: account.createdAt?.toISOString(),
 });
 
 export function createAuthRepository(manager: EntityManager): AuthRepository {
@@ -109,6 +111,12 @@ export function createAuthRepository(manager: EntityManager): AuthRepository {
         { populate: ['user'] },
       );
       return session ? user(session.user.$) : null;
+    },
+    async deleteAccount(userId) {
+      await manager.fork().transactional(async (em) => {
+        const account = await em.findOne(User, userId, { lockMode: LockMode.PESSIMISTIC_WRITE });
+        if (account) await em.nativeDelete(User, { id: userId });
+      });
     },
     async signOut(sessionHash) {
       await manager.fork().nativeDelete(AuthSession, { tokenHash: hashBuffer(sessionHash) });
