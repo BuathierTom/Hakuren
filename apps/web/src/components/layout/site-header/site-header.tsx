@@ -1,3 +1,4 @@
+import { InstallApp } from '@/features/pwa/components/install-app/install-app';
 import { AccountControl } from '@/features/auth/components/account-control/account-control';
 import { AuthNotice } from '@/features/auth/components/auth-notice/auth-notice';
 import { intercept, type View } from '@/app/navigation';
@@ -38,6 +39,7 @@ export function SiteHeader({ view }: { view: View }) {
             >
               Catalogue
             </a>
+            <InstallApp />
           </nav>
           <div className={styles.account}>
             <AccountControl />

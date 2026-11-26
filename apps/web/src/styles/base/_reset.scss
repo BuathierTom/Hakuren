@@ -6,6 +6,11 @@
 
 body {
   margin: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+#root {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 button,
