@@ -33,7 +33,13 @@ export function SiteHeader({ view }: { view: View }) {
             </a>
             <a
               href="/catalogue"
-              aria-current={view !== 'players' && view !== 'builder' ? 'page' : undefined}
+              aria-current={
+                ['catalogue', 'techniques', 'equipment', 'tactics', 'passives', 'teams'].includes(
+                  view,
+                )
+                  ? 'page'
+                  : undefined
+              }
               onClick={(event) => intercept(event, '/catalogue')}
             >
               Catalogue

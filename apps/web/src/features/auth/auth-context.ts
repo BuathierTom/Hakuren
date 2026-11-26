@@ -3,9 +3,11 @@ import type { AuthSession } from '@shared/auth';
 export interface AuthContextValue extends AuthSession {
   loading: boolean;
   signingOut: boolean;
+  deletingAccount: boolean;
   error: string | null;
   refresh: () => Promise<void>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<boolean>;
   clearError: () => void;
 }
 export const AuthContext = createContext<AuthContextValue | null>(null);

@@ -1,3 +1,4 @@
+import { FavoriteButton } from '@/features/favorites/components/favorite-button/favorite-button';
 import type { TechniqueSummary } from '@shared/catalogue';
 import { href, intercept } from '@/app/navigation';
 import { ElementBadge } from '../catalogue-badges/catalogue-badges';
@@ -18,7 +19,7 @@ export function TechniqueList({ techniques }: { techniques: TechniqueSummary[] }
         {techniques.map((technique) => {
           const target = href('techniques', { detail: technique.id });
           return (
-            <li key={technique.id}>
+            <li key={technique.id} className={styles.entry}>
               <a
                 className={styles.row}
                 href={target}
@@ -45,6 +46,7 @@ export function TechniqueList({ techniques }: { techniques: TechniqueSummary[] }
                 </span>
                 <span className={styles.notes}>{technique.notes?.join(' - ')}</span>
               </a>
+              <FavoriteButton kind="techniques" targetId={technique.id} name={technique.name} />
             </li>
           );
         })}

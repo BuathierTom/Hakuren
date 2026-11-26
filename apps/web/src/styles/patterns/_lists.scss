@@ -22,3 +22,20 @@
     background: var(--color-hover);
   }
 }
+
+@mixin favorite-entry {
+  display: flex;
+  align-items: center;
+  > a {
+    flex: 1;
+    min-width: 0;
+  }
+  > div:last-child {
+    margin-right: 12px;
+  }
+  @media (max-width: 560px) {
+    > div:last-child {
+      margin-right: 4px;
+    }
+  }
+}

@@ -1,3 +1,4 @@
+import { FavoriteButton } from '@/features/favorites/components/favorite-button/favorite-button';
 import type { CatalogueItem } from '@shared/catalogue';
 import { href, intercept } from '@/app/navigation';
 import { TacticIcon } from '../game-icon/game-icon';
@@ -9,7 +10,7 @@ export function ItemList({ items }: { items: CatalogueItem[] }) {
       {items.map((item) => {
         const target = href(item.section, { detail: item.id });
         return (
-          <li key={item.id}>
+          <li key={item.id} className={styles.entry}>
             <a href={target} onClick={(event) => intercept(event, target, { overlay: true })}>
               <span className={styles.icon}>
                 {item.section === 'tactics' ? (
@@ -42,6 +43,7 @@ export function ItemList({ items }: { items: CatalogueItem[] }) {
                 <span className={styles.tension}>{tensionLabel(item.tension)}</span>
               )}
             </a>
+            <FavoriteButton kind={item.section} targetId={item.id} name={item.name} />
           </li>
         );
       })}

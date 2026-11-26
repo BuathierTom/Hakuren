@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { href, navigate, closeDetail, teamPlayerHref } from '../src/app/navigation.ts';
+import {
+  catalogueDetailHref,
+  href,
+  navigate,
+  closeDetail,
+  teamPlayerHref,
+} from '../src/app/navigation.ts';
 import { deferCatalogueSearch } from '../src/features/catalogue/lib/search-navigation.ts';
 function browser(path: string) {
   const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
@@ -126,6 +132,101 @@ test('search still replaces the current list and its cleanup cancels a pending u
     cancel();
     page.flush();
     assert.equal(page.url.search, '?q=Alpine');
+  } finally {
+    page.restore();
+  }
+});
+
+test('the profile link has its own route and leaves catalogue filters in the previous history entry', () => {
+  const page = browser('/joueurs?q=Evans&position=GK&detail=1');
+  try {
+    const before = page.url.href;
+    const profile = href('profile', {}, false);
+    assert.equal(profile, '/profil');
+    navigate(profile);
+    assert.equal(page.url.pathname, '/profil');
+    assert.equal(page.url.search, '');
+    window.history.back();
+    assert.equal(page.url.href, before);
+  } finally {
+    page.restore();
+  }
+});
+
+test('every favorite opens over the profile and closes back to the same profile entry', () => {
+  const page = browser('/profil');
+  try {
+    for (const kind of ['players', 'techniques', 'equipment', 'tactics', 'teams'] as const) {
+      navigate(catalogueDetailHref(kind, 42, false), { overlay: true });
+      assert.equal(page.url.pathname, '/profil');
+      assert.equal(page.url.searchParams.get('entry'), kind);
+      assert.equal(page.url.searchParams.get('detail'), '42');
+      closeDetail(kind);
+      assert.equal(page.url.pathname, '/profil');
+      assert.equal(page.url.search, '');
+    }
+  } finally {
+    page.restore();
+  }
+});
+test('related profile details and replaced player variants keep their modal return history', () => {
+  const page = browser('/profil');
+  try {
+    navigate(catalogueDetailHref('players', 1), { overlay: true });
+    navigate(catalogueDetailHref('players', 2), { replace: true });
+    const player = page.url.href;
+    navigate(catalogueDetailHref('techniques', 7, false), { overlay: true });
+    assert.equal(page.url.pathname, '/profil');
+    assert.equal(page.url.searchParams.get('entry'), 'techniques');
+    closeDetail('techniques');
+    assert.equal(page.url.href, player);
+    closeDetail('players');
+    assert.equal(page.url.href, 'https://hakuren.test/profil');
+  } finally {
+    page.restore();
+  }
+});
+test('a favorite team roster stays on the profile through player and variant navigation', () => {
+  const page = browser('/profil');
+  try {
+    navigate(catalogueDetailHref('teams', 13), { overlay: true });
+    const team = page.url.href;
+    navigate(teamPlayerHref(13, 167), { overlay: true });
+    assert.equal(page.url.pathname, '/profil');
+    assert.equal(page.url.searchParams.get('entry'), 'teams');
+    navigate(teamPlayerHref(13, 444), { replace: true });
+    closeDetail('teams', 'player');
+    assert.equal(page.url.href, team);
+    closeDetail('teams');
+    assert.equal(page.url.search, '');
+  } finally {
+    page.restore();
+  }
+});
+test('direct favorite links close within the profile and clear stale roster players on related details', () => {
+  const page = browser('/profil?entry=teams&detail=13&player=167');
+  try {
+    const technique = new URL(catalogueDetailHref('techniques', 7, false), page.url);
+    assert.equal(technique.pathname, '/profil');
+    assert.equal(technique.searchParams.get('player'), null);
+    closeDetail('teams', 'player');
+    assert.equal(page.url.searchParams.get('entry'), 'teams');
+    assert.equal(page.url.searchParams.get('detail'), '13');
+    closeDetail('teams');
+    assert.equal(page.url.href, 'https://hakuren.test/profil');
+  } finally {
+    page.restore();
+  }
+});
+test('catalogue detail links keep their current filters while builder details target the catalogue', () => {
+  const page = browser('/joueurs?q=Evans&page=2');
+  try {
+    const player = new URL(catalogueDetailHref('players', 42), page.url);
+    assert.equal(player.pathname, '/joueurs');
+    assert.equal(player.searchParams.get('q'), 'Evans');
+    assert.equal(player.searchParams.get('page'), '2');
+    navigate('/');
+    assert.equal(catalogueDetailHref('techniques', 7, false), '/techniques?detail=7');
   } finally {
     page.restore();
   }

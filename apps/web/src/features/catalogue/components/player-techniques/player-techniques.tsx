@@ -6,7 +6,7 @@ import {
   type TechniquePreviewSelection,
 } from '../player-technique-preview/player-technique-preview';
 import { PlayerDetailBlock } from '../player-detail-block/player-detail-block';
-import { href, intercept } from '@/app/navigation';
+import { catalogueDetailHref, intercept } from '@/app/navigation';
 import { CATEGORIES } from '../../lib/labels';
 import styles from './player-techniques.module.scss';
 
@@ -21,7 +21,7 @@ function TechniqueRows({ moves, selectedId, previewId, onSelect }: TechniqueRows
   return (
     <ul className={styles.moves}>
       {moves.map((move) => {
-        const target = href('techniques', { detail: move.technique.id }, false);
+        const target = catalogueDetailHref('techniques', move.technique.id, false);
         return (
           <li key={move.id}>
             <a

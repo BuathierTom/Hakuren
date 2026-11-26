@@ -9,6 +9,7 @@ import { ItemList } from '../item-list/item-list';
 import { CataloguePagination } from '../catalogue-pagination/catalogue-pagination';
 import styles from './catalogue-results.module.scss';
 const singular = {
+  profile: 'profil',
   builder: 'composition',
   players: 'joueur',
   techniques: 'technique',

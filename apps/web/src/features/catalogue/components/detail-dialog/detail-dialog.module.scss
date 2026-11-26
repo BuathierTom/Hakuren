@@ -38,7 +38,7 @@
     font-size: var(--font-size-body);
     font-weight: 600;
   }
-  button {
+  .close {
     display: grid;
     place-items: center;
     width: 33px;
@@ -102,4 +102,10 @@
   .body {
     padding: 20px 14px;
   }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }

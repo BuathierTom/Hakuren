@@ -1,36 +1,32 @@
-import { Icon } from '@/components/ui/icon/icon';
+import { href, intercept, useLocation } from '@/app/navigation';
 import discordLogo from '../../../../../assets/icons/brands/discord.svg';
 import { useAuth } from '../../auth-context';
 import { AccountAvatar } from './account-avatar';
 import styles from './account-control.module.scss';
 export function AccountControl() {
   const auth = useAuth();
-  if (auth.user)
+  const { view } = useLocation();
+  if (auth.user) {
+    const target = href('profile', {}, false);
     return (
-      <div className={styles.account}>
-        <div className={styles.identity} title={auth.user.displayName}>
-          <AccountAvatar
-            key={auth.user.avatarUrl ?? auth.user.id}
-            className={styles.avatar}
-            src={auth.user.avatarUrl}
-            name={auth.user.displayName}
-          />
-          <span>{auth.user.displayName}</span>
-        </div>
-        <button
-          className={styles.logout}
-          type="button"
-          disabled={auth.signingOut}
-          onClick={() => {
-            void auth.signOut();
-          }}
-          aria-label="Se déconnecter"
-          title="Se déconnecter"
-        >
-          <Icon name="logout" size={18} />
-        </button>
-      </div>
+      <a
+        className={styles.profile}
+        href={target}
+        onClick={(event) => intercept(event, target)}
+        aria-label="Ouvrir mon profil"
+        title="Mon profil"
+        aria-current={view === 'profile' ? 'page' : undefined}
+      >
+        <AccountAvatar
+          key={auth.user.avatarUrl ?? auth.user.id}
+          className={styles.avatar}
+          src={auth.user.avatarUrl}
+          name={auth.user.displayName}
+          size={32}
+        />
+      </a>
     );
+  }
   const login = new URL(auth.loginUrl, window.location.origin);
   login.searchParams.set(
     'returnTo',

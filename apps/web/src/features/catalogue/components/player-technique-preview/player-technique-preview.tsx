@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef } from 'react';
 import type { TechniqueDetail, TechniqueSummary } from '@shared/catalogue';
 import { Icon } from '@/components/ui/icon/icon';
-import { href, intercept } from '@/app/navigation';
+import { catalogueDetailHref, intercept } from '@/app/navigation';
 import { useRequest } from '../../hooks/use-catalogue-request';
 import { previewPosition } from '../../lib/preview-position';
 import { TechniqueVideo } from '../technique-video/technique-video';
@@ -27,7 +27,7 @@ export function PlayerTechniquePreview({
   const closeButton = useRef<HTMLButtonElement>(null);
   const technique = selection?.technique;
   const request = useRequest<TechniqueDetail>(technique ? `/api/techniques/${technique.id}` : null);
-  const target = technique ? href('techniques', { detail: technique.id }, false) : null;
+  const target = technique ? catalogueDetailHref('techniques', technique.id, false) : null;
 
   useLayoutEffect(() => {
     const node = popover.current!;

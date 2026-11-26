@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react';
 
 export type View =
+  | 'profile'
   | 'builder'
   | 'players'
   | 'techniques'
@@ -10,6 +11,7 @@ export type View =
   | 'teams'
   | 'catalogue';
 export const VIEW_PATHS: Record<View, string> = {
+  profile: '/profil',
   builder: '/',
   players: '/joueurs',
   techniques: '/techniques',
@@ -60,15 +62,30 @@ export function navigate(target: string, options: { replace?: boolean; overlay?:
   else window.history.pushState(state, '', target);
   window.dispatchEvent(new PopStateEvent('popstate'));
 }
+export function catalogueDetailHref(
+  view: Exclude<View, 'profile' | 'builder' | 'catalogue'>,
+  id: number,
+  preserve = true,
+) {
+  return window.location.pathname === VIEW_PATHS.profile
+    ? href('profile', { entry: view, detail: id, player: null })
+    : href(view, { detail: id }, preserve);
+}
 export function teamPlayerHref(teamId: number, playerId: number) {
-  return href('teams', { detail: teamId, player: playerId });
+  return window.location.pathname === VIEW_PATHS.profile
+    ? href('profile', { entry: 'teams', detail: teamId, player: playerId })
+    : href('teams', { detail: teamId, player: playerId });
 }
 export function closeDetail(view: View, key: 'detail' | 'player' = 'detail') {
   if (window.history.state?.overlay) window.history.back();
   else
-    navigate(href(view, key === 'player' ? { player: null } : { detail: null, player: null }), {
-      replace: true,
-    });
+    navigate(
+      href(
+        window.location.pathname === VIEW_PATHS.profile ? 'profile' : view,
+        key === 'player' ? { player: null } : { detail: null, player: null, entry: null },
+      ),
+      { replace: true },
+    );
 }
 export function intercept(
   event: React.MouseEvent<HTMLAnchorElement>,

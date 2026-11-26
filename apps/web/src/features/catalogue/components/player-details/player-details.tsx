@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { PlayerDetail, PlayerForm } from '@shared/catalogue';
 import { Portrait } from '../player-portrait/player-portrait';
-import { href, intercept } from '@/app/navigation';
+import { catalogueDetailHref, intercept } from '@/app/navigation';
 import { age, workLabel } from '../../lib/labels';
 import { PLAYER_FORMS, playerForms, playerMoves, playerStats } from '../../lib/player-forms';
 import { PlayerTechniques } from '../player-techniques/player-techniques';
@@ -74,7 +74,7 @@ export function PlayerPanel({
           </div>
           <div className={styles.related}>
             {player.variants.map((variant) => {
-              const target = playerLink?.(variant.id) ?? href('players', { detail: variant.id });
+              const target = playerLink?.(variant.id) ?? catalogueDetailHref('players', variant.id);
               return (
                 <a
                   key={variant.id}

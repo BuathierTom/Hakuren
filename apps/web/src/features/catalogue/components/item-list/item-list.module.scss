@@ -70,3 +70,7 @@
     font-size: var(--font-size-small);
   }
 }
+
+.entry {
+  @include lists.favorite-entry;
+}

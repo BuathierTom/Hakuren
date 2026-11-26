@@ -10,6 +10,7 @@
 }
 .heading {
   @include lists.heading;
+  padding-right: 68px;
   > span:not(:first-child) {
     text-align: center;
   }
@@ -103,4 +104,8 @@
   .tension {
     font-size: var(--font-size-caption);
   }
+}
+
+.entry {
+  @include lists.favorite-entry;
 }

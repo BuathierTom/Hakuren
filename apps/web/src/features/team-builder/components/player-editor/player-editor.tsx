@@ -1,3 +1,4 @@
+import { FavoriteButton } from '@/features/favorites/components/favorite-button/favorite-button';
 import { PlayerNotes } from '../player-notes/player-notes';
 import { playerNote } from '../../lib/player-notes';
 import { PlayerLoadout } from '../player-loadout/player-loadout';
@@ -117,6 +118,11 @@ export function PlayerEditor({
       wide
       actions={
         <>
+          <FavoriteButton
+            kind="players"
+            targetId={assignment.player.id}
+            name={assignment.player.name}
+          />
           <button type="button" className={styles.change} onClick={onReplace}>
             Changer
           </button>

@@ -3,10 +3,12 @@ export function AccountAvatar({
   src,
   name,
   className,
+  size = 28,
 }: {
   src: string | null;
   name: string;
   className?: string;
+  size?: number;
 }) {
   const [failed, setFailed] = useState(false);
   return src && !failed ? (
@@ -14,8 +16,8 @@ export function AccountAvatar({
       className={className}
       src={src}
       alt=""
-      width="28"
-      height="28"
+      width={size}
+      height={size}
       onError={() => setFailed(true)}
     />
   ) : (

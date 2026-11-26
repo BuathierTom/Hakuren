@@ -43,3 +43,7 @@
     padding-left: 76px;
   }
 }
+
+.entry {
+  @include lists.favorite-entry;
+}

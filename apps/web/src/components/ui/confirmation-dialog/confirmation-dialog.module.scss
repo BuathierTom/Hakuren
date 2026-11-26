@@ -1,0 +1,73 @@
+@use '@/styles/patterns/controls';
+.dialog {
+  width: min(560px, calc(100vw - 32px));
+  max-width: none;
+  max-height: 90dvh;
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  &::backdrop {
+    background: #142c40a6;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--color-border);
+    h2 {
+      margin: 0;
+      font-size: 19px;
+    }
+    button {
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      flex-shrink: 0;
+      padding: 0;
+    }
+  }
+  button {
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+    &:disabled {
+      opacity: 0.5;
+      cursor: wait;
+    }
+  }
+}
+.body {
+  padding: 22px;
+  p {
+    margin: 0 0 16px;
+    font-size: var(--font-size-body);
+    line-height: 1.7;
+  }
+}
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+  button {
+    padding: 10px 14px;
+    font-size: var(--font-size-small);
+    @include controls.label;
+  }
+  .confirm {
+    background: #b33d32;
+    border-color: #b33d32;
+    color: white;
+  }
+}

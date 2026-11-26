@@ -1,3 +1,5 @@
+import { FavoriteButton } from '@/features/favorites/components/favorite-button/favorite-button';
+import { favoriteKind } from '@/features/favorites/lib/kinds';
 import { PassivePanel } from '../passive-details/passive-details';
 import { TeamPanel } from '../team-details/team-details';
 import { useEffect, useId, useLayoutEffect, useRef } from 'react';
@@ -17,6 +19,7 @@ import { TechniquePanel } from '../technique-details/technique-details';
 import styles from './detail-dialog.module.scss';
 
 const DETAIL_LABELS: Record<View, string> = {
+  profile: 'Profil',
   builder: 'Composition',
   players: 'Fiche joueur',
   techniques: 'Fiche technique',
@@ -35,6 +38,7 @@ export function DetailDialog({ view, id }: { view: View; id: number }) {
   const teamScroll = useRef(0);
   const previousPlayer = useRef<number | null>(null);
   const location = useLocation();
+  const selectedKind = view === 'teams' && location.playerDetail ? 'players' : view;
   const rosterPlayer = view === 'teams' ? location.playerDetail : null;
   const player = useRequest<PlayerDetail>(
     view === 'players'
@@ -90,15 +94,21 @@ export function DetailDialog({ view, id }: { view: View; id: number }) {
     >
       <div className={styles.topbar}>
         <span>{DETAIL_LABELS[rosterPlayer ? 'players' : view]}</span>
-        <button
-          ref={closeButton}
-          type="button"
-          onClick={() => closeDetail(view, rosterPlayer ? 'player' : 'detail')}
-          aria-label="Fermer la fiche"
-          autoFocus
-        >
-          <Icon name="close" size={22} />
-        </button>
+        <div className={styles.actions}>
+          {favoriteKind(selectedKind) && (
+            <FavoriteButton kind={selectedKind} targetId={rosterPlayer ?? id} />
+          )}
+          <button
+            className={styles.close}
+            ref={closeButton}
+            type="button"
+            onClick={() => closeDetail(view, rosterPlayer ? 'player' : 'detail')}
+            aria-label="Fermer la fiche"
+            autoFocus
+          >
+            <Icon name="close" size={22} />
+          </button>
+        </div>
       </div>
       <div className={styles.body} hidden={!!rosterPlayer} aria-busy={request.loading}>
         {request.loading ? (

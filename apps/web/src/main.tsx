@@ -1,3 +1,4 @@
+import { FavoritesProvider } from '@/features/favorites/favorites-provider';
 import { NotificationProvider } from '@/features/notifications/notification-provider';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -11,7 +12,9 @@ createRoot(root).render(
   <StrictMode>
     <NotificationProvider>
       <AuthProvider>
-        <App />
+        <FavoritesProvider>
+          <App />
+        </FavoritesProvider>
       </AuthProvider>
     </NotificationProvider>
   </StrictMode>,

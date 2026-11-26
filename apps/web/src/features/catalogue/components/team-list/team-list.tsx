@@ -1,3 +1,4 @@
+import { FavoriteButton } from '@/features/favorites/components/favorite-button/favorite-button';
 import type { HistoricalTeam } from '@shared/catalogue';
 import { href, intercept } from '@/app/navigation';
 import { TeamLogo } from '../team-logo/team-logo';
@@ -9,7 +10,7 @@ export function TeamList({ teams }: { teams: HistoricalTeam[] }) {
       {teams.map((team) => {
         const target = href('teams', { detail: team.id });
         return (
-          <li key={team.id}>
+          <li key={team.id} className={styles.entry}>
             <a href={target} onClick={(event) => intercept(event, target, { overlay: true })}>
               <TeamLogo name={team.name} src={team.logoUrl} />
               <span className={styles.name}>
@@ -22,6 +23,7 @@ export function TeamList({ teams }: { teams: HistoricalTeam[] }) {
                 {count(team.playerCount)} {team.playerCount === 1 ? 'personnage' : 'personnages'}
               </span>
             </a>
+            <FavoriteButton kind="teams" targetId={team.id} name={team.name} />
           </li>
         );
       })}

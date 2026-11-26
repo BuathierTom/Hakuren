@@ -1,28 +1,17 @@
-.account {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-.identity {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  > span:last-child {
-    max-width: 150px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: var(--font-size-small);
-    font-weight: 600;
-  }
+.profile {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 5px;
+  color: var(--color-text);
+  text-decoration: none;
 }
 .avatar {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   object-fit: cover;
   flex-shrink: 0;
   background: var(--color-accent-soft);
@@ -69,30 +58,7 @@
   flex-shrink: 0;
   object-fit: contain;
 }
-.logout {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  flex-shrink: 0;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  color: var(--color-muted);
-  cursor: pointer;
-  &:hover:not(:disabled) {
-    border-color: var(--color-accent);
-    color: var(--color-accent);
-  }
-  &:disabled {
-    opacity: 0.5;
-    cursor: wait;
-  }
-}
 @media (max-width: 520px) {
-  .identity > span:last-child {
-    max-width: 115px;
-  }
   .login {
     font-size: 12px;
     padding: 8px 10px;

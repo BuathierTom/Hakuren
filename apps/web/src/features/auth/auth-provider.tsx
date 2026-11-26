@@ -1,3 +1,4 @@
+import { clearDeletedAccount } from './lib/deleted-account';
 import { useNotifications } from '@/features/notifications/notification-context';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import type { AuthSession } from '@shared/auth';
@@ -11,6 +12,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
   const [loading, setLoading] = useState(true);
   const [signingOut, setSigningOut] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const pending = useRef<AbortController | null>(null);
   const logoutActive = useRef(false);
@@ -77,12 +79,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!controller.signal.aborted) setSigningOut(false);
     }
   }, [notify]);
+  const deleteAccount = useCallback(async () => {
+    const userId = session.user?.id;
+    if (!userId || logoutActive.current) return false;
+    logoutActive.current = true;
+    setDeletingAccount(true);
+    pending.current?.abort();
+    const controller = new AbortController();
+    pending.current = controller;
+    try {
+      const response = await fetch('/api/me/account', {
+        method: 'DELETE',
+        credentials: 'same-origin',
+        signal: controller.signal,
+        headers: { 'Content-Type': 'application/json', 'X-Hakuren-Account': String(userId) },
+        body: JSON.stringify({ confirm: true }),
+      });
+      if (!response.ok) {
+        const failure = (await response.json().catch(() => null)) as { message?: string } | null;
+        throw new Error(failure?.message ?? 'Impossible de supprimer le compte pour le moment.');
+      }
+      try {
+        clearDeletedAccount(window.localStorage, userId);
+      } catch {}
+      setSession((current) => (current.user?.id === userId ? { ...current, user: null } : current));
+      setError(null);
+      setLoading(false);
+      notify({ message: 'Ton compte Hakuren a été supprimé.', tone: 'success' });
+      return true;
+    } catch (cause) {
+      if (!controller.signal.aborted)
+        setError(
+          cause instanceof Error
+            ? cause.message
+            : 'Impossible de supprimer le compte pour le moment.',
+        );
+      return false;
+    } finally {
+      logoutActive.current = false;
+      if (!controller.signal.aborted) setDeletingAccount(false);
+    }
+  }, [session.user?.id, notify]);
   return (
     <AuthContext
       value={{
         ...session,
         loading,
         signingOut,
+        deletingAccount,
+        deleteAccount,
         error,
         refresh,
         signOut,

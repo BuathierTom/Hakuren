@@ -1,3 +1,4 @@
+import { FavoriteButton } from '@/features/favorites/components/favorite-button/favorite-button';
 import type { PlayerSummary } from '@shared/catalogue';
 import { href, intercept } from '@/app/navigation';
 import { ElementBadge, PositionBadge, RarityBadge } from '../catalogue-badges/catalogue-badges';
@@ -39,7 +40,7 @@ export function PlayerList({
             .filter(Boolean)
             .join(', ');
           return (
-            <li key={player.id}>
+            <li key={player.id} className={styles.entry}>
               <a
                 className={styles.row}
                 href={target}
@@ -86,6 +87,7 @@ export function PlayerList({
                   </span>
                 </span>
               </a>
+              <FavoriteButton kind="players" targetId={player.id} name={player.name} />
             </li>
           );
         })}

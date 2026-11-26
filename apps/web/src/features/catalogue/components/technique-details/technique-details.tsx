@@ -2,14 +2,14 @@ import type { TechniqueDetail, TechniqueSummary } from '@shared/catalogue';
 import { ElementBadge, PositionBadge } from '../catalogue-badges/catalogue-badges';
 import { Portrait } from '../player-portrait/player-portrait';
 import { TechniqueTypeIcon } from '../game-icon/game-icon';
-import { href, intercept } from '@/app/navigation';
+import { catalogueDetailHref, href, intercept } from '@/app/navigation';
 import { age, CATEGORIES, count, workLabel } from '../../lib/labels';
 import { TechniquePreview } from '../technique-preview/technique-preview';
 import { EntryStatistics } from '../entry-statistics/entry-statistics';
 import styles from './technique-details.module.scss';
 
 function TechniqueLink({ technique }: { technique: TechniqueSummary }) {
-  const target = href('techniques', { detail: technique.id }, false);
+  const target = catalogueDetailHref('techniques', technique.id, false);
   return (
     <a
       className={styles.techniqueLink}
@@ -85,7 +85,7 @@ export function TechniquePanel({
           <>
             <div className={styles.related}>
               {technique.users.slice(0, 6).map((player) => {
-                const target = href('players', { detail: player.id }, false);
+                const target = catalogueDetailHref('players', player.id, false);
                 return (
                   <a
                     key={player.id}
